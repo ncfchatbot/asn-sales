@@ -65,12 +65,20 @@
                     <h2 class="text-2xl font-black text-slate-800">จัดการคลังสินค้าหลัก</h2>
                     <div class="flex gap-2">
                         <button onclick="printInventorySheet()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-1">🖨️ พิมพ์ใบเช็คสต็อก</button>
+                        <button onclick="downloadTemplate()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2 px-4 rounded-lg">📥 CSV Template</button>
                     </div>
                 </div>
                 
                 <div class="print-only text-center mb-6">
                     <h1 class="text-2xl font-bold">ใบเช็คสต็อกคลังหลัก ASN MASTER</h1>
                     <p>วันที่พิมพ์: <span id="pPrintDate"></span> | ลงชื่อพนักงานนับสต็อก: ......................................................</p>
+                </div>
+
+                <div class="no-print bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-1">
+                        <button onclick="uploadCSV()" id="btnUploadCsv" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all">อัปโหลดเข้าคลัง</button>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto" id="inventoryPrintSection">
@@ -244,7 +252,7 @@
             if(tab === 'settings') loadUsers();
         }
 
-        /* --- DASHBOARD FIX --- */
+        /* --- DASHBOARD --- */
         async function loadAdminDashboard() { 
             const { data: orders } = await _client.from('orders').select('total_amount'); 
             if (orders) { 
@@ -255,7 +263,59 @@
             document.getElementById('totalProductsCount').innerText = count || 0; 
         }
 
-        /* --- ORDERS FIX --- */
+        /* --- BULK IMPORT & TEMPLATE (เพิ่มกลับมาแล้ว) --- */
+        function downloadTemplate() {
+            const headers = "product_code,product_name,product_group,product_cost,product_price,master_stock\n";
+            const sample = "CODE001,กาแฟ Nice Coffee,กาแฟสุขภาพ,50,120,100";
+            const csvContent = "\uFEFF" + headers + sample;
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", "asn_template.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function uploadCSV() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            if (!file) return alert('กรุณาเลือกไฟล์ CSV ก่อนครับ');
+            const btn = document.getElementById('btnUploadCsv');
+            btn.innerText = 'Uploading...'; btn.disabled = true;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l !== '');
+                const productsToAdd = [];
+                for(let i = 1; i < lines.length; i++) {
+                    const row = lines[i].split(',');
+                    if(row.length >= 6 && row[1] !== '') {
+                        productsToAdd.push({
+                            product_code: row[0],
+                            name: row[1],
+                            product_group: row[2],
+                            cost_price: Number(row[3])||0,
+                            sale_price: Number(row[4])||0,
+                            master_stock: Number(row[5])||0
+                        });
+                    }
+                }
+                try {
+                    await _client.from('products').insert(productsToAdd);
+                    alert(`✅ นำเข้าสินค้าจำนวน ${productsToAdd.length} รายการสำเร็จ!`);
+                    fileInput.value = '';
+                    loadInventory(); loadAdminDashboard();
+                } catch (err) { 
+                    alert('เกิดข้อผิดพลาด: ' + err.message); 
+                } finally { 
+                    btn.innerText = 'อัปโหลดเข้าคลัง'; btn.disabled = false; 
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        /* --- ORDERS --- */
         async function loadOrders() {
             const { data: oData } = await _client.from('orders').select('*').order('created_at', { ascending: false });
             const { data: sData } = await _client.from('salesmen').select('id, name');
@@ -354,7 +414,7 @@
             link.click();
         }
 
-        /* --- REPORTS FIX --- */
+        /* --- REPORTS --- */
         async function initReports() { 
             const { data: sales } = await _client.from('salesmen').select('id, name'); 
             if(sales) document.getElementById('repSalesman').innerHTML = '<option value="">-- ทุกพนักงาน --</option>' + sales.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); 

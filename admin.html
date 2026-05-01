@@ -11,7 +11,6 @@
         @media print {
             @page { size: A4 portrait; margin: 1cm; }
             body { background-color: white !important; color: black !important; }
-            /* เอา .shadow-sm ออกจากคำสั่งซ่อน และเพิ่มคำสั่งให้ตารางแสดงผลได้เต็มๆ */
             nav, .no-print, #admin-login-view, button, #editProductModal { display: none !important; }
             .print-only { display: block !important; }
             .max-w-7xl { max-w: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -472,12 +471,13 @@
             if (data) {
                 allProducts = data;
                 const isManager = currentAdmin.role === 'manager';
-                document.getElementById('invTableHeader').innerHTML = `<tr><th class="p-4">สินค้า</th><th class="p-4">ราคาขาย</th>${isManager ? '<th class="p-4">ต้นทุน</th>' : ''}<th class="p-4 text-center">คลังหลัก</th><th class="no-print p-4 text-center">นับจริง</th><th class="no-print p-4 text-center">จัดการ</th></tr>`;
+                // เอา class no-print ออกจากหัวตาราง "นับจริง"
+                document.getElementById('invTableHeader').innerHTML = `<tr><th class="p-4">สินค้า</th><th class="p-4">ราคาขาย</th>${isManager ? '<th class="p-4">ต้นทุน</th>' : ''}<th class="p-4 text-center">คลังหลัก</th><th class="p-4 text-center">นับจริง</th><th class="no-print p-4 text-center">จัดการ</th></tr>`;
                 document.getElementById('adminProductList').innerHTML = data.map(p => `
                     <tr><td class="p-4 font-bold">${p.name}</td><td class="p-4 text-blue-600">${p.sale_price.toLocaleString()}</td>
                     ${isManager ? `<td class="p-4 text-red-400">${(p.cost_price||0).toLocaleString()}</td>` : ''}
                     <td class="p-4 text-center font-black text-indigo-700 bg-indigo-50">${p.master_stock||0}</td>
-                    <td class="p-4 text-center border-l bg-slate-50 no-print">__________</td>
+                    <td class="p-4 text-center border-l bg-slate-50 text-slate-300">__________</td>
                     <td class="no-print p-4 text-center"><button onclick="openProductEdit(${p.id})" class="text-xs font-bold text-indigo-600 underline">แก้ไข</button></td></tr>
                 `).join('');
             }

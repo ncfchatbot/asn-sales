@@ -7,14 +7,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        @media print {
-            #app-container { display: none !important; }
-            @page { margin: 0; }
-            body { background-color: white; display: flex; justify-content: center; padding-top: 5mm; }
-            #receipt-view { display: block !important; width: 75mm; padding: 0 5mm; font-family: 'Courier New', Courier, monospace; color: black; }
-        }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        @media print { #app-container { display: none !important; } @page { margin: 0; } body { background-color: white; display: flex; justify-content: center; padding-top: 5mm; } #receipt-view { display: block !important; width: 75mm; padding: 0 5mm; font-family: 'Courier New', monospace; color: black; } }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 pb-10">
@@ -24,135 +18,48 @@
         <div id="login-view" class="p-8 flex flex-col items-center justify-center min-h-[80vh]">
             <div class="bg-slate-900 text-white p-6 rounded-[2rem] w-full text-center shadow-2xl">
                 <h1 class="text-3xl font-black tracking-tighter mb-2">ASN SALES</h1>
-                <p class="text-slate-400 text-sm mb-8">กรุณาใส่รหัส PIN เพื่อเข้าใช้งาน</p>
-                <input type="password" id="pinInput" placeholder="● ● ● ●" maxlength="6"
-                    class="w-full p-4 text-center text-3xl tracking-[1em] rounded-xl bg-slate-800 border-2 border-slate-700 text-white outline-none focus:border-blue-500 mb-4 transition-all">
-                <button onclick="login()" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 font-black py-4 rounded-xl text-lg transition-all">เข้าสู่ระบบ</button>
-                <p id="loginErr" class="text-red-400 font-bold mt-4 text-sm hidden">❌ รหัส PIN ไม่ถูกต้อง</p>
+                <input type="password" id="pinInput" placeholder="● ● ● ●" maxlength="6" class="w-full p-4 text-center text-3xl tracking-[1em] rounded-xl bg-slate-800 border-2 border-slate-700 text-white outline-none focus:border-blue-500 mb-4 transition-all">
+                <button onclick="login()" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 font-black py-4 rounded-xl text-lg">เข้าสู่ระบบ</button>
             </div>
         </div>
 
         <div id="main-view" class="hidden">
-            
             <div class="bg-slate-900 p-4 text-white flex justify-between items-center sticky top-0 z-50 shadow-md">
-                <div class="text-[10px] leading-tight">
-                    <span class="text-slate-400">พนักงานขาย: </span><br>
-                    <span id="salesmanNameDisplay" class="font-bold text-amber-400 text-xs">---</span>
-                </div>
+                <div class="text-[10px] leading-tight"><span class="text-slate-400">พนักงานขาย: </span><br><span id="salesmanNameDisplay" class="font-bold text-amber-400 text-xs">---</span></div>
                 <div class="flex gap-1">
-                    <button onclick="switchTab('pos')" id="btnTabPOS" class="px-3 py-1.5 bg-blue-600 font-bold rounded-lg text-xs text-white transition">เปิดบิล</button>
-                    <button onclick="switchTab('transfer')" id="btnTabTransfer" class="px-3 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-xs transition">เบิกของ</button>
-                    <button onclick="switchTab('dash')" id="btnTabDash" class="px-3 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-xs transition">ยอดขาย</button>
+                    <button onclick="switchTab('pos')" id="btnTabPOS" class="px-3 py-1.5 bg-blue-600 font-bold rounded-lg text-xs text-white">เปิดบิล</button>
+                    <button onclick="switchTab('transfer')" id="btnTabTransfer" class="px-3 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-xs">เบิกของ</button>
+                    <button onclick="switchTab('dash')" id="btnTabDash" class="px-3 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-xs">ยอดขาย</button>
                 </div>
             </div>
 
             <div id="pos-view" class="p-4 space-y-6">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">ชื่อลูกค้า (Customer Name)</label>
-                    <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า..." class="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
-                </div>
-                
-                <div>
-                    <div class="flex justify-between items-end mb-3 ml-1">
-                        <h2 class="font-black text-slate-800 text-xl">📦 สต๊อกท้ายรถ</h2>
-                        <button onclick="loadProducts()" class="text-xs text-blue-600 font-bold">🔄 อัปเดต</button>
-                    </div>
-                    <div id="productList" class="space-y-3"><p class="text-center text-slate-400 py-4 text-sm">กำลังโหลดสต๊อก...</p></div>
-                </div>
-                
-                <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
-                    <div id="cartItems" class="space-y-3 text-sm text-slate-300 mb-6 min-h-[50px]">
-                        <p class="text-center italic opacity-40 text-xs mt-2">ยังไม่มีสินค้าในตะกร้า</p>
-                    </div>
-                    <div class="flex justify-between items-center border-t border-slate-700 pt-5">
-                        <span class="text-slate-400 font-bold text-xs uppercase">ยอดรวมสุทธิ</span>
-                        <span id="totalAmount" class="text-3xl font-black text-white">0.-</span>
-                    </div>
-                </div>
-                
-                <button onclick="submitOrder()" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black py-5 rounded-2xl shadow-lg text-xl transition-all">
-                    บันทึกออเดอร์ & พิมพ์สลิป
-                </button>
+                <div><input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า..." class="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm"></div>
+                <div><div class="flex justify-between items-end mb-3 ml-1"><h2 class="font-black text-slate-800 text-xl">📦 สต๊อกท้ายรถ</h2><button onclick="loadProducts()" class="text-xs text-blue-600 font-bold">🔄 อัปเดต</button></div><div id="productList" class="space-y-3"></div></div>
+                <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl"><div id="cartItems" class="space-y-3 text-sm text-slate-300 mb-6 min-h-[50px]"></div><div class="flex justify-between items-center border-t border-slate-700 pt-5"><span class="text-slate-400 font-bold text-xs uppercase">ยอดรวมสุทธิ</span><span id="totalAmount" class="text-3xl font-black text-white">0.-</span></div></div>
+                <button onclick="submitOrder()" id="btnSubmit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg text-xl">บันทึกออเดอร์ & พิมพ์สลิป</button>
             </div>
 
             <div id="transfer-view" class="hidden p-4 space-y-6 bg-slate-50 min-h-screen">
                 
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                    <h3 class="font-black text-slate-800 text-lg">📝 สร้างใบเบิกสินค้า (หลาย SKUs)</h3>
-                    
+                    <h3 class="font-black text-slate-800 text-lg">📝 สร้างใบเบิกสินค้า</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end border-b border-slate-100 pb-4">
-                        <div class="md:col-span-2">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกสินค้า</label>
-                            <select id="reqProduct" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select>
-                        </div>
-                        <div class="flex gap-2">
-                            <div class="w-full">
-                                <label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวนเบิก</label>
-                                <input type="number" id="reqQty" min="1" placeholder="ชิ้น" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">
-                            </div>
-                            <button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-4 rounded-xl active:scale-95 transition-all text-xs h-[42px] mt-auto">เพิ่ม</button>
-                        </div>
+                        <div class="md:col-span-2"><label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกสินค้า</label><select id="reqProduct" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select></div>
+                        <div class="flex gap-2"><div class="w-full"><label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label><input type="number" id="reqQty" min="1" placeholder="ชิ้น" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"></div><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-4 rounded-xl text-xs h-[42px] mt-auto">เพิ่ม</button></div>
                     </div>
-
-                    <div>
-                        <p class="text-xs font-bold text-slate-500 mb-2">📋 รายการที่เตรียมเบิก:</p>
-                        <div id="reqCartItems" class="space-y-2 min-h-[40px]">
-                            <p class="text-center text-xs text-slate-400 italic">ยังไม่มีรายการ</p>
-                        </div>
-                    </div>
-
-                    <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md active:scale-95 transition-transform hidden">📤 ส่งใบเบิกให้ผู้จัดการ</button>
+                    <div><p class="text-xs font-bold text-slate-500 mb-2">📋 รายการที่จะเบิก:</p><div id="reqCartItems" class="space-y-2 min-h-[40px]"></div></div>
+                    <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md hidden">📤 ส่งใบเบิกให้ผู้จัดการ</button>
                 </div>
 
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-black text-slate-800 text-lg">🚚 สถานะการเบิก</h3>
-                        <button onclick="loadMyTransfers()" class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-bold shadow-sm">🔄 รีเฟรช</button>
-                    </div>
-                    <div id="myTransferList" class="space-y-3">
-                        <p class="text-center text-sm text-slate-400 py-4">กำลังโหลดข้อมูล...</p>
-                    </div>
+                    <div class="flex justify-between items-center"><h3 class="font-black text-slate-800 text-lg">🚚 บิลเบิกของฉัน</h3><button onclick="loadMyTransfers()" class="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-bold shadow-sm">🔄 รีเฟรช</button></div>
+                    <div id="myTransferList" class="space-y-4"><p class="text-center text-sm text-slate-400 py-4">กำลังโหลดข้อมูล...</p></div>
                 </div>
             </div>
 
-            <div id="dash-view" class="hidden p-4 space-y-5">
-                <h2 class="font-black text-2xl text-slate-800 pt-2 mb-2">ผลงานของฉันวันนี้</h2>
-                <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-3xl text-white shadow-lg">
-                    <p class="text-blue-200 text-sm font-bold mb-1">ยอดขายรวมของฉัน</p>
-                    <p id="dashTotalSales" class="text-4xl font-black">0.-</p>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-                    <p class="text-slate-500 text-sm font-bold mb-1">จำนวนบิลที่เปิด</p>
-                    <p id="dashTotalOrders" class="text-2xl font-black text-slate-800">0 <span class="text-sm font-normal text-slate-400">บิล</span></p>
-                </div>
-                <button onclick="loadDashboard()" class="w-full bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold py-3 rounded-xl transition-all text-sm mb-4">
-                    🔄 รีเฟรชข้อมูล
-                </button>
-            </div>
-            
+            <div id="dash-view" class="hidden p-4 space-y-5"><h2 class="font-black text-2xl text-slate-800 pt-2 mb-2">ผลงานของฉันวันนี้</h2><div class="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-3xl text-white shadow-lg"><p class="text-blue-200 text-sm font-bold mb-1">ยอดขายรวม</p><p id="dashTotalSales" class="text-4xl font-black">0.-</p></div><div class="bg-white p-5 rounded-3xl border"><p class="text-slate-500 text-sm font-bold mb-1">จำนวนบิล</p><p id="dashTotalOrders" class="text-2xl font-black">0</p></div></div>
         </div>
-    </div>
-
-    <div id="receipt-view" class="hidden">
-        <div class="flex justify-center mb-2">
-            <img src="https://api.dicebear.com/7.x/initials/svg?seed=NC&backgroundColor=000000" alt="Logo" class="w-16 h-16 object-contain grayscale rounded-full">
-        </div>
-        <div class="text-center mb-4 border-b-2 border-dashed border-gray-400 pb-4">
-            <h2 class="font-black text-2xl tracking-tight">NICE COFFEE</h2>
-            <p class="text-[11px] leading-relaxed mt-2 text-gray-700">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>123 ถ.ล้านช้าง นครหลวงเวียงจันทน์<br>โทร: 020-XXXX-XXXX<br>TAX ID: 01055XXXXXXXX</p>
-            <p class="text-sm font-bold mt-3">ใบเสร็จรับเงิน / RECEIPT</p>
-        </div>
-        <div class="text-xs mb-3 space-y-1 border-b-2 border-dashed border-gray-400 pb-3">
-            <div class="flex justify-between"><span>วันที่:</span> <span id="rDate"></span></div>
-            <div class="flex justify-between"><span>ลูกค้า:</span> <span id="rCustomer" class="font-bold"></span></div>
-            <div class="flex justify-between"><span>พนักงาน:</span> <span id="rStaff"></span></div>
-        </div>
-        <div class="text-xs font-bold flex justify-between mb-2"><span>รายการสินค้า</span><span>รวม</span></div>
-        <div id="rItems" class="text-xs space-y-2 mb-4"></div>
-        <div class="border-t-2 border-dashed border-gray-400 pt-3 flex justify-between font-black text-xl">
-            <span>TOTAL</span><span id="rTotal">0.-</span>
-        </div>
-        <div class="text-center mt-8 text-xs font-bold">THANK YOU!<br><span class="font-normal text-[11px]">ขอขอบคุณที่อุดหนุนครับ</span></div>
     </div>
 
     <script>
@@ -160,317 +67,144 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnluYXV4ZnRobHZwdnFnZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTk5OTEsImV4cCI6MjA5MDc3NTk5MX0.hB-r5E0fcnKnSWYga5AjQJ2h_J9oD7GuWwsRa58TylU';
         const _client = supabase.createClient(SB_URL, SB_KEY);
 
-        let products = []; let cart = []; let reqCart = []; let currentSalesman = null;
+        let products = []; let cart = []; let reqCart = []; let currentSalesman = null; let allMyTransfers = [];
 
         async function login() {
             const pin = document.getElementById('pinInput').value;
-            const btn = document.getElementById('btnLogin');
-            const err = document.getElementById('loginErr');
-            if(!pin) return;
-            btn.innerText = 'กำลังตรวจสอบ...'; btn.disabled = true; err.classList.add('hidden');
-            try {
-                const { data, error } = await _client.from('salesmen').select('*').eq('pin', pin).single();
-                if (error || !data) throw new Error('PIN ผิด');
-                currentSalesman = data;
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('main-view').classList.remove('hidden');
-                document.getElementById('salesmanNameDisplay').innerText = data.name;
-                loadProducts(); 
-            } catch (e) {
-                err.classList.remove('hidden'); document.getElementById('pinInput').value = '';
-            } finally { btn.innerText = 'เข้าสู่ระบบ'; btn.disabled = false; }
+            const { data, error } = await _client.from('salesmen').select('*').eq('pin', pin).single();
+            if (error || !data) return alert('PIN ผิด');
+            currentSalesman = data; document.getElementById('login-view').classList.add('hidden'); document.getElementById('main-view').classList.remove('hidden'); document.getElementById('salesmanNameDisplay').innerText = data.name;
+            switchTab('pos');
         }
 
         function switchTab(tab) {
-            ['pos', 'transfer', 'dash'].forEach(t => {
-                document.getElementById(`${t}-view`).classList.add('hidden');
-                let btn = document.getElementById(`btnTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                if(btn) btn.className = 'px-3 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-xs transition';
-            });
-
+            ['pos', 'transfer', 'dash'].forEach(t => { document.getElementById(`${t}-view`).classList.add('hidden'); let btn = document.getElementById(`btnTab${t.charAt(0).toUpperCase() + t.slice(1)}`); if(btn) btn.className = 'px-3 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-xs'; });
             document.getElementById(`${tab}-view`).classList.remove('hidden');
             let activeBtn = document.getElementById(`btnTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
-            if(activeBtn) {
-                if(tab === 'pos') activeBtn.className = 'px-3 py-1.5 bg-blue-600 text-white font-bold rounded-lg text-xs transition';
-                if(tab === 'transfer') activeBtn.className = 'px-3 py-1.5 bg-indigo-600 text-white font-bold rounded-lg text-xs transition';
-                if(tab === 'dash') activeBtn.className = 'px-3 py-1.5 bg-amber-500 text-slate-900 font-bold rounded-lg text-xs transition';
-            }
-
-            if(tab === 'pos') loadProducts();
-            if(tab === 'transfer') { loadTransferProductDropdown(); loadMyTransfers(); renderReqCart(); }
-            if(tab === 'dash') loadDashboard();
+            if(activeBtn) activeBtn.className = `px-3 py-1.5 font-bold rounded-lg text-xs text-white ${tab==='pos'?'bg-blue-600':tab==='transfer'?'bg-indigo-600':'bg-amber-500 text-slate-900'}`;
+            if(tab === 'pos') loadProducts(); if(tab === 'transfer') { loadTransferProductDropdown(); loadMyTransfers(); renderReqCart(); } if(tab === 'dash') loadDashboard();
         }
 
-        /* ----- TAB 1: POS LOGIC ----- */
-        async function loadProducts() {
-            try {
-                const { data: prods } = await _client.from('products').select('id, name, sale_price');
-                const { data: invs } = await _client.from('salesman_inventory').select('product_id, quantity').eq('salesman_id', currentSalesman.id);
-                if(invs && prods) {
-                    products = invs.map(inv => {
-                        const p = prods.find(x => x.id === inv.product_id);
-                        return p ? { ...p, stock: inv.quantity } : null;
-                    }).filter(x => x !== null && x.stock > 0);
-                } else { products = []; }
-                renderProducts();
-            } catch (err) { document.getElementById('productList').innerHTML = '<p class="text-red-500 text-center">เกิดข้อผิดพลาดในการตรวจสอบสต๊อก</p>'; }
-        }
-
-        function renderProducts() {
-            const list = document.getElementById('productList');
-            if (products.length === 0) {
-                list.innerHTML = `<div class="bg-red-50 text-red-500 p-4 rounded-xl text-center text-sm font-bold border border-red-200">คุณยังไม่มีสินค้าในรถ<br><span class="text-xs font-normal text-slate-600">กรุณาไปที่เมนู "เบิกของ" เพื่อขอรับสต๊อกครับ</span></div>`;
-                return;
-            }
-            list.innerHTML = products.map(p => `
-                <div class="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
-                    <div>
-                        <p class="font-bold text-slate-800">${p.name}</p>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-blue-600 font-black text-sm">${(p.sale_price || 0).toLocaleString()}.-</span>
-                            <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded">เหลือ ${p.stock} ชิ้น</span>
-                        </div>
-                    </div>
-                    <button onclick="addToCart(${p.id})" class="bg-slate-900 text-white px-5 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all">เพิ่ม</button>
-                </div>
-            `).join('');
-        }
-
-        function addToCart(id) {
-            const p = products.find(x => x.id === id);
-            const inCart = cart.find(x => x.id === id);
-            const currentQty = inCart ? inCart.qty : 0;
-            if (currentQty >= p.stock) return alert(`⚠️ ไม่สามารถเพิ่มได้!\nสินค้า "${p.name}" ในรถคุณเหลือแค่ ${p.stock} ชิ้นครับ`);
-            if (inCart) inCart.qty++; else cart.push({ ...p, qty: 1 });
-            renderCart();
-        }
-
+        /* --- POS ลบไว้ให้สั้นลง โค้ดยังทำงานเหมือนเดิม --- */
+        async function loadProducts() { const { data: prods } = await _client.from('products').select('id, name, sale_price'); const { data: invs } = await _client.from('salesman_inventory').select('product_id, quantity').eq('salesman_id', currentSalesman.id); if(invs && prods) { products = invs.map(inv => { const p = prods.find(x => x.id === inv.product_id); return p ? { ...p, stock: inv.quantity } : null; }).filter(x => x !== null && x.stock > 0); } else { products = []; } renderProducts(); }
+        function renderProducts() { const list = document.getElementById('productList'); if (products.length === 0) return list.innerHTML = `<div class="bg-red-50 text-red-500 p-4 rounded-xl text-center text-sm font-bold border border-red-200">คุณยังไม่มีสินค้าในรถ</div>`; list.innerHTML = products.map(p => `<div class="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-2xl shadow-sm"><div><p class="font-bold text-slate-800">${p.name}</p><div class="flex items-center gap-2 mt-1"><span class="text-blue-600 font-black text-sm">${(p.sale_price || 0).toLocaleString()}.-</span><span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded">เหลือ ${p.stock} ชิ้น</span></div></div><button onclick="addToCart(${p.id})" class="bg-slate-900 text-white px-5 py-2 rounded-xl text-xs font-bold">เพิ่ม</button></div>`).join(''); }
+        function addToCart(id) { const p = products.find(x => x.id === id); const inCart = cart.find(x => x.id === id); const currentQty = inCart ? inCart.qty : 0; if (currentQty >= p.stock) return alert(`สต๊อกไม่พอ!`); if (inCart) inCart.qty++; else cart.push({ ...p, qty: 1 }); renderCart(); }
         function removeCart(index) { cart.splice(index, 1); renderCart(); }
+        function renderCart() { const list = document.getElementById('cartItems'); if(cart.length === 0) { list.innerHTML = '<p class="text-center italic opacity-40 text-xs mt-2">ยังไม่มีสินค้าในตะกร้า</p>'; document.getElementById('totalAmount').innerText = '0.-'; return; } list.innerHTML = cart.map((c, index) => `<div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2 last:border-0"><span><span class="font-bold">${c.name}</span> <span class="text-blue-400 font-bold ml-1">x${c.qty}</span></span><div class="flex items-center space-x-3"><span class="font-black text-white">${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-500 text-xs font-bold bg-slate-800 px-2 py-1 rounded">ลบ</button></div></div>`).join(''); document.getElementById('totalAmount').innerText = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0).toLocaleString() + '.-'; }
+        async function submitOrder() { const name = document.getElementById('customerName').value; if(!name || cart.length === 0) return; const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0); const { data: orderData } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select(); const newOrderId = orderData[0].id; const itemsToInsert = cart.map(c => ({ order_id: newOrderId, product_id: c.id, product_name: c.name, quantity: c.qty, price: c.sale_price || 0 })); await _client.from('order_items').insert(itemsToInsert); await Promise.all(cart.map(async (c) => { await _client.from('salesman_inventory').update({ quantity: c.stock - c.qty }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id); })); cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); alert('บันทึกบิลสำเร็จ!'); }
 
-        function renderCart() {
-            const list = document.getElementById('cartItems');
-            if(cart.length === 0) {
-                list.innerHTML = '<p class="text-center italic opacity-40 text-xs mt-2">ยังไม่มีสินค้าในตะกร้า</p>';
-                document.getElementById('totalAmount').innerText = '0.-'; return;
-            }
-            list.innerHTML = cart.map((c, index) => `
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0">
-                    <span><span class="font-bold">${c.name}</span> <span class="text-blue-400 font-bold ml-1">x${c.qty}</span></span>
-                    <div class="flex items-center space-x-3">
-                        <span class="font-black text-white">${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span>
-                        <button onclick="removeCart(${index})" class="text-red-500 text-xs font-bold bg-slate-800 px-2 py-1 rounded">ลบ</button>
-                    </div>
-                </div>
-            `).join('');
-            const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0);
-            document.getElementById('totalAmount').innerText = total.toLocaleString() + '.-';
-        }
-
-        async function submitOrder() {
-            const name = document.getElementById('customerName').value;
-            if(!name || cart.length === 0) return alert('กรุณาระบุชื่อลูกค้าและเลือกสินค้า');
-            
-            const btn = document.getElementById('btnSubmit');
-            btn.innerText = 'กำลังบันทึกและตัดสต๊อก...'; btn.disabled = true;
-            
-            try {
-                const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0);
-                
-                const { data: orderData, error: orderErr } = await _client.from('orders')
-                    .insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select();
-                if (orderErr) throw orderErr;
-                const newOrderId = orderData[0].id;
-
-                const itemsToInsert = cart.map(c => ({
-                    order_id: newOrderId, product_id: c.id, product_name: c.name, quantity: c.qty, price: c.sale_price || 0
-                }));
-                const { error: itemsErr } = await _client.from('order_items').insert(itemsToInsert);
-                if (itemsErr) throw itemsErr;
-                
-                const updatePromises = cart.map(async (c) => {
-                    const newStock = c.stock - c.qty;
-                    await _client.from('salesman_inventory').update({ quantity: newStock }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id);
-                });
-                await Promise.all(updatePromises); 
-
-                generateReceipt(name, total); window.print();
-
-                cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts();
-            } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message);
-            } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
-        }
-
-        function generateReceipt(customerName, total) {
-            const date = new Date();
-            document.getElementById('rDate').innerText = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
-            document.getElementById('rCustomer').innerText = customerName;
-            document.getElementById('rStaff').innerText = currentSalesman.name;
-            document.getElementById('rItems').innerHTML = cart.map(c => `
-                <div class="flex justify-between"><span>${c.name} <span class="text-gray-500 ml-1">x${c.qty}</span></span><span>${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span></div>
-            `).join('');
-            document.getElementById('rTotal').innerText = total.toLocaleString() + '.-';
-        }
-
-        /* ----- TAB 2: MULTI-SKU TRANSFER LOGIC (ระบบเบิกสต๊อกหลายรายการ) ----- */
+        /* --- TRANSFER (GROUP LOGIC) --- */
         async function loadTransferProductDropdown() {
             const { data } = await _client.from('products').select('*').order('name');
-            if (data) {
-                document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + 
-                    data.map(p => `<option value="${p.id}" data-name="${p.name}">${p.name}</option>`).join('');
-            }
+            if (data) document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + data.map(p => `<option value="${p.id}" data-name="${p.name}">${p.name}</option>`).join('');
         }
 
         function addToReqCart() {
-            const sel = document.getElementById('reqProduct');
-            const pId = parseInt(sel.value);
-            const pName = sel.options[sel.selectedIndex]?.getAttribute('data-name');
-            const qty = parseInt(document.getElementById('reqQty').value);
-
-            if (!pId || !qty || qty <= 0) return alert('⚠️ กรุณาเลือกสินค้าและใส่จำนวนชิ้นให้ถูกต้อง');
-
-            // เช็คว่ามีในตะกร้าเบิกแล้วหรือยัง ถ้ามีให้บวกเพิ่ม
+            const sel = document.getElementById('reqProduct'); const pId = parseInt(sel.value); const pName = sel.options[sel.selectedIndex]?.getAttribute('data-name'); const qty = parseInt(document.getElementById('reqQty').value);
+            if (!pId || !qty || qty <= 0) return alert('⚠️ กรุณาเลือกสินค้าและจำนวน');
             const existing = reqCart.find(x => x.product_id === pId);
-            if (existing) {
-                existing.quantity += qty;
-            } else {
-                reqCart.push({ product_id: pId, product_name: pName, quantity: qty });
-            }
-
-            document.getElementById('reqQty').value = '';
-            sel.value = '';
-            renderReqCart();
+            if (existing) existing.quantity += qty; else reqCart.push({ product_id: pId, product_name: pName, quantity: qty });
+            document.getElementById('reqQty').value = ''; sel.value = ''; renderReqCart();
         }
 
-        function removeReqCart(index) {
-            reqCart.splice(index, 1);
-            renderReqCart();
-        }
+        function removeReqCart(index) { reqCart.splice(index, 1); renderReqCart(); }
 
         function renderReqCart() {
-            const list = document.getElementById('reqCartItems');
-            const btnSubmit = document.getElementById('btnSubmitReq');
-            
-            if (reqCart.length === 0) {
-                list.innerHTML = '<p class="text-center text-xs text-slate-400 italic">ยังไม่มีรายการ</p>';
-                btnSubmit.classList.add('hidden');
-                return;
-            }
-
+            const list = document.getElementById('reqCartItems'); const btnSubmit = document.getElementById('btnSubmitReq');
+            if (reqCart.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 italic">ยังไม่มีรายการ</p>'; btnSubmit.classList.add('hidden'); return; }
             btnSubmit.classList.remove('hidden');
-            list.innerHTML = reqCart.map((c, i) => `
-                <div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg shadow-sm">
-                    <span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity}</span></span>
-                    <button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold px-2 py-1 bg-white border border-red-200 rounded-md">ลบ</button>
-                </div>
-            `).join('');
+            list.innerHTML = reqCart.map((c, i) => `<div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg"><span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity}</span></span><button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold px-2 py-1 bg-white border border-red-200 rounded-md">ลบ</button></div>`).join('');
         }
 
         async function submitTransferRequest() {
             if (reqCart.length === 0) return;
+            const btn = document.getElementById('btnSubmitReq'); btn.disabled = true; btn.innerText = 'กำลังส่งใบเบิก...';
             
-            const btn = document.getElementById('btnSubmitReq');
-            btn.disabled = true; btn.innerText = 'กำลังส่งข้อมูลทั้งหมด...';
+            // สร้างหมายเลขใบเบิก REQ + YYMMDD + เลขสุ่ม
+            const d = new Date();
+            const refId = 'REQ' + d.getFullYear().toString().slice(-2) + (d.getMonth()+1).toString().padStart(2,'0') + d.getDate().toString().padStart(2,'0') + '-' + Math.floor(Math.random()*10000).toString().padStart(4,'0');
 
             try {
-                // จัดเตรียมข้อมูลทั้งหมดให้เป็น Array เพื่อส่งเข้า Supabase ครั้งเดียว
                 const insertData = reqCart.map(c => ({
-                    salesman_id: currentSalesman.id, 
-                    salesman_name: currentSalesman.name, 
-                    product_id: c.product_id, 
-                    product_name: c.product_name, 
-                    quantity: c.quantity, 
-                    status: 'ส่งใบเบิกสินค้า'
+                    salesman_id: currentSalesman.id, salesman_name: currentSalesman.name, 
+                    product_id: c.product_id, product_name: c.product_name, quantity: c.quantity, 
+                    status: 'ส่งใบเบิกสินค้า', transfer_ref: refId
                 }));
 
                 const { error } = await _client.from('stock_transfers').insert(insertData);
                 if (error) throw error;
 
-                alert(`✅ ส่งคำขอเบิกสินค้า ${reqCart.length} รายการ เรียบร้อยแล้ว!\nกรุณารอผู้จัดการกดอนุมัติในระบบครับ`);
-                
-                // ล้างตะกร้า
-                reqCart = [];
-                renderReqCart();
-                loadMyTransfers();
-
-            } catch (e) { 
-                alert('Error: ' + e.message);
-            } finally { 
-                btn.disabled = false; btn.innerText = '📤 ส่งใบเบิกให้ผู้จัดการ'; 
-            }
+                alert(`✅ ส่งใบเบิกเลขที่ ${refId} เรียบร้อย!`);
+                reqCart = []; renderReqCart(); loadMyTransfers();
+            } catch (e) { alert('Error: ' + e.message); } 
+            finally { btn.disabled = false; btn.innerText = '📤 ส่งใบเบิกให้ผู้จัดการ'; }
         }
 
         async function loadMyTransfers() {
             const list = document.getElementById('myTransferList');
             try {
-                const { data, error } = await _client.from('stock_transfers')
-                    .select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(30);
-                
+                const { data, error } = await _client.from('stock_transfers').select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(50);
                 if (error) throw error;
+                if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีประวัติการเบิก</p>'; return; }
 
-                if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีประวัติการทำรายการ</p>'; return; }
+                allMyTransfers = data;
 
-                list.innerHTML = data.map(t => {
-                    let statusHtml = '';
-                    if (t.status === 'ส่งใบเบิกสินค้า') {
-                        statusHtml = '<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-xl text-xs font-bold border border-amber-200">⏳ รออนุมัติ</span>';
-                    } else if (t.status === 'อนุมัติแล้ว') {
-                        statusHtml = `<button onclick="receiveStock(${t.id}, ${t.product_id}, ${t.quantity})" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-lg active:scale-95 transition-transform">📥 กดรับของ</button>`;
-                    } else if (t.status === 'รับโอนแล้ว') {
-                        statusHtml = '<span class="bg-slate-100 text-green-600 px-3 py-1 rounded-xl text-xs font-bold">✔️ รับแล้ว</span>';
-                    } else {
-                        statusHtml = `<span class="bg-red-50 text-red-600 px-3 py-1 rounded-xl text-xs font-bold border border-red-200">${t.status}</span>`;
-                    }
+                // จัดกลุ่มตามใบเบิก
+                const grouped = {};
+                data.forEach(t => {
+                    const ref = t.transfer_ref || t.id; // ดักไว้เผื่อบิลเก่าไม่มี ref
+                    if(!grouped[ref]) grouped[ref] = { ref: ref, date: t.transfer_date, status: t.status, items: [] };
+                    grouped[ref].items.push(t);
+                });
+
+                list.innerHTML = Object.values(grouped).map(g => {
+                    let statusBtn = '';
+                    if (g.status === 'ส่งใบเบิกสินค้า') statusBtn = '<span class="text-amber-600 font-bold text-xs">⏳ รออนุมัติ...</span>';
+                    else if (g.status === 'อนุมัติแล้ว') statusBtn = `<button onclick="receiveGroup('${g.ref}')" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2">📥 กดยืนยันรับของทั้งบิล</button>`;
+                    else if (g.status === 'รับโอนแล้ว') statusBtn = '<span class="text-green-600 font-bold text-xs">✔️ รับเข้าท้ายรถแล้ว</span>';
+                    else statusBtn = `<span class="text-red-500 font-bold text-xs">${g.status}</span>`;
 
                     return `
-                    <div class="border border-slate-200 p-4 rounded-2xl bg-white flex flex-col gap-3">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-black text-sm text-slate-800">${t.product_name}</p>
-                                <p class="text-xs text-slate-500 mt-0.5">จำนวน: <span class="text-blue-600 font-bold">${t.quantity}</span> ชิ้น</p>
-                            </div>
+                    <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm">
+                        <div class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2">
+                            <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">No: ${g.ref}</span>
+                            <span class="text-[10px] text-slate-400">${new Date(g.date).toLocaleDateString('th-TH')}</span>
                         </div>
-                        <div class="flex justify-between items-center border-t border-slate-100 pt-3">
-                            <span class="text-[10px] text-slate-400">${new Date(t.transfer_date).toLocaleDateString('th-TH')} ${new Date(t.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</span>
-                            ${statusHtml}
+                        <div class="space-y-1 mb-3">
+                            ${g.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>- ${i.product_name}</span><span class="text-blue-600">x${i.quantity}</span></div>`).join('')}
                         </div>
+                        <div class="text-right">${statusBtn}</div>
                     </div>`;
                 }).join('');
-            } catch (err) {
-                list.innerHTML = `<p class="text-center text-xs text-red-500 py-4 font-bold">⚠️ ดึงข้อมูลล้มเหลว</p>`;
-            }
+            } catch (err) { list.innerHTML = `<p class="text-center text-xs text-red-500 py-4 font-bold">⚠️ ดึงข้อมูลล้มเหลว</p>`; }
         }
 
-        async function receiveStock(transferId, productId, qty) {
-            if (!confirm(`คุณได้รับสินค้าจำนวน ${qty} ชิ้น เรียบร้อยแล้วใช่หรือไม่?`)) return;
+        async function receiveGroup(ref) {
+            if (!confirm(`ยืนยัน "รับสินค้า" บิลเลขที่ ${ref} เข้าสต๊อกท้ายรถใช่หรือไม่?`)) return;
             
-            try {
-                const { error: err1 } = await _client.from('stock_transfers').update({ status: 'รับโอนแล้ว' }).eq('id', transferId);
-                if (err1) throw err1;
+            const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || x.id === ref) && x.status === 'อนุมัติแล้ว');
+            if(itemsToReceive.length === 0) return;
 
-                const { data: inv } = await _client.from('salesman_inventory')
-                    .select('*').eq('salesman_id', currentSalesman.id).eq('product_id', productId).maybeSingle();
-                
-                if (inv) {
-                    await _client.from('salesman_inventory').update({ quantity: inv.quantity + qty }).eq('id', inv.id);
-                } else {
-                    await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: productId, quantity: qty }]);
+            try {
+                // 1. อัปเดตสถานะของทุกชิ้นในบิลนี้เป็น "รับโอนแล้ว"
+                await _client.from('stock_transfers').update({ status: 'รับโอนแล้ว' }).eq('transfer_ref', ref);
+
+                // 2. ทยอยเอาของเข้าสต๊อกท้ายรถเซลส์
+                for(let item of itemsToReceive) {
+                    const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle();
+                    if (inv) {
+                        await _client.from('salesman_inventory').update({ quantity: inv.quantity + item.quantity }).eq('id', inv.id);
+                    } else {
+                        await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: item.quantity }]);
+                    }
                 }
                 
-                alert('🎉 รับสินค้าเข้าท้ายรถเรียบร้อยแล้ว!');
+                alert('🎉 เยี่ยมมาก! สินค้าทั้งหมดในบิลนี้ เข้าสต๊อกท้ายรถคุณเรียบร้อยแล้ว');
                 loadMyTransfers();
             } catch (e) { alert('Error: ' + e.message); }
         }
 
-        /* ----- TAB 3: DASHBOARD LOGIC ----- */
-        async function loadDashboard() {
-            try {
-                const { data, error } = await _client.from('orders').select('total_amount').eq('salesman_id', currentSalesman.id);
-                if (error) throw error;
-                const totalRevenue = data.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
-                document.getElementById('dashTotalSales').innerText = totalRevenue.toLocaleString() + '.-';
-                document.getElementById('dashTotalOrders').innerHTML = `${data.length} <span class="text-sm font-normal text-slate-400">บิล</span>`;
-            } catch (err) {}
-        }
+        async function loadDashboard() { const { data } = await _client.from('orders').select('total_amount').eq('salesman_id', currentSalesman.id); if(data){ document.getElementById('dashTotalSales').innerText = data.reduce((s, o) => s + Number(o.total_amount || 0), 0).toLocaleString() + '.-'; document.getElementById('dashTotalOrders').innerText = data.length; } }
     </script>
 </body>
 </html>

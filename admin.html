@@ -144,11 +144,11 @@
             if(data) {
                 allTransferData = data;
                 
-                // 1. จัดกลุ่มใบเบิกที่รออนุมัติ (แยกตามหมายเลขใบเบิก transfer_ref)
+                // 1. จัดกลุ่มใบเบิกที่รออนุมัติ
                 const pending = data.filter(x => x.status === 'ส่งใบเบิกสินค้า');
                 const groupedPending = {};
                 pending.forEach(x => {
-                    const ref = x.transfer_ref || `NO-REF-${x.id}`; // ดักไว้เผื่อบิลเก่าไม่มี ref
+                    const ref = x.transfer_ref || `NO-REF-${x.id}`;
                     if(!groupedPending[ref]) {
                         groupedPending[ref] = { ref: ref, salesman_name: x.salesman_name, date: x.transfer_date, items: [] };
                     }
@@ -173,12 +173,12 @@
                         </td>
                     </tr>`).join('') : `<tr><td colspan="2" class="p-6 text-center text-slate-400">✅ ไม่มีคำขอเบิกสินค้าค้างอยู่</td></tr>`;
 
-                // 2. ประวัติการโอนทั้งหมด (โชว์แยกบรรทัดปกติ เพื่อให้ CSV ใช้ง่าย)
+                // 2. ประวัติการโอนทั้งหมด (ปรับสถานะใหม่ตามที่พี่ขอเป๊ะๆ)
                 document.getElementById('transferLogBody').innerHTML = data.map(l => {
                     let badge = '';
                     if(l.status === 'ส่งใบเบิกสินค้า') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-[10px]">รออนุมัติ</span>';
-                    else if(l.status === 'อนุมัติแล้ว') badge = '<span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-[10px]">รอเซลส์รับของ</span>';
-                    else if(l.status === 'รับโอนแล้ว') badge = '<span class="text-green-600 bg-green-50 px-2 py-1 rounded text-[10px]">เสร็จสิ้น</span>';
+                    else if(l.status === 'อนุมัติแล้ว') badge = '<span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-[10px]">รอเซลกดรับ</span>';
+                    else if(l.status === 'เซลรับสินค้าแล้ว' || l.status === 'รับโอนแล้ว') badge = '<span class="text-green-600 bg-green-50 px-2 py-1 rounded text-[10px]">เซลรับสินค้าแล้ว</span>';
                     else badge = `<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-[10px]">${l.status}</span>`;
                     return `<tr><td class="p-3 text-xs text-slate-500">${new Date(l.transfer_date).toLocaleDateString('th-TH')} ${new Date(l.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}<br><span class="text-[9px] font-mono text-slate-400">${l.transfer_ref || '-'}</span></td><td class="p-3"><b class="text-slate-700">${l.salesman_name}</b><br><span class="text-xs text-slate-500">${l.product_name} <b class="text-blue-500">(x${l.quantity})</b></span></td><td class="p-3 text-center">${badge}</td></tr>`;
                 }).join('');
@@ -188,11 +188,8 @@
         async function approveGroup(ref) {
             if(!confirm(`ยืนยัน "อนุมัติ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?\n(ระบบจะตัดสต๊อกคลังหลักทันที)`)) return;
             
-            // หา item ทั้งหมดในบิลนี้
             const items = allTransferData.filter(x => x.transfer_ref === ref && x.status === 'ส่งใบเบิกสินค้า');
-            
-            // ตรวจสอบสต๊อกคลังหลักก่อนตัดจริง
-            if (allProducts.length === 0) await loadInventory(); // โหลดสต๊อกล่าสุดมาก่อน
+            if (allProducts.length === 0) await loadInventory(); 
             for (let item of items) {
                 const prod = allProducts.find(p => p.id === item.product_id);
                 if (!prod || prod.master_stock < item.quantity) {
@@ -201,13 +198,13 @@
             }
 
             try {
-                // 1. ตัดสต๊อกคลังหลักทีละรายการ
+                // ตัดสต๊อกคลังหลักทีละรายการ
                 for (let item of items) {
                     const prod = allProducts.find(p => p.id === item.product_id);
                     await _client.from('products').update({ master_stock: prod.master_stock - item.quantity }).eq('id', item.product_id);
                 }
                 
-                // 2. อัปเดตสถานะบิลทั้งหมดเป็น "อนุมัติแล้ว"
+                // อัปเดตสถานะบิลเป็น "อนุมัติแล้ว"
                 await _client.from('stock_transfers').update({ status: 'อนุมัติแล้ว', admin_name: currentAdmin.name }).eq('transfer_ref', ref);
                 
                 alert('✅ อนุมัติใบเบิกสำเร็จ! รอเซลส์กดรับสินค้าเข้าเครื่อง');

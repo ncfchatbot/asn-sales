@@ -9,6 +9,17 @@
     <style>
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
+        @media print {
+            #app-container { display: none !important; }
+            @page { margin: 0; }
+            body { background-color: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
+            .thermal-print-area { display: block !important; width: 75mm; margin: 0 auto; padding: 5mm; font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.2; }
+            body > *:not(.thermal-print-area) { display: none !important; }
+            body.print-receipt #receipt-view { display: block !important; }
+            body.print-stock #stock-print-view { display: block !important; }
+            body.print-remit #remit-print-view { display: block !important; }
+        }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -39,30 +50,43 @@
                 </div>
             </div>
 
-            <div id="pos-view" class="p-4 space-y-6">
+            <div id="pos-view" class="p-4 space-y-5 bg-slate-50 min-h-screen">
                 
                 <div class="relative">
-                    <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า / เบอร์โทร..." autocomplete="off" onkeyup="searchCustomer()" onfocus="searchCustomer()" class="w-full p-4 bg-slate-50 border-2 border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1 ml-1">ลูกค้ารับสินค้า</label>
+                    <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า / เบอร์โทร..." autocomplete="off" onkeyup="searchCustomer()" onfocus="searchCustomer()" class="w-full p-4 bg-white border border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
                     <div id="customerSuggestions" class="absolute z-50 w-full bg-white border border-slate-200 shadow-xl rounded-xl mt-1 max-h-[200px] overflow-auto hidden"></div>
                 </div>
                 
-                <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
+                <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-black text-slate-800 text-lg">🛍️ เลือกสินค้าลงบิล</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">พิมพ์ค้นหา / เลือกรายการ</label>
+                            <select id="posProduct" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select>
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label>
+                                <input type="number" id="posQty" min="1" placeholder="ระบุตัวเลข" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">
+                            </div>
+                            <button onclick="addPosCart()" class="bg-blue-600 text-white font-bold px-4 rounded-xl text-xs h-[46px] mt-auto active:scale-95 transition-transform shadow-md">เพิ่ม</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl mt-2">
                     <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
                         <h3 class="font-black text-amber-400">🛒 ตะกร้าสินค้า</h3>
                     </div>
-                    <div id="cartItems" class="space-y-3 text-sm text-slate-300 mb-6 min-h-[50px]"></div>
+                    <div id="cartItems" class="space-y-3 text-sm text-slate-300 mb-6 min-h-[60px]"></div>
                     <div class="flex justify-between items-center border-t border-slate-700 pt-5">
                         <span class="text-slate-400 font-bold text-xs uppercase">ยอดรวมสุทธิ</span>
                         <span id="totalAmount" class="text-3xl font-black text-white">0.-</span>
                     </div>
                 </div>
 
-                <div>
-                    <h2 class="font-black text-slate-800 text-lg mb-3 ml-1 border-b pb-2">🛍️ เลือกสินค้าลงบิล</h2>
-                    <div id="productList" class="space-y-3"></div>
-                </div>
-
-                <button onclick="submitOrder()" id="btnSubmit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg text-xl sticky bottom-4">บันทึกออเดอร์ & พิมพ์สลิป</button>
+                <button onclick="submitOrder()" id="btnSubmit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg text-xl sticky bottom-4 active:scale-95 transition-transform mt-8">บันทึกออเดอร์ & พิมพ์สลิป</button>
             </div>
 
             <div id="stock-view" class="hidden p-4 space-y-6 bg-slate-50 min-h-screen">
@@ -81,7 +105,7 @@
                     <h3 class="font-black text-slate-800 text-lg">📝 สร้างใบเบิกสินค้า</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end border-b border-slate-100 pb-4">
                         <div class="md:col-span-2"><label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกสินค้า</label><select id="reqProduct" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select></div>
-                        <div class="flex gap-2"><div class="w-full"><label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label><input type="number" id="reqQty" min="1" placeholder="ตัวเลข" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"></div><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-4 rounded-xl text-xs h-[42px] mt-auto">เพิ่ม</button></div>
+                        <div class="flex gap-2"><div class="w-full"><label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label><input type="number" id="reqQty" min="1" placeholder="ชิ้น" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"></div><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-4 rounded-xl text-xs h-[42px] mt-auto">เพิ่ม</button></div>
                     </div>
                     <div><p class="text-xs font-bold text-slate-500 mb-2">📋 รายการที่จะเบิก:</p><div id="reqCartItems" class="space-y-2 min-h-[40px]"></div></div>
                     <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md hidden">📤 ส่งใบเบิก</button>
@@ -124,16 +148,18 @@
         </div>
     </div>
 
+    <div id="receipt-view" class="hidden thermal-print-area"></div>
+    <div id="stock-print-view" class="hidden thermal-print-area"></div>
+    <div id="remit-print-view" class="hidden thermal-print-area"></div>
+
     <script>
         const SB_URL = 'https://zmfynauxfthlvpvqgejk.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnluYXV4ZnRobHZwdnFnZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTk5OTEsImV4cCI6MjA5MDc3NTk5MX0.hB-r5E0fcnKnSWYga5AjQJ2h_J9oD7GuWwsRa58TylU';
         const _client = supabase.createClient(SB_URL, SB_KEY);
 
         let products = []; let cart = []; let reqCart = []; let currentSalesman = null; let allMyTransfers = [];
-        let currentReportType = 'day'; 
-        let allCustomers = []; // เก็บลูกค้าเก่า
+        let currentReportType = 'day'; let allCustomers = [];
 
-        // ฟังก์ชันสั่งพิมพ์แบบแยกหน้าต่าง (รับประกันว่าไม่ปนกัน)
         function printDocument(contentHtml) {
             const printWindow = window.open('', '_blank', 'width=400,height=600');
             printWindow.document.write(`
@@ -191,66 +217,77 @@
         function searchCustomer() {
             const input = document.getElementById('customerName').value.toLowerCase();
             const suggestBox = document.getElementById('customerSuggestions');
-            
             if (input.length < 1) { suggestBox.classList.add('hidden'); return; }
-            
             const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input));
-            
             if (filtered.length > 0) {
-                suggestBox.innerHTML = filtered.map(c => `
-                    <div onclick="selectCustomer('${c.name}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
-                        <p class="font-bold text-sm text-slate-800">${c.name}</p>
-                    </div>
-                `).join('');
+                suggestBox.innerHTML = filtered.map(c => `<div onclick="selectCustomer('${c.name}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><p class="font-bold text-sm text-slate-800">${c.name}</p></div>`).join('');
                 suggestBox.classList.remove('hidden');
-            } else {
-                suggestBox.classList.add('hidden');
-            }
+            } else { suggestBox.classList.add('hidden'); }
         }
 
-        function selectCustomer(name) {
-            document.getElementById('customerName').value = name;
-            document.getElementById('customerSuggestions').classList.add('hidden');
-        }
+        function selectCustomer(name) { document.getElementById('customerName').value = name; document.getElementById('customerSuggestions').classList.add('hidden'); }
+        document.addEventListener('click', function(e) { if (e.target.id !== 'customerName') { document.getElementById('customerSuggestions').classList.add('hidden'); } });
 
-        // ปิดกล่องถ้าคลิกที่อื่น
-        document.addEventListener('click', function(e) {
-            if (e.target.id !== 'customerName') { document.getElementById('customerSuggestions').classList.add('hidden'); }
-        });
-
-        /* --- POS & STOCK (อัปเดตให้รองรับหน่วยสินค้า) --- */
+        /* --- POS & STOCK --- */
         async function loadProducts() { 
             try {
-                const { data: prods } = await _client.from('products').select('id, name, sale_price, unit'); 
+                // ดึงรหัสสินค้า(product_code) มาด้วย
+                const { data: prods } = await _client.from('products').select('id, name, sale_price, unit, product_code'); 
                 const { data: invs } = await _client.from('salesman_inventory').select('product_id, quantity').eq('salesman_id', currentSalesman.id); 
                 if(invs && prods) { products = invs.map(inv => { const p = prods.find(x => x.id === inv.product_id); return p ? { ...p, stock: inv.quantity } : null; }).filter(x => x !== null && x.stock > 0); } else { products = []; } 
-                renderProducts(); 
+                
+                renderStock(); 
+                loadPosProductDropdown();
             } catch(e) {}
         }
+
+        function loadPosProductDropdown() {
+            const sel = document.getElementById('posProduct');
+            if (!sel) return;
+            if (products.length === 0) { sel.innerHTML = '<option value="">-- ไม่มีสินค้าในท้ายรถ --</option>'; return; }
+            sel.innerHTML = '<option value="">-- พิมพ์ชื่อ หรือ รหัสสินค้า --</option>' + products.map(p => {
+                const codeStr = p.product_code ? `[${p.product_code}] ` : '';
+                return `<option value="${p.id}">${codeStr}${p.name} (เหลือ ${p.stock} ${p.unit||'ชิ้น'})</option>`;
+            }).join('');
+        }
         
-        function renderProducts() { 
-            const posList = document.getElementById('productList'); const stockList = document.getElementById('myStockList'); 
-            if (products.length === 0) {
-                posList.innerHTML = `<div class="bg-red-50 text-red-500 p-4 rounded-xl text-center text-sm font-bold border border-red-200">คุณยังไม่มีสินค้าในรถ</div>`; 
-                stockList.innerHTML = `<div class="bg-slate-50 text-slate-400 p-4 rounded-xl text-center text-sm font-bold border border-slate-200">สต๊อกว่างเปล่า</div>`; return;
-            }
-            posList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-xl shadow-sm"><div class="w-3/4 pr-2"><p class="font-bold text-slate-800 text-sm truncate">${p.name}</p><div class="flex items-center gap-2 mt-1"><span class="text-blue-600 font-black text-sm">${(p.sale_price || 0).toLocaleString()}.-</span></div></div><button onclick="addToCart(${p.id}, this)" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 shrink-0">เพิ่ม</button></div>`).join(''); 
-            
-            // หน้าสต๊อก โชว์หน่วยด้วย
-            stockList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm"><div class="w-full"><p class="font-bold text-slate-800 text-sm">${p.name}</p><div class="flex justify-between items-end mt-2 border-t border-slate-50 pt-2"><span class="text-slate-500 text-xs">คงเหลือในรถ:</span><span class="text-blue-600 font-black text-xl">${p.stock} <span class="text-sm font-normal text-slate-500">${p.unit || 'ชิ้น'}</span></span></div></div></div>`).join(''); 
+        function renderStock() { 
+            const stockList = document.getElementById('myStockList'); 
+            if (!stockList) return;
+            if (products.length === 0) { stockList.innerHTML = `<div class="bg-slate-50 text-slate-400 p-4 rounded-xl text-center text-sm font-bold border border-slate-200">สต๊อกว่างเปล่า</div>`; return; }
+            stockList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm"><div class="w-full"><p class="font-bold text-slate-800 text-sm">${p.product_code ? `[${p.product_code}] ` : ''}${p.name}</p><div class="flex justify-between items-end mt-2 border-t border-slate-50 pt-2"><span class="text-slate-500 text-xs">คงเหลือในรถ:</span><span class="text-blue-600 font-black text-xl">${p.stock} <span class="text-sm font-normal text-slate-500">${p.unit || 'ชิ้น'}</span></span></div></div></div>`).join(''); 
         }
 
-        function addToCart(id, btnElement) { 
-            const p = products.find(x => x.id === id); const inCart = cart.find(x => x.id === id); const currentQty = inCart ? inCart.qty : 0; 
-            if (currentQty >= p.stock) return alert(`สต๊อกไม่พอ!`); 
-            if (inCart) inCart.qty++; else cart.push({ ...p, qty: 1 }); renderCart(); 
-            if(btnElement) { const originalText = btnElement.innerText; btnElement.innerText = '✔️ ใส่ตะกร้า'; btnElement.classList.replace('bg-slate-900', 'bg-green-500'); setTimeout(() => { btnElement.innerText = originalText; btnElement.classList.replace('bg-green-500', 'bg-slate-900'); }, 400); }
+        function addPosCart() {
+            const sel = document.getElementById('posProduct');
+            const pId = parseInt(sel.value);
+            const qty = parseInt(document.getElementById('posQty').value);
+
+            if (!pId || !qty || qty <= 0) return alert('⚠️ กรุณาเลือกสินค้าและระบุจำนวนที่ต้องการให้ถูกต้อง');
+
+            const p = products.find(x => x.id === pId);
+            if (!p) return alert('ไม่พบสินค้า');
+
+            const inCart = cart.find(x => x.id === pId);
+            const currentQty = inCart ? inCart.qty : 0;
+            
+            if (currentQty + qty > p.stock) {
+                return alert(`⚠️ สต๊อกไม่พอ!\nสินค้า "${p.name}" คุณมีในรถแค่ ${p.stock} ${p.unit||'ชิ้น'}`);
+            }
+
+            if (inCart) inCart.qty += qty;
+            else cart.push({ ...p, qty: qty });
+
+            document.getElementById('posQty').value = '';
+            sel.value = '';
+            renderCart();
         }
+
         function removeCart(index) { cart.splice(index, 1); renderCart(); }
         
         function renderCart() { 
-            const list = document.getElementById('cartItems'); if(cart.length === 0) { list.innerHTML = ''; document.getElementById('totalAmount').innerText = '0.-'; return; } 
-            list.innerHTML = cart.map((c, index) => `<div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-2 last:border-0"><span><span class="font-bold text-white">${c.name}</span> <span class="text-amber-400 font-bold ml-2">x${c.qty} <span class="text-xs font-normal text-slate-400">${c.unit || 'ชิ้น'}</span></span></span><div class="flex items-center space-x-3"><span class="font-black text-white text-lg">${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold border border-slate-600 px-2 py-1 rounded">ลบ</button></div></div>`).join(''); 
+            const list = document.getElementById('cartItems'); if(cart.length === 0) { list.innerHTML = '<p class="text-center italic opacity-40 text-xs mt-2">ยังไม่มีสินค้าในตะกร้า</p>'; document.getElementById('totalAmount').innerText = '0.-'; return; } 
+            list.innerHTML = cart.map((c, index) => `<div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-2 last:border-0"><span><span class="font-bold text-white">${c.name}</span> <span class="text-amber-400 font-bold ml-2">x${c.qty} <span class="text-[10px] font-normal text-slate-400">${c.unit || 'ชิ้น'}</span></span></span><div class="flex items-center space-x-3"><span class="font-black text-white text-lg">${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold border border-slate-600 px-2 py-1 rounded">ลบ</button></div></div>`).join(''); 
             document.getElementById('totalAmount').innerText = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0).toLocaleString() + '.-'; 
         }
 
@@ -260,7 +297,6 @@
             const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0); 
             const btn = document.getElementById('btnSubmit'); btn.innerText = 'กำลังบันทึก...'; btn.disabled = true;
             try {
-                // บันทึกชื่อลูกค้าใหม่ (ถ้ายังไม่มีในระบบ)
                 const existingCus = allCustomers.find(c => c.name === name);
                 if (!existingCus) { await _client.from('customers').insert([{ name: name, salesman_id: currentSalesman.id }]); }
 
@@ -269,7 +305,7 @@
                 await Promise.all(cart.map(async (c) => { await _client.from('salesman_inventory').update({ quantity: c.stock - c.qty }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id); })); 
                 
                 printReceipt(name, total, cart);
-                cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); loadCustomers(); alert('บันทึกบิลสำเร็จ!'); 
+                cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); loadCustomers();
             } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
         }
 
@@ -299,8 +335,8 @@
             printDocument(html);
         }
 
-        /* --- TRANSFER (ย่อ) --- */
-        async function loadTransferProductDropdown() { const { data } = await _client.from('products').select('*').order('name'); if (data) document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + data.map(p => `<option value="${p.id}" data-name="${p.name}" data-unit="${p.unit||'ชิ้น'}">${p.name}</option>`).join(''); }
+        /* --- TRANSFER --- */
+        async function loadTransferProductDropdown() { const { data } = await _client.from('products').select('*').order('name'); if (data) document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + data.map(p => `<option value="${p.id}" data-name="${p.name}" data-unit="${p.unit||'ชิ้น'}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name}</option>`).join(''); }
         function addToReqCart() { const sel = document.getElementById('reqProduct'); const pId = parseInt(sel.value); const pName = sel.options[sel.selectedIndex]?.getAttribute('data-name'); const pUnit = sel.options[sel.selectedIndex]?.getAttribute('data-unit'); const qty = parseInt(document.getElementById('reqQty').value); if (!pId || !qty || qty <= 0) return; const existing = reqCart.find(x => x.product_id === pId); if (existing) existing.quantity += qty; else reqCart.push({ product_id: pId, product_name: pName, quantity: qty, unit: pUnit }); document.getElementById('reqQty').value = ''; sel.value = ''; renderReqCart(); }
         function removeReqCart(index) { reqCart.splice(index, 1); renderReqCart(); }
         function renderReqCart() { const list = document.getElementById('reqCartItems'); const btnSubmit = document.getElementById('btnSubmitReq'); if (reqCart.length === 0) { list.innerHTML = ''; btnSubmit.classList.add('hidden'); return; } btnSubmit.classList.remove('hidden'); list.innerHTML = reqCart.map((c, i) => `<div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg"><span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity} <span class="text-xs font-normal text-slate-500">${c.unit||''}</span></span></span><button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold bg-white border px-2 py-1 rounded-md">ลบ</button></div>`).join(''); }

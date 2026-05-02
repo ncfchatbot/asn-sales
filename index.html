@@ -9,14 +9,6 @@
     <style>
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* สไตล์หลักสำหรับการพิมพ์ผ่านหน้าต่างจำลอง */
-        .thermal-print-format { 
-            width: 75mm; margin: 0 auto; padding: 5mm; 
-            font-family: 'Courier New', Courier, monospace; 
-            font-size: 12px; line-height: 1.2; color: black; background: white; 
-        }
-        
-        /* ซ่อน Scrollbar ของเมนู */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -48,7 +40,11 @@
             </div>
 
             <div id="pos-view" class="p-4 space-y-6">
-                <div><input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า / ร้านค้า..." class="w-full p-4 bg-slate-50 border-2 border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm"></div>
+                
+                <div class="relative">
+                    <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า / เบอร์โทร..." autocomplete="off" onkeyup="searchCustomer()" onfocus="searchCustomer()" class="w-full p-4 bg-slate-50 border-2 border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
+                    <div id="customerSuggestions" class="absolute z-50 w-full bg-white border border-slate-200 shadow-xl rounded-xl mt-1 max-h-[200px] overflow-auto hidden"></div>
+                </div>
                 
                 <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
                     <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
@@ -85,7 +81,7 @@
                     <h3 class="font-black text-slate-800 text-lg">📝 สร้างใบเบิกสินค้า</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end border-b border-slate-100 pb-4">
                         <div class="md:col-span-2"><label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกสินค้า</label><select id="reqProduct" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select></div>
-                        <div class="flex gap-2"><div class="w-full"><label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label><input type="number" id="reqQty" min="1" placeholder="ชิ้น" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"></div><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-4 rounded-xl text-xs h-[42px] mt-auto">เพิ่ม</button></div>
+                        <div class="flex gap-2"><div class="w-full"><label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label><input type="number" id="reqQty" min="1" placeholder="ตัวเลข" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"></div><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-4 rounded-xl text-xs h-[42px] mt-auto">เพิ่ม</button></div>
                     </div>
                     <div><p class="text-xs font-bold text-slate-500 mb-2">📋 รายการที่จะเบิก:</p><div id="reqCartItems" class="space-y-2 min-h-[40px]"></div></div>
                     <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md hidden">📤 ส่งใบเบิก</button>
@@ -98,7 +94,6 @@
 
             <div id="dash-view" class="hidden p-4 space-y-4 bg-slate-50 min-h-screen">
                 <h2 class="font-black text-2xl text-slate-800">📊 รายงานยอดขาย</h2>
-                
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                     <div class="flex gap-2">
                         <button onclick="setReportType('day')" id="btnRepDay" class="flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all">รายวัน</button>
@@ -108,22 +103,20 @@
                     <input type="date" id="dashDate" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm font-bold outline-none text-center">
                     <button onclick="loadDashboard()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-sm">🔍 ค้นหาข้อมูล</button>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-2xl text-white shadow-md">
                         <p class="text-blue-200 text-[10px] font-bold">ยอดขายรวม</p>
                         <p id="dashTotalSales" class="text-2xl font-black mt-1">0.-</p>
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                        <p class="text-slate-500 text-[10px] font-bold">จำนวนบิลที่เปิด</p>
+                        <p class="text-slate-500 text-[10px] font-bold">จำนวนบิล</p>
                         <p id="dashTotalOrders" class="text-2xl font-black text-slate-800 mt-1">0 <span class="text-xs font-normal text-slate-400">บิล</span></p>
                     </div>
                 </div>
-
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-sm text-slate-800">📋 รายละเอียดบิล</h3>
-                        <button onclick="printRemittance()" id="btnPrintRemit" class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold shadow-sm hidden flex items-center gap-1">🖨️ พิมพ์ใบส่งเงิน</button>
+                        <button onclick="printRemittance()" id="btnPrintRemit" class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold shadow-sm hidden">🖨️ พิมพ์ใบส่งเงิน</button>
                     </div>
                     <div class="space-y-2" id="dashBillList"></div>
                 </div>
@@ -137,7 +130,8 @@
         const _client = supabase.createClient(SB_URL, SB_KEY);
 
         let products = []; let cart = []; let reqCart = []; let currentSalesman = null; let allMyTransfers = [];
-        let currentReportType = 'day';
+        let currentReportType = 'day'; 
+        let allCustomers = []; // เก็บลูกค้าเก่า
 
         // ฟังก์ชันสั่งพิมพ์แบบแยกหน้าต่าง (รับประกันว่าไม่ปนกัน)
         function printDocument(contentHtml) {
@@ -146,7 +140,6 @@
                 <html>
                 <head>
                     <title>พิมพ์เอกสาร</title>
-                    <script src="https://cdn.tailwindcss.com"><\/script>
                     <style>
                         body { margin: 0; padding: 0; background: white; }
                         @media print { @page { margin: 0; size: auto; } }
@@ -154,9 +147,7 @@
                     </style>
                 </head>
                 <body onload="window.print(); window.close();">
-                    <div class="thermal-print-format">
-                        ${contentHtml}
-                    </div>
+                    <div class="thermal-print-format">${contentHtml}</div>
                 </body>
                 </html>
             `);
@@ -185,21 +176,52 @@
                 else if(tab === 'transfer') activeBtn.className = 'px-2.5 py-1.5 bg-indigo-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
                 else if(tab === 'dash') activeBtn.className = 'px-2.5 py-1.5 bg-amber-500 text-slate-900 font-bold rounded-lg text-[11px] whitespace-nowrap';
             }
-            if(tab === 'pos' || tab === 'stock') loadProducts(); 
+            if(tab === 'pos') { loadProducts(); loadCustomers(); } 
+            if(tab === 'stock') loadProducts();
             if(tab === 'transfer') { loadTransferProductDropdown(); loadMyTransfers(); renderReqCart(); } 
+            if(tab === 'dash') { if(!document.getElementById('dashDate').value) { document.getElementById('dashDate').value = new Date().toISOString().split('T')[0]; } loadDashboard(); }
+        }
+
+        /* --- CRM (ระบบจดจำลูกค้า) --- */
+        async function loadCustomers() {
+            const { data } = await _client.from('customers').select('*');
+            if (data) allCustomers = data;
+        }
+
+        function searchCustomer() {
+            const input = document.getElementById('customerName').value.toLowerCase();
+            const suggestBox = document.getElementById('customerSuggestions');
             
-            if(tab === 'dash') {
-                if(!document.getElementById('dashDate').value) {
-                    document.getElementById('dashDate').value = new Date().toISOString().split('T')[0];
-                }
-                loadDashboard();
+            if (input.length < 1) { suggestBox.classList.add('hidden'); return; }
+            
+            const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input));
+            
+            if (filtered.length > 0) {
+                suggestBox.innerHTML = filtered.map(c => `
+                    <div onclick="selectCustomer('${c.name}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
+                        <p class="font-bold text-sm text-slate-800">${c.name}</p>
+                    </div>
+                `).join('');
+                suggestBox.classList.remove('hidden');
+            } else {
+                suggestBox.classList.add('hidden');
             }
         }
 
-        /* --- POS & STOCK --- */
+        function selectCustomer(name) {
+            document.getElementById('customerName').value = name;
+            document.getElementById('customerSuggestions').classList.add('hidden');
+        }
+
+        // ปิดกล่องถ้าคลิกที่อื่น
+        document.addEventListener('click', function(e) {
+            if (e.target.id !== 'customerName') { document.getElementById('customerSuggestions').classList.add('hidden'); }
+        });
+
+        /* --- POS & STOCK (อัปเดตให้รองรับหน่วยสินค้า) --- */
         async function loadProducts() { 
             try {
-                const { data: prods } = await _client.from('products').select('id, name, sale_price'); 
+                const { data: prods } = await _client.from('products').select('id, name, sale_price, unit'); 
                 const { data: invs } = await _client.from('salesman_inventory').select('product_id, quantity').eq('salesman_id', currentSalesman.id); 
                 if(invs && prods) { products = invs.map(inv => { const p = prods.find(x => x.id === inv.product_id); return p ? { ...p, stock: inv.quantity } : null; }).filter(x => x !== null && x.stock > 0); } else { products = []; } 
                 renderProducts(); 
@@ -213,7 +235,9 @@
                 stockList.innerHTML = `<div class="bg-slate-50 text-slate-400 p-4 rounded-xl text-center text-sm font-bold border border-slate-200">สต๊อกว่างเปล่า</div>`; return;
             }
             posList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-xl shadow-sm"><div class="w-3/4 pr-2"><p class="font-bold text-slate-800 text-sm truncate">${p.name}</p><div class="flex items-center gap-2 mt-1"><span class="text-blue-600 font-black text-sm">${(p.sale_price || 0).toLocaleString()}.-</span></div></div><button onclick="addToCart(${p.id}, this)" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 shrink-0">เพิ่ม</button></div>`).join(''); 
-            stockList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm"><div class="w-full"><p class="font-bold text-slate-800 text-sm">${p.name}</p><div class="flex justify-between items-end mt-2 border-t border-slate-50 pt-2"><span class="text-slate-500 text-xs">คงเหลือในรถ:</span><span class="text-blue-600 font-black text-xl">${p.stock} <span class="text-sm font-normal text-slate-500">ชิ้น</span></span></div></div></div>`).join(''); 
+            
+            // หน้าสต๊อก โชว์หน่วยด้วย
+            stockList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm"><div class="w-full"><p class="font-bold text-slate-800 text-sm">${p.name}</p><div class="flex justify-between items-end mt-2 border-t border-slate-50 pt-2"><span class="text-slate-500 text-xs">คงเหลือในรถ:</span><span class="text-blue-600 font-black text-xl">${p.stock} <span class="text-sm font-normal text-slate-500">${p.unit || 'ชิ้น'}</span></span></div></div></div>`).join(''); 
         }
 
         function addToCart(id, btnElement) { 
@@ -223,207 +247,71 @@
             if(btnElement) { const originalText = btnElement.innerText; btnElement.innerText = '✔️ ใส่ตะกร้า'; btnElement.classList.replace('bg-slate-900', 'bg-green-500'); setTimeout(() => { btnElement.innerText = originalText; btnElement.classList.replace('bg-green-500', 'bg-slate-900'); }, 400); }
         }
         function removeCart(index) { cart.splice(index, 1); renderCart(); }
+        
         function renderCart() { 
             const list = document.getElementById('cartItems'); if(cart.length === 0) { list.innerHTML = ''; document.getElementById('totalAmount').innerText = '0.-'; return; } 
-            list.innerHTML = cart.map((c, index) => `<div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-2 last:border-0"><span><span class="font-bold text-white">${c.name}</span> <span class="text-amber-400 font-bold ml-2">x${c.qty}</span></span><div class="flex items-center space-x-3"><span class="font-black text-white text-lg">${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold border border-slate-600 px-2 py-1 rounded">ลบ</button></div></div>`).join(''); 
+            list.innerHTML = cart.map((c, index) => `<div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-2 last:border-0"><span><span class="font-bold text-white">${c.name}</span> <span class="text-amber-400 font-bold ml-2">x${c.qty} <span class="text-xs font-normal text-slate-400">${c.unit || 'ชิ้น'}</span></span></span><div class="flex items-center space-x-3"><span class="font-black text-white text-lg">${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold border border-slate-600 px-2 py-1 rounded">ลบ</button></div></div>`).join(''); 
             document.getElementById('totalAmount').innerText = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0).toLocaleString() + '.-'; 
         }
 
         async function submitOrder() { 
-            const name = document.getElementById('customerName').value; if(!name || cart.length === 0) return alert('กรุณาระบุชื่อลูกค้าและเลือกสินค้าลงตะกร้า'); 
+            const name = document.getElementById('customerName').value.trim(); 
+            if(!name || cart.length === 0) return alert('กรุณาระบุชื่อลูกค้าและเลือกสินค้าลงตะกร้า'); 
             const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0); 
             const btn = document.getElementById('btnSubmit'); btn.innerText = 'กำลังบันทึก...'; btn.disabled = true;
             try {
+                // บันทึกชื่อลูกค้าใหม่ (ถ้ายังไม่มีในระบบ)
+                const existingCus = allCustomers.find(c => c.name === name);
+                if (!existingCus) { await _client.from('customers').insert([{ name: name, salesman_id: currentSalesman.id }]); }
+
                 const { data: orderData } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select(); const newOrderId = orderData[0].id; 
                 const itemsToInsert = cart.map(c => ({ order_id: newOrderId, product_id: c.id, product_name: c.name, quantity: c.qty, price: c.sale_price || 0 })); await _client.from('order_items').insert(itemsToInsert); 
                 await Promise.all(cart.map(async (c) => { await _client.from('salesman_inventory').update({ quantity: c.stock - c.qty }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id); })); 
                 
                 printReceipt(name, total, cart);
-
-                cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); alert('บันทึกบิลสำเร็จ!'); 
+                cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); loadCustomers(); alert('บันทึกบิลสำเร็จ!'); 
             } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
         }
 
-        /* --- PRINT FUNCTIONS (พิมพ์แยกหน้าต่าง) --- */
-
-        // 1. พิมพ์ใบเสร็จลูกค้า
+        /* --- PRINT FUNCTIONS --- */
         function printReceipt(customerName, total, cartData) {
-            const date = new Date();
-            const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
-            const itemsHtml = cartData.map(c => `<div style="display:flex; justify-content:space-between; align-items:start;"><span style="width:75%;">${c.name} <span style="color:gray; margin-left:4px;">x${c.qty}</span></span><span style="width:25%; text-align:right;">${((c.sale_price || 0)*c.qty).toLocaleString()}</span></div>`).join('');
-            
-            const html = `
-                <div style="text-align:center; margin-bottom:16px; border-bottom:1px dashed #4b5563; padding-bottom:8px;">
-                    <h2 style="font-weight:900; font-size:20px; letter-spacing:-0.5px; margin:0;">NICE COFFEE</h2>
-                    <p style="font-size:10px; margin-top:4px; color:#374151;">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p>
-                    <p style="font-size:12px; font-weight:bold; margin-top:8px;">ใบเสร็จรับเงิน</p>
-                </div>
-                <div style="font-size:10px; margin-bottom:8px; border-bottom:1px dashed #4b5563; padding-bottom:8px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>วันที่:</span> <span>${dateStr}</span></div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>ลูกค้า:</span> <span style="font-weight:bold;">${customerName}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>พนักงาน:</span> <span>${currentSalesman.name}</span></div>
-                </div>
-                <div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:4px;"><span>รายการ</span><span>รวม</span></div>
-                <div style="font-size:10px; margin-bottom:8px;">${itemsHtml}</div>
-                <div style="border-top:1px dashed #4b5563; padding-top:8px; display:flex; justify-content:space-between; font-weight:900; font-size:18px;">
-                    <span>TOTAL</span><span>${total.toLocaleString()}.-</span>
-                </div>
-                <div style="text-align:center; margin-top:24px; font-size:10px; font-weight:bold;">THANK YOU!</div>
-            `;
+            const date = new Date(); const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
+            const itemsHtml = cartData.map(c => `<div style="display:flex; justify-content:space-between; align-items:start;"><span style="width:75%;">${c.name} <span style="color:gray; margin-left:4px;">x${c.qty} ${c.unit||''}</span></span><span style="width:25%; text-align:right;">${((c.sale_price || 0)*c.qty).toLocaleString()}</span></div>`).join('');
+            const html = `<div style="text-align:center; margin-bottom:16px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><h2 style="font-weight:900; font-size:20px; margin:0;">NICE COFFEE</h2><p style="font-size:10px; margin-top:4px; color:#374151;">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p><p style="font-size:12px; font-weight:bold; margin-top:8px;">ใบเสร็จรับเงิน</p></div><div style="font-size:10px; margin-bottom:8px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>วันที่:</span> <span>${dateStr}</span></div><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>ลูกค้า:</span> <span style="font-weight:bold;">${customerName}</span></div><div style="display:flex; justify-content:space-between;"><span>พนักงาน:</span> <span>${currentSalesman.name}</span></div></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:4px;"><span>รายการ</span><span>รวม</span></div><div style="font-size:10px; margin-bottom:8px;">${itemsHtml}</div><div style="border-top:1px dashed #4b5563; padding-top:8px; display:flex; justify-content:space-between; font-weight:900; font-size:18px;"><span>TOTAL</span><span>${total.toLocaleString()}.-</span></div><div style="text-align:center; margin-top:24px; font-size:10px; font-weight:bold;">THANK YOU!</div>`;
             printDocument(html);
         }
 
-        // 2. พิมพ์เช็คสต๊อกท้ายรถ
         async function printMyStock() {
             if (products.length === 0) return alert('คุณยังไม่มีสินค้าในท้ายรถครับ');
             await loadProducts(); 
-            const date = new Date();
-            const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
-            
-            const itemsHtml = products.map((p, index) => `
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #d1d5db; padding-bottom:4px; margin-bottom:4px;">
-                    <span style="width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:4px;">${index + 1}. ${p.name}</span>
-                    <span style="width:20%; text-align:center; font-weight:bold;">${p.stock}</span>
-                    <span style="width:20%; text-align:right;">___</span>
-                </div>
-            `).join('');
-
-            const html = `
-                <div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;">
-                    <h2 style="font-weight:900; font-size:18px; margin:0;">ใบเช็คสต๊อกท้ายรถ</h2>
-                    <p style="font-size:10px; margin-top:4px; color:#374151;">วันที่: <span>${dateStr}</span></p>
-                    <p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงาน: <span>${currentSalesman.name}</span></p>
-                </div>
-                <div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;">
-                    <span style="width:60%;">สินค้า</span>
-                    <span style="width:20%; text-align:center;">ระบบ</span>
-                    <span style="width:20%; text-align:right;">นับจริง</span>
-                </div>
-                <div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div>
-                <div style="border-top:1px dashed #4b5563; margin-top:24px; padding-top:16px; text-align:center; font-size:10px;">
-                    <p>ลงชื่อ ................................</p>
-                    <p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p>
-                    <p style="margin-top:4px; margin-bottom:24px;">ผู้ตรวจนับสินค้า</p>
-                    <p>ลงชื่อ ................................</p>
-                    <p style="margin-top:4px;">( ................................ )</p>
-                    <p style="margin-top:4px;">ผู้จัดการ/แอดมิน</p>
-                </div>
-            `;
+            const date = new Date(); const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
+            const itemsHtml = products.map((p, index) => `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #d1d5db; padding-bottom:4px; margin-bottom:4px;"><span style="width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:4px;">${index + 1}. ${p.name}</span><span style="width:20%; text-align:center; font-weight:bold;">${p.stock} <span style="font-size:8px; font-weight:normal;">${p.unit||''}</span></span><span style="width:20%; text-align:right;">___</span></div>`).join('');
+            const html = `<div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;"><h2 style="font-weight:900; font-size:18px; margin:0;">ใบเช็คสต๊อกท้ายรถ</h2><p style="font-size:10px; margin-top:4px; color:#374151;">วันที่: <span>${dateStr}</span></p><p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงาน: <span>${currentSalesman.name}</span></p></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;"><span style="width:60%;">สินค้า</span><span style="width:20%; text-align:center;">ระบบ</span><span style="width:20%; text-align:right;">นับจริง</span></div><div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div><div style="border-top:1px dashed #4b5563; margin-top:24px; padding-top:16px; text-align:center; font-size:10px;"><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p><p style="margin-top:4px; margin-bottom:24px;">ผู้ตรวจนับสินค้า</p><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( ................................ )</p><p style="margin-top:4px;">ผู้จัดการ/แอดมิน</p></div>`;
             printDocument(html);
         }
 
-        // 3. พิมพ์ใบส่งเงินรายวัน
         function printRemittance() {
             if (!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลบิลสำหรับพิมพ์');
-            
-            const dateVal = document.getElementById('dashDate').value;
-            const [yyyy, mm, dd] = dateVal.split('-');
-            let dateLabel = `${dd}/${mm}/${yyyy}`;
-            if(currentReportType === 'month') dateLabel = `เดือน ${mm}/${yyyy}`;
-            if(currentReportType === 'year') dateLabel = `ปี ${yyyy}`;
-
-            const itemsHtml = window.currentReportData.map(o => `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #d1d5db; padding-bottom:4px; margin-bottom:4px;">
-                    <span style="width:20%; color:#6b7280;">#${o.id}</span>
-                    <span style="width:40%; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-weight:bold;">${o.customer_name}</span>
-                    <span style="width:40%; text-align:right; font-weight:900;">${(o.total_amount||0).toLocaleString()}</span>
-                </div>
-            `).join('');
-
-            const html = `
-                <div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;">
-                    <h2 style="font-weight:900; font-size:18px; margin:0;">ใบส่งเงิน/รายงานขาย</h2>
-                    <p style="font-size:10px; margin-top:4px; color:#374151;">ประจำ: <span>${dateLabel}</span></p>
-                    <p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงานขาย: <span>${currentSalesman.name}</span></p>
-                </div>
-                <div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;">
-                    <span style="width:20%;">รหัสบิล</span>
-                    <span style="width:40%; text-align:center;">ลูกค้า/ร้านค้า</span>
-                    <span style="width:40%; text-align:right;">ยอดเงิน</span>
-                </div>
-                <div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div>
-                <div style="border-top:1px solid #4b5563; padding-top:12px; padding-bottom:8px; display:flex; justify-content:space-between; font-weight:900; font-size:14px;">
-                    <span>รวมส่งเงิน:</span>
-                    <span>${window.currentReportTotal.toLocaleString()}.-</span>
-                </div>
-                <div style="border-top:1px dashed #4b5563; margin-top:16px; padding-top:16px; text-align:center; font-size:10px;">
-                    <p>ผู้ส่งเงิน ................................</p>
-                    <p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p>
-                    <p style="margin-top:4px; margin-bottom:24px;">เซลส์ / พนักงานขาย</p>
-                    <p>ผู้รับเงิน ................................</p>
-                    <p style="margin-top:4px;">( ................................ )</p>
-                    <p style="margin-top:4px;">แคชเชียร์ / บัญชี</p>
-                </div>
-            `;
+            const dateVal = document.getElementById('dashDate').value; const [yyyy, mm, dd] = dateVal.split('-');
+            let dateLabel = `${dd}/${mm}/${yyyy}`; if(currentReportType === 'month') dateLabel = `เดือน ${mm}/${yyyy}`; if(currentReportType === 'year') dateLabel = `ปี ${yyyy}`;
+            const itemsHtml = window.currentReportData.map(o => `<div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #d1d5db; padding-bottom:4px; margin-bottom:4px;"><span style="width:20%; color:#6b7280;">#${o.id}</span><span style="width:40%; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-weight:bold;">${o.customer_name}</span><span style="width:40%; text-align:right; font-weight:900;">${(o.total_amount||0).toLocaleString()}</span></div>`).join('');
+            const html = `<div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;"><h2 style="font-weight:900; font-size:18px; margin:0;">ใบส่งเงิน/รายงานขาย</h2><p style="font-size:10px; margin-top:4px; color:#374151;">ประจำ: <span>${dateLabel}</span></p><p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงานขาย: <span>${currentSalesman.name}</span></p></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;"><span style="width:20%;">รหัสบิล</span><span style="width:40%; text-align:center;">ลูกค้า/ร้านค้า</span><span style="width:40%; text-align:right;">ยอดเงิน</span></div><div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div><div style="border-top:1px solid #4b5563; padding-top:12px; padding-bottom:8px; display:flex; justify-content:space-between; font-weight:900; font-size:14px;"><span>รวมส่งเงิน:</span><span>${window.currentReportTotal.toLocaleString()}.-</span></div><div style="border-top:1px dashed #4b5563; margin-top:16px; padding-top:16px; text-align:center; font-size:10px;"><p>ผู้ส่งเงิน ................................</p><p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p><p style="margin-top:4px; margin-bottom:24px;">เซลส์ / พนักงานขาย</p><p>ผู้รับเงิน ................................</p><p style="margin-top:4px;">( ................................ )</p><p style="margin-top:4px;">แคชเชียร์ / บัญชี</p></div>`;
             printDocument(html);
         }
 
         /* --- TRANSFER (ย่อ) --- */
-        async function loadTransferProductDropdown() { const { data } = await _client.from('products').select('*').order('name'); if (data) document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + data.map(p => `<option value="${p.id}" data-name="${p.name}">${p.name}</option>`).join(''); }
-        function addToReqCart() { const sel = document.getElementById('reqProduct'); const pId = parseInt(sel.value); const pName = sel.options[sel.selectedIndex]?.getAttribute('data-name'); const qty = parseInt(document.getElementById('reqQty').value); if (!pId || !qty || qty <= 0) return; const existing = reqCart.find(x => x.product_id === pId); if (existing) existing.quantity += qty; else reqCart.push({ product_id: pId, product_name: pName, quantity: qty }); document.getElementById('reqQty').value = ''; sel.value = ''; renderReqCart(); }
+        async function loadTransferProductDropdown() { const { data } = await _client.from('products').select('*').order('name'); if (data) document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + data.map(p => `<option value="${p.id}" data-name="${p.name}" data-unit="${p.unit||'ชิ้น'}">${p.name}</option>`).join(''); }
+        function addToReqCart() { const sel = document.getElementById('reqProduct'); const pId = parseInt(sel.value); const pName = sel.options[sel.selectedIndex]?.getAttribute('data-name'); const pUnit = sel.options[sel.selectedIndex]?.getAttribute('data-unit'); const qty = parseInt(document.getElementById('reqQty').value); if (!pId || !qty || qty <= 0) return; const existing = reqCart.find(x => x.product_id === pId); if (existing) existing.quantity += qty; else reqCart.push({ product_id: pId, product_name: pName, quantity: qty, unit: pUnit }); document.getElementById('reqQty').value = ''; sel.value = ''; renderReqCart(); }
         function removeReqCart(index) { reqCart.splice(index, 1); renderReqCart(); }
-        function renderReqCart() { const list = document.getElementById('reqCartItems'); const btnSubmit = document.getElementById('btnSubmitReq'); if (reqCart.length === 0) { list.innerHTML = ''; btnSubmit.classList.add('hidden'); return; } btnSubmit.classList.remove('hidden'); list.innerHTML = reqCart.map((c, i) => `<div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg"><span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity}</span></span><button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold bg-white border px-2 py-1 rounded-md">ลบ</button></div>`).join(''); }
+        function renderReqCart() { const list = document.getElementById('reqCartItems'); const btnSubmit = document.getElementById('btnSubmitReq'); if (reqCart.length === 0) { list.innerHTML = ''; btnSubmit.classList.add('hidden'); return; } btnSubmit.classList.remove('hidden'); list.innerHTML = reqCart.map((c, i) => `<div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg"><span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity} <span class="text-xs font-normal text-slate-500">${c.unit||''}</span></span></span><button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold bg-white border px-2 py-1 rounded-md">ลบ</button></div>`).join(''); }
         async function submitTransferRequest() { if (reqCart.length === 0) return; const btn = document.getElementById('btnSubmitReq'); btn.disabled = true; btn.innerText = 'กำลังส่ง...'; const d = new Date(); const refId = 'REQ' + d.getFullYear().toString().slice(-2) + (d.getMonth()+1).toString().padStart(2,'0') + d.getDate().toString().padStart(2,'0') + '-' + Math.floor(Math.random()*10000).toString().padStart(4,'0'); try { const insertData = reqCart.map(c => ({ salesman_id: currentSalesman.id, salesman_name: currentSalesman.name, product_id: c.product_id, product_name: c.product_name, quantity: c.quantity, status: 'ส่งใบเบิกสินค้า', transfer_ref: refId })); await _client.from('stock_transfers').insert(insertData); alert(`✅ ส่งใบเบิกเลขที่ ${refId} เรียบร้อย!`); reqCart = []; renderReqCart(); loadMyTransfers(); } catch (e) { alert('Error: ' + e.message); } finally { btn.disabled = false; btn.innerText = '📤 ส่งใบเบิก'; } }
         async function loadMyTransfers() { const list = document.getElementById('myTransferList'); try { const { data } = await _client.from('stock_transfers').select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(50); if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ไม่มีประวัติ</p>'; return; } allMyTransfers = data; const grouped = {}; data.forEach(t => { const ref = t.transfer_ref || `NO-REF-${t.id}`; if(!grouped[ref]) grouped[ref] = { ref: ref, date: t.transfer_date, status: t.status, items: [] }; grouped[ref].items.push(t); }); list.innerHTML = Object.values(grouped).map(g => { let statusBtn = ''; if (g.status === 'ส่งใบเบิกสินค้า') statusBtn = '<span class="text-amber-600 font-bold text-xs">⏳ รออนุมัติ...</span>'; else if (g.status === 'อนุมัติแล้ว') statusBtn = `<button onclick="receiveGroup('${g.ref}', this)" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2">📥 กดยืนยันรับของทั้งบิล</button>`; else if (g.status === 'เซลรับสินค้าแล้ว' || g.status === 'รับโอนแล้ว') statusBtn = '<span class="text-green-600 font-bold text-xs">✔️ เซลรับสินค้าแล้ว</span>'; else statusBtn = `<span class="text-red-500 font-bold text-xs">${g.status}</span>`; return `<div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm"><div class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2"><span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">No: ${g.ref}</span></div><div class="space-y-1 mb-3">${g.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>- ${i.product_name}</span><span class="text-blue-600">x${i.quantity}</span></div>`).join('')}</div><div class="text-right">${statusBtn}</div></div>`; }).join(''); } catch (err) {} }
         async function receiveGroup(ref, btnElement) { if (!confirm(`ยืนยัน "รับสินค้า" บิลเลขที่ ${ref} ?`)) return; const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'อนุมัติแล้ว'); if(itemsToReceive.length === 0) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังโหลด...'; } try { for(let item of itemsToReceive) { await _client.from('stock_transfers').update({ status: 'เซลรับสินค้าแล้ว' }).eq('id', item.id); const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle(); if (inv) { await _client.from('salesman_inventory').update({ quantity: inv.quantity + item.quantity }).eq('id', inv.id); } else { await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: item.quantity }]); } } alert('🎉 รับสินค้าสำเร็จ'); loadMyTransfers(); } catch (e) { alert(e.message); } }
 
-        /* --- DASHBOARD & REMITTANCE REPORT --- */
-        window.currentReportData = [];
-        window.currentReportTotal = 0;
-
-        function setReportType(type) {
-            currentReportType = type;
-            ['day', 'month', 'year'].forEach(t => {
-                const btn = document.getElementById('btnRep' + t.charAt(0).toUpperCase() + t.slice(1));
-                if (t === type) btn.className = 'flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all';
-                else btn.className = 'flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all';
-            });
-            loadDashboard();
-        }
-
-        async function loadDashboard() {
-            try {
-                const dateVal = document.getElementById('dashDate').value;
-                if(!dateVal) return;
-                const [yyyy, mm, dd] = dateVal.split('-');
-
-                const { data, error } = await _client.from('orders').select('*').eq('salesman_id', currentSalesman.id).order('created_at', { ascending: true });
-                if (error) throw error;
-
-                const filteredData = data.filter(o => {
-                    const oDate = new Date(o.created_at);
-                    if (currentReportType === 'day') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd;
-                    else if (currentReportType === 'month') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm;
-                    else if (currentReportType === 'year') return oDate.getFullYear() == yyyy;
-                    return false;
-                });
-
-                const totalRevenue = filteredData.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
-                document.getElementById('dashTotalSales').innerText = totalRevenue.toLocaleString() + '.-';
-                document.getElementById('dashTotalOrders').innerHTML = `${filteredData.length} <span class="text-xs font-normal text-slate-400">บิล</span>`;
-
-                const list = document.getElementById('dashBillList');
-                if (filteredData.length === 0) {
-                    list.innerHTML = '<p class="text-center text-xs text-slate-400 py-3">ไม่มีข้อมูลการขายในวันที่เลือก</p>';
-                    document.getElementById('btnPrintRemit').classList.add('hidden');
-                } else {
-                    document.getElementById('btnPrintRemit').classList.remove('hidden');
-                    list.innerHTML = filteredData.map(o => `
-                        <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <div class="w-3/4 pr-2">
-                                <p class="text-xs font-bold text-slate-800 truncate">🧑‍💼 ${o.customer_name}</p>
-                                <p class="text-[10px] text-slate-500 mt-0.5">บิล: #${o.id} • ${new Date(o.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</p>
-                            </div>
-                            <span class="text-sm font-black text-blue-600">${(o.total_amount||0).toLocaleString()}</span>
-                        </div>
-                    `).join('');
-                }
-                
-                window.currentReportData = filteredData;
-                window.currentReportTotal = totalRevenue;
-
-            } catch (err) {}
-        }
+        /* --- DASHBOARD --- */
+        window.currentReportData = []; window.currentReportTotal = 0;
+        function setReportType(type) { currentReportType = type; ['day', 'month', 'year'].forEach(t => { const btn = document.getElementById('btnRep' + t.charAt(0).toUpperCase() + t.slice(1)); if (t === type) btn.className = 'flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all'; else btn.className = 'flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all'; }); loadDashboard(); }
+        async function loadDashboard() { try { const dateVal = document.getElementById('dashDate').value; if(!dateVal) return; const [yyyy, mm, dd] = dateVal.split('-'); const { data, error } = await _client.from('orders').select('*').eq('salesman_id', currentSalesman.id).order('created_at', { ascending: true }); if (error) throw error; const filteredData = data.filter(o => { const oDate = new Date(o.created_at); if (currentReportType === 'day') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd; else if (currentReportType === 'month') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm; else if (currentReportType === 'year') return oDate.getFullYear() == yyyy; return false; }); const totalRevenue = filteredData.reduce((sum, order) => sum + Number(order.total_amount || 0), 0); document.getElementById('dashTotalSales').innerText = totalRevenue.toLocaleString() + '.-'; document.getElementById('dashTotalOrders').innerHTML = `${filteredData.length} <span class="text-xs font-normal text-slate-400">บิล</span>`; const list = document.getElementById('dashBillList'); if (filteredData.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 py-3">ไม่มีข้อมูลการขายในวันที่เลือก</p>'; document.getElementById('btnPrintRemit').classList.add('hidden'); } else { document.getElementById('btnPrintRemit').classList.remove('hidden'); list.innerHTML = filteredData.map(o => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100"><div class="w-3/4 pr-2"><p class="text-xs font-bold text-slate-800 truncate">🧑‍💼 ${o.customer_name}</p><p class="text-[10px] text-slate-500 mt-0.5">บิล: #${o.id} • ${new Date(o.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</p></div><span class="text-sm font-black text-blue-600">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); } window.currentReportData = filteredData; window.currentReportTotal = totalRevenue; } catch (err) {} }
     </script>
 </body>
 </html>

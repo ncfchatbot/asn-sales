@@ -138,13 +138,12 @@
         
         async function loadInventory() { const { data } = await _client.from('products').select('*').order('id', { ascending: false }); if (data) { allProducts = data; const isManager = currentAdmin.role === 'manager'; document.getElementById('invTableHeader').innerHTML = `<tr><th class="p-4">สินค้า</th><th class="p-4">ราคาขาย</th>${isManager ? '<th class="p-4">ต้นทุน</th>' : ''}<th class="p-4 text-center">คลังหลัก</th></tr>`; document.getElementById('adminProductList').innerHTML = data.map(p => `<tr><td class="p-4 font-bold">${p.name}</td><td class="p-4 text-blue-600">${p.sale_price.toLocaleString()}</td>${isManager ? `<td class="p-4 text-red-400">${(p.cost_price||0).toLocaleString()}</td>` : ''}<td class="p-4 text-center font-black text-indigo-700 bg-indigo-50">${p.master_stock||0}</td></tr>`).join(''); } }
 
-        /* --- TRANSFER (GROUP APPROVAL LOGIC) --- */
+        /* --- TRANSFER (GROUP APPROVAL LOGIC WITH BUTTON LOCK) --- */
         async function loadTransferLogs() {
             const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }).limit(200);
             if(data) {
                 allTransferData = data;
                 
-                // 1. จัดกลุ่มใบเบิกที่รออนุมัติ
                 const pending = data.filter(x => x.status === 'ส่งใบเบิกสินค้า');
                 const groupedPending = {};
                 pending.forEach(x => {
@@ -167,13 +166,12 @@
                                 ${g.items.map(i => `<div class="flex justify-between text-xs"><span class="text-slate-600">- ${i.product_name}</span><b class="text-blue-600">x${i.quantity}</b></div>`).join('')}
                             </div>
                         </td>
-                        <td class="p-3 text-center align-top pt-5 space-y-2 w-[80px]">
-                            <button onclick="approveGroup('${g.ref}')" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm">อนุมัติ</button>
-                            <button onclick="rejectGroup('${g.ref}')" class="block w-full bg-red-100 text-red-600 hover:bg-red-200 text-[10px] px-2 py-1.5 rounded-lg font-bold">ปฏิเสธ</button>
+                        <td class="p-3 text-center align-top pt-5 space-y-2 w-[90px]">
+                            <button onclick="approveGroup('${g.ref}', this)" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all">อนุมัติ</button>
+                            <button onclick="rejectGroup('${g.ref}', this)" class="block w-full bg-red-100 text-red-600 hover:bg-red-200 text-[10px] px-2 py-1.5 rounded-lg font-bold transition-all">ปฏิเสธ</button>
                         </td>
                     </tr>`).join('') : `<tr><td colspan="2" class="p-6 text-center text-slate-400">✅ ไม่มีคำขอเบิกสินค้าค้างอยู่</td></tr>`;
 
-                // 2. ประวัติการโอนทั้งหมด (ปรับสถานะใหม่ตามที่พี่ขอเป๊ะๆ)
                 document.getElementById('transferLogBody').innerHTML = data.map(l => {
                     let badge = '';
                     if(l.status === 'ส่งใบเบิกสินค้า') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-[10px]">รออนุมัติ</span>';
@@ -185,10 +183,10 @@
             }
         }
 
-        async function approveGroup(ref) {
+        async function approveGroup(ref, btnElement) {
             if(!confirm(`ยืนยัน "อนุมัติ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?\n(ระบบจะตัดสต๊อกคลังหลักทันที)`)) return;
             
-            const items = allTransferData.filter(x => x.transfer_ref === ref && x.status === 'ส่งใบเบิกสินค้า');
+            const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า');
             if (allProducts.length === 0) await loadInventory(); 
             for (let item of items) {
                 const prod = allProducts.find(p => p.id === item.product_id);
@@ -197,28 +195,51 @@
                 }
             }
 
+            // ล็อกปุ่มป้องกันดับเบิ้ลคลิก
+            if(btnElement) {
+                btnElement.disabled = true;
+                btnElement.innerText = 'กำลังประมวลผล...';
+                btnElement.className = 'block w-full bg-slate-400 text-white font-bold px-2 py-2 rounded-lg text-[10px] shadow-sm cursor-not-allowed';
+            }
+
             try {
-                // ตัดสต๊อกคลังหลักทีละรายการ
+                // ใช้วิธีอัปเดตราย ID (แม่นยำ 100%)
                 for (let item of items) {
                     const prod = allProducts.find(p => p.id === item.product_id);
                     await _client.from('products').update({ master_stock: prod.master_stock - item.quantity }).eq('id', item.product_id);
+                    await _client.from('stock_transfers').update({ status: 'อนุมัติแล้ว', admin_name: currentAdmin.name }).eq('id', item.id);
                 }
-                
-                // อัปเดตสถานะบิลเป็น "อนุมัติแล้ว"
-                await _client.from('stock_transfers').update({ status: 'อนุมัติแล้ว', admin_name: currentAdmin.name }).eq('transfer_ref', ref);
                 
                 alert('✅ อนุมัติใบเบิกสำเร็จ! รอเซลส์กดรับสินค้าเข้าเครื่อง');
                 loadInventory(); loadTransferLogs();
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { 
+                alert('Error: ' + e.message); 
+                if(btnElement) {
+                    btnElement.disabled = false;
+                    btnElement.innerText = 'อนุมัติ';
+                    btnElement.className = 'block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all';
+                }
+            }
         }
 
-        async function rejectGroup(ref) {
+        async function rejectGroup(ref, btnElement) {
             if(!confirm(`ต้องการ "ปฏิเสธ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?`)) return;
-            await _client.from('stock_transfers').update({ status: 'ปฏิเสธ (แอดมินยกเลิก)', admin_name: currentAdmin.name }).eq('transfer_ref', ref);
+
+            // ล็อกปุ่มป้องกันดับเบิ้ลคลิก
+            if(btnElement) {
+                btnElement.disabled = true;
+                btnElement.innerText = 'กำลังประมวลผล...';
+                btnElement.className = 'block w-full bg-slate-200 text-slate-500 px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-not-allowed';
+            }
+
+            const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า');
+            for (let item of items) {
+                await _client.from('stock_transfers').update({ status: 'ปฏิเสธ (แอดมินยกเลิก)', admin_name: currentAdmin.name }).eq('id', item.id);
+            }
             loadTransferLogs();
         }
 
-        /* --- อื่นๆ ย่อไว้ --- */
+        /* --- อื่นๆ --- */
         async function loadOrders() { const { data: oData } = await _client.from('orders').select('*').order('created_at', { ascending: false }); const { data: sData } = await _client.from('salesmen').select('id, name'); const { data: iData } = await _client.from('order_items').select('*'); if (oData) { document.getElementById('adminOrdersList').innerHTML = oData.map(o => { const isPaid = o.payment_status === 'จ่ายแล้ว'; const sName = sData?.find(s => s.id === o.salesman_id)?.name || '-'; return `<tr><td class="p-4 text-xs">#${o.id}<br>${new Date(o.created_at).toLocaleDateString()}</td><td class="p-4 font-bold text-indigo-600">${sName}</td><td class="p-4"><b>${o.customer_name}</b></td><td class="p-4 font-black text-green-600">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${isPaid ? '✅ จ่ายแล้ว' : '❌ ค้าง'}</td><td class="p-4 text-center">-</td></tr>`; }).join(''); } }
         async function loadUsers() { const { data } = await _client.from('salesmen').select('*').order('id'); if(data) document.getElementById('userTableBody').innerHTML = data.map(u => `<tr class="border-b"><td class="p-4 font-bold">${u.name}</td><td class="p-4 font-mono">${u.pin||'-'}</td><td class="p-4">${u.role}</td><td class="p-4 text-center">-</td></tr>`).join(''); }
     </script>

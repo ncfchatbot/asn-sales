@@ -78,16 +78,30 @@
             <div id="transfer-view" class="hidden p-4 space-y-6 bg-slate-50 min-h-screen">
                 
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                    <h3 class="font-black text-slate-800 text-lg">📝 สร้างใบเบิกสินค้า</h3>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">1. เลือกสินค้า</label>
-                        <select id="reqProduct" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select>
+                    <h3 class="font-black text-slate-800 text-lg">📝 สร้างใบเบิกสินค้า (หลาย SKUs)</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end border-b border-slate-100 pb-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกสินค้า</label>
+                            <select id="reqProduct" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select>
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวนเบิก</label>
+                                <input type="number" id="reqQty" min="1" placeholder="ชิ้น" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">
+                            </div>
+                            <button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-4 rounded-xl active:scale-95 transition-all text-xs h-[42px] mt-auto">เพิ่ม</button>
+                        </div>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">2. จำนวนที่ต้องการเบิก</label>
-                        <input type="number" id="reqQty" min="1" placeholder="ระบุจำนวนชิ้น..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center text-lg">
+                        <p class="text-xs font-bold text-slate-500 mb-2">📋 รายการที่เตรียมเบิก:</p>
+                        <div id="reqCartItems" class="space-y-2 min-h-[40px]">
+                            <p class="text-center text-xs text-slate-400 italic">ยังไม่มีรายการ</p>
+                        </div>
                     </div>
-                    <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md active:scale-95 transition-transform">📤 ส่งใบเบิกให้ผู้จัดการ</button>
+
+                    <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md active:scale-95 transition-transform hidden">📤 ส่งใบเบิกให้ผู้จัดการ</button>
                 </div>
 
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
@@ -146,7 +160,7 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnluYXV4ZnRobHZwdnFnZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTk5OTEsImV4cCI6MjA5MDc3NTk5MX0.hB-r5E0fcnKnSWYga5AjQJ2h_J9oD7GuWwsRa58TylU';
         const _client = supabase.createClient(SB_URL, SB_KEY);
 
-        let products = []; let cart = []; let currentSalesman = null;
+        let products = []; let cart = []; let reqCart = []; let currentSalesman = null;
 
         async function login() {
             const pin = document.getElementById('pinInput').value;
@@ -183,7 +197,7 @@
             }
 
             if(tab === 'pos') loadProducts();
-            if(tab === 'transfer') { loadTransferProductDropdown(); loadMyTransfers(); }
+            if(tab === 'transfer') { loadTransferProductDropdown(); loadMyTransfers(); renderReqCart(); }
             if(tab === 'dash') loadDashboard();
         }
 
@@ -262,30 +276,25 @@
             try {
                 const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0);
                 
-                // 1. บันทึกบิล
                 const { data: orderData, error: orderErr } = await _client.from('orders')
                     .insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select();
                 if (orderErr) throw orderErr;
                 const newOrderId = orderData[0].id;
 
-                // 2. บันทึกรายละเอียดสินค้า
                 const itemsToInsert = cart.map(c => ({
                     order_id: newOrderId, product_id: c.id, product_name: c.name, quantity: c.qty, price: c.sale_price || 0
                 }));
                 const { error: itemsErr } = await _client.from('order_items').insert(itemsToInsert);
                 if (itemsErr) throw itemsErr;
                 
-                // 3. ตัดสต๊อกท้ายรถของเซลส์
                 const updatePromises = cart.map(async (c) => {
                     const newStock = c.stock - c.qty;
                     await _client.from('salesman_inventory').update({ quantity: newStock }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id);
                 });
                 await Promise.all(updatePromises); 
 
-                // 4. พิมพ์สลิป
                 generateReceipt(name, total); window.print();
 
-                // 5. ล้างข้อมูล
                 cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts();
             } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message);
             } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
@@ -302,45 +311,89 @@
             document.getElementById('rTotal').innerText = total.toLocaleString() + '.-';
         }
 
-        /* ----- TAB 2: TRANSFER LOGIC (ระบบเบิกสต๊อก) ----- */
+        /* ----- TAB 2: MULTI-SKU TRANSFER LOGIC (ระบบเบิกสต๊อกหลายรายการ) ----- */
         async function loadTransferProductDropdown() {
             const { data } = await _client.from('products').select('*').order('name');
             if (data) {
-                document.getElementById('reqProduct').innerHTML = '<option value="">-- แตะเพื่อเลือกสินค้า --</option>' + 
+                document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + 
                     data.map(p => `<option value="${p.id}" data-name="${p.name}">${p.name}</option>`).join('');
             }
         }
 
-        async function submitTransferRequest() {
+        function addToReqCart() {
             const sel = document.getElementById('reqProduct');
-            const pId = sel.value;
+            const pId = parseInt(sel.value);
             const pName = sel.options[sel.selectedIndex]?.getAttribute('data-name');
             const qty = parseInt(document.getElementById('reqQty').value);
 
-            if (!pId || !qty || qty <= 0) return alert('⚠️ กรุณาเลือกสินค้าและระบุจำนวนที่ต้องการเบิก');
+            if (!pId || !qty || qty <= 0) return alert('⚠️ กรุณาเลือกสินค้าและใส่จำนวนชิ้นให้ถูกต้อง');
+
+            // เช็คว่ามีในตะกร้าเบิกแล้วหรือยัง ถ้ามีให้บวกเพิ่ม
+            const existing = reqCart.find(x => x.product_id === pId);
+            if (existing) {
+                existing.quantity += qty;
+            } else {
+                reqCart.push({ product_id: pId, product_name: pName, quantity: qty });
+            }
+
+            document.getElementById('reqQty').value = '';
+            sel.value = '';
+            renderReqCart();
+        }
+
+        function removeReqCart(index) {
+            reqCart.splice(index, 1);
+            renderReqCart();
+        }
+
+        function renderReqCart() {
+            const list = document.getElementById('reqCartItems');
+            const btnSubmit = document.getElementById('btnSubmitReq');
+            
+            if (reqCart.length === 0) {
+                list.innerHTML = '<p class="text-center text-xs text-slate-400 italic">ยังไม่มีรายการ</p>';
+                btnSubmit.classList.add('hidden');
+                return;
+            }
+
+            btnSubmit.classList.remove('hidden');
+            list.innerHTML = reqCart.map((c, i) => `
+                <div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg shadow-sm">
+                    <span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity}</span></span>
+                    <button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold px-2 py-1 bg-white border border-red-200 rounded-md">ลบ</button>
+                </div>
+            `).join('');
+        }
+
+        async function submitTransferRequest() {
+            if (reqCart.length === 0) return;
             
             const btn = document.getElementById('btnSubmitReq');
-            btn.disabled = true; btn.innerText = 'กำลังส่งข้อมูล...';
+            btn.disabled = true; btn.innerText = 'กำลังส่งข้อมูลทั้งหมด...';
 
             try {
-                // บันทึกลงฐานข้อมูล Supabase และเช็ค Error ตรงๆ
-                const { error } = await _client.from('stock_transfers').insert([{
+                // จัดเตรียมข้อมูลทั้งหมดให้เป็น Array เพื่อส่งเข้า Supabase ครั้งเดียว
+                const insertData = reqCart.map(c => ({
                     salesman_id: currentSalesman.id, 
                     salesman_name: currentSalesman.name, 
-                    product_id: parseInt(pId), 
-                    product_name: pName, 
-                    quantity: qty, 
+                    product_id: c.product_id, 
+                    product_name: c.product_name, 
+                    quantity: c.quantity, 
                     status: 'ส่งใบเบิกสินค้า'
-                }]);
-                
-                // ถ้ามี Error จากฐานข้อมูล ให้เด้งเตือนทันที
+                }));
+
+                const { error } = await _client.from('stock_transfers').insert(insertData);
                 if (error) throw error;
 
-                alert('✅ ส่งคำขอเบิกสินค้าเรียบร้อย!\nกรุณารอผู้จัดการกดอนุมัติในระบบครับ');
-                document.getElementById('reqQty').value = '';
+                alert(`✅ ส่งคำขอเบิกสินค้า ${reqCart.length} รายการ เรียบร้อยแล้ว!\nกรุณารอผู้จัดการกดอนุมัติในระบบครับ`);
+                
+                // ล้างตะกร้า
+                reqCart = [];
+                renderReqCart();
                 loadMyTransfers();
+
             } catch (e) { 
-                alert('❌ ฐานข้อมูลปฏิเสธการบันทึก!\n\n(อาจจะลืมรันคำสั่ง SQL ในขั้นตอนที่ 1 ครับ)\nรายละเอียด Error: ' + e.message);
+                alert('Error: ' + e.message);
             } finally { 
                 btn.disabled = false; btn.innerText = '📤 ส่งใบเบิกให้ผู้จัดการ'; 
             }
@@ -350,20 +403,20 @@
             const list = document.getElementById('myTransferList');
             try {
                 const { data, error } = await _client.from('stock_transfers')
-                    .select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(20);
+                    .select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(30);
                 
-                if (error) throw error; // ถ้าตารางไม่อัปเดตให้แจ้งเตือนตรงนี้ด้วย
+                if (error) throw error;
 
                 if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีประวัติการทำรายการ</p>'; return; }
 
                 list.innerHTML = data.map(t => {
                     let statusHtml = '';
                     if (t.status === 'ส่งใบเบิกสินค้า') {
-                        statusHtml = '<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-xl text-xs font-bold border border-amber-200">⏳ รอผู้จัดการอนุมัติ</span>';
+                        statusHtml = '<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-xl text-xs font-bold border border-amber-200">⏳ รออนุมัติ</span>';
                     } else if (t.status === 'อนุมัติแล้ว') {
-                        statusHtml = `<button onclick="receiveStock(${t.id}, ${t.product_id}, ${t.quantity})" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-lg active:scale-95 transition-transform">📥 กดรับสินค้าเข้าคลัง</button>`;
+                        statusHtml = `<button onclick="receiveStock(${t.id}, ${t.product_id}, ${t.quantity})" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-lg active:scale-95 transition-transform">📥 กดรับของ</button>`;
                     } else if (t.status === 'รับโอนแล้ว') {
-                        statusHtml = '<span class="bg-slate-100 text-green-600 px-3 py-1 rounded-xl text-xs font-bold">✔️ รับเข้าท้ายรถแล้ว</span>';
+                        statusHtml = '<span class="bg-slate-100 text-green-600 px-3 py-1 rounded-xl text-xs font-bold">✔️ รับแล้ว</span>';
                     } else {
                         statusHtml = `<span class="bg-red-50 text-red-600 px-3 py-1 rounded-xl text-xs font-bold border border-red-200">${t.status}</span>`;
                     }
@@ -383,19 +436,17 @@
                     </div>`;
                 }).join('');
             } catch (err) {
-                list.innerHTML = `<p class="text-center text-xs text-red-500 py-4 font-bold">⚠️ ยังไม่ได้เพิ่มคอลัมน์ใน Supabase<br>ลองเช็คขั้นตอนที่ 1 ใหม่อีกรอบนะครับ</p>`;
+                list.innerHTML = `<p class="text-center text-xs text-red-500 py-4 font-bold">⚠️ ดึงข้อมูลล้มเหลว</p>`;
             }
         }
 
         async function receiveStock(transferId, productId, qty) {
-            if (!confirm(`คุณได้รับสินค้าครบจำนวน ${qty} ชิ้น เรียบร้อยแล้วใช่หรือไม่?`)) return;
+            if (!confirm(`คุณได้รับสินค้าจำนวน ${qty} ชิ้น เรียบร้อยแล้วใช่หรือไม่?`)) return;
             
             try {
-                // 1. อัปเดตสถานะบิลโอน
                 const { error: err1 } = await _client.from('stock_transfers').update({ status: 'รับโอนแล้ว' }).eq('id', transferId);
                 if (err1) throw err1;
 
-                // 2. เอาของเข้าท้ายรถเซลส์
                 const { data: inv } = await _client.from('salesman_inventory')
                     .select('*').eq('salesman_id', currentSalesman.id).eq('product_id', productId).maybeSingle();
                 
@@ -405,7 +456,7 @@
                     await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: productId, quantity: qty }]);
                 }
                 
-                alert('🎉 เยี่ยมมาก! รับสินค้าเข้าสต๊อกท้ายรถเรียบร้อยแล้ว\nตอนนี้คุณสามารถไปเปิดบิลขายได้เลยครับ');
+                alert('🎉 รับสินค้าเข้าท้ายรถเรียบร้อยแล้ว!');
                 loadMyTransfers();
             } catch (e) { alert('Error: ' + e.message); }
         }

@@ -9,28 +9,11 @@
     <style>
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* สไตล์สำหรับการพิมพ์แบบ Thermal Printer 3 นิ้ว */
-        @media print {
-            #app-container { display: none !important; }
-            @page { margin: 0; }
-            body { background-color: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
-            
-            .thermal-print-area { 
-                display: block !important; 
-                width: 75mm; 
-                margin: 0 auto; 
-                padding: 5mm; 
-                font-family: 'Courier New', Courier, monospace; 
-                font-size: 12px; 
-                line-height: 1.2;
-            }
-
-            body > *:not(.thermal-print-area) { display: none !important; }
-            
-            /* ควบคุมให้พิมพ์ถูกหน้าตามโหมด */
-            body.print-receipt #receipt-view { display: block !important; }
-            body.print-stock #stock-print-view { display: block !important; }
-            body.print-remit #remit-print-view { display: block !important; }
+        /* สไตล์หลักสำหรับการพิมพ์ผ่านหน้าต่างจำลอง */
+        .thermal-print-format { 
+            width: 75mm; margin: 0 auto; padding: 5mm; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 12px; line-height: 1.2; color: black; background: white; 
         }
         
         /* ซ่อน Scrollbar ของเมนู */
@@ -142,77 +125,9 @@
                         <h3 class="font-bold text-sm text-slate-800">📋 รายละเอียดบิล</h3>
                         <button onclick="printRemittance()" id="btnPrintRemit" class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold shadow-sm hidden flex items-center gap-1">🖨️ พิมพ์ใบส่งเงิน</button>
                     </div>
-                    <div class="space-y-2" id="dashBillList">
-                        </div>
+                    <div class="space-y-2" id="dashBillList"></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div id="receipt-view" class="hidden thermal-print-area">
-        <div class="text-center mb-4 border-b border-dashed border-gray-600 pb-2">
-            <h2 class="font-black text-xl tracking-tight">NICE COFFEE</h2>
-            <p class="text-[10px] mt-1 text-gray-700">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p>
-            <p class="text-xs font-bold mt-2">ใบเสร็จรับเงิน</p>
-        </div>
-        <div class="text-[10px] mb-2 space-y-1 border-b border-dashed border-gray-600 pb-2">
-            <div class="flex justify-between"><span>วันที่:</span> <span id="rDate"></span></div>
-            <div class="flex justify-between"><span>ลูกค้า:</span> <span id="rCustomer" class="font-bold"></span></div>
-            <div class="flex justify-between"><span>พนักงาน:</span> <span id="rStaff"></span></div>
-        </div>
-        <div class="text-[10px] font-bold flex justify-between mb-1"><span>รายการ</span><span>รวม</span></div>
-        <div id="rItems" class="text-[10px] space-y-1 mb-2"></div>
-        <div class="border-t border-dashed border-gray-600 pt-2 flex justify-between font-black text-lg">
-            <span>TOTAL</span><span id="rTotal">0.-</span>
-        </div>
-        <div class="text-center mt-6 text-[10px] font-bold">THANK YOU!</div>
-    </div>
-
-    <div id="stock-print-view" class="hidden thermal-print-area">
-        <div class="text-center border-b border-dashed border-gray-600 pb-2 mb-2">
-            <h2 class="font-black text-lg">ใบเช็คสต๊อกท้ายรถ</h2>
-            <p class="text-[10px] mt-1 text-gray-700">วันที่: <span id="pStockDate"></span></p>
-            <p class="text-[10px] font-bold mt-1">พนักงาน: <span id="pStockSalesman"></span></p>
-        </div>
-        <div class="text-[10px] font-bold flex justify-between border-b border-gray-600 pb-1 mb-2">
-            <span class="w-3/5">สินค้า</span>
-            <span class="w-1/5 text-center">ระบบ</span>
-            <span class="w-1/5 text-right">นับจริง</span>
-        </div>
-        <div id="pStockItems" class="text-[10px] space-y-2 mb-4"></div>
-        <div class="border-t border-dashed border-gray-600 mt-6 pt-4 text-center text-[10px]">
-            <p>ลงชื่อ ................................</p>
-            <p class="mt-1">( <span id="pSignSalesman"></span> )</p>
-            <p class="mt-1 mb-6">ผู้ตรวจนับสินค้า</p>
-            <p>ลงชื่อ ................................</p>
-            <p class="mt-1">( ................................ )</p>
-            <p class="mt-1">ผู้จัดการ/แอดมิน</p>
-        </div>
-    </div>
-
-    <div id="remit-print-view" class="hidden thermal-print-area">
-        <div class="text-center border-b border-dashed border-gray-600 pb-2 mb-2">
-            <h2 class="font-black text-lg">ใบส่งเงิน/รายงานขาย</h2>
-            <p class="text-[10px] mt-1 text-gray-700">ประจำ: <span id="pRemitDate"></span></p>
-            <p class="text-[10px] font-bold mt-1">พนักงานขาย: <span id="pRemitSalesman"></span></p>
-        </div>
-        <div class="text-[10px] font-bold flex justify-between border-b border-gray-600 pb-1 mb-2">
-            <span class="w-1/5">รหัสบิล</span>
-            <span class="w-2/5 text-center">ลูกค้า/ร้านค้า</span>
-            <span class="w-2/5 text-right">ยอดเงิน</span>
-        </div>
-        <div id="pRemitItems" class="text-[10px] space-y-2 mb-4"></div>
-        <div class="border-t border-gray-600 pt-3 pb-2 flex justify-between font-black text-sm">
-            <span>รวมส่งเงิน:</span>
-            <span id="pRemitTotal">0.-</span>
-        </div>
-        <div class="border-t border-dashed border-gray-600 mt-4 pt-4 text-center text-[10px]">
-            <p>ผู้ส่งเงิน ................................</p>
-            <p class="mt-1">( <span id="pSignRemitSalesman"></span> )</p>
-            <p class="mt-1 mb-6">เซลส์ / พนักงานขาย</p>
-            <p>ผู้รับเงิน ................................</p>
-            <p class="mt-1">( ................................ )</p>
-            <p class="mt-1">แคชเชียร์ / บัญชี</p>
         </div>
     </div>
 
@@ -222,7 +137,31 @@
         const _client = supabase.createClient(SB_URL, SB_KEY);
 
         let products = []; let cart = []; let reqCart = []; let currentSalesman = null; let allMyTransfers = [];
-        let currentReportType = 'day'; // 'day', 'month', 'year'
+        let currentReportType = 'day';
+
+        // ฟังก์ชันสั่งพิมพ์แบบแยกหน้าต่าง (รับประกันว่าไม่ปนกัน)
+        function printDocument(contentHtml) {
+            const printWindow = window.open('', '_blank', 'width=400,height=600');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>พิมพ์เอกสาร</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <style>
+                        body { margin: 0; padding: 0; background: white; }
+                        @media print { @page { margin: 0; size: auto; } }
+                        .thermal-print-format { width: 75mm; margin: 0 auto; padding: 5mm; font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.2; color: black; }
+                    </style>
+                </head>
+                <body onload="window.print(); window.close();">
+                    <div class="thermal-print-format">
+                        ${contentHtml}
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
 
         async function login() {
             const pin = document.getElementById('pinInput').value;
@@ -298,22 +237,125 @@
                 const { data: orderData } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select(); const newOrderId = orderData[0].id; 
                 const itemsToInsert = cart.map(c => ({ order_id: newOrderId, product_id: c.id, product_name: c.name, quantity: c.qty, price: c.sale_price || 0 })); await _client.from('order_items').insert(itemsToInsert); 
                 await Promise.all(cart.map(async (c) => { await _client.from('salesman_inventory').update({ quantity: c.stock - c.qty }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id); })); 
-                generateReceipt(name, total); document.body.className = "print-receipt"; window.print(); document.body.className = "bg-slate-100 font-sans text-slate-900 pb-10";
+                
+                printReceipt(name, total, cart);
+
                 cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); alert('บันทึกบิลสำเร็จ!'); 
             } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
         }
 
-        function generateReceipt(customerName, total) {
-            const date = new Date(); document.getElementById('rDate').innerText = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH'); document.getElementById('rCustomer').innerText = customerName; document.getElementById('rStaff').innerText = currentSalesman.name;
-            document.getElementById('rItems').innerHTML = cart.map(c => `<div class="flex justify-between items-start"><span class="w-3/4">${c.name} <span class="text-gray-500 ml-1">x${c.qty}</span></span><span class="w-1/4 text-right">${((c.sale_price || 0)*c.qty).toLocaleString()}</span></div>`).join('');
-            document.getElementById('rTotal').innerText = total.toLocaleString() + '.-';
+        /* --- PRINT FUNCTIONS (พิมพ์แยกหน้าต่าง) --- */
+
+        // 1. พิมพ์ใบเสร็จลูกค้า
+        function printReceipt(customerName, total, cartData) {
+            const date = new Date();
+            const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
+            const itemsHtml = cartData.map(c => `<div style="display:flex; justify-content:space-between; align-items:start;"><span style="width:75%;">${c.name} <span style="color:gray; margin-left:4px;">x${c.qty}</span></span><span style="width:25%; text-align:right;">${((c.sale_price || 0)*c.qty).toLocaleString()}</span></div>`).join('');
+            
+            const html = `
+                <div style="text-align:center; margin-bottom:16px; border-bottom:1px dashed #4b5563; padding-bottom:8px;">
+                    <h2 style="font-weight:900; font-size:20px; letter-spacing:-0.5px; margin:0;">NICE COFFEE</h2>
+                    <p style="font-size:10px; margin-top:4px; color:#374151;">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p>
+                    <p style="font-size:12px; font-weight:bold; margin-top:8px;">ใบเสร็จรับเงิน</p>
+                </div>
+                <div style="font-size:10px; margin-bottom:8px; border-bottom:1px dashed #4b5563; padding-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>วันที่:</span> <span>${dateStr}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>ลูกค้า:</span> <span style="font-weight:bold;">${customerName}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>พนักงาน:</span> <span>${currentSalesman.name}</span></div>
+                </div>
+                <div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:4px;"><span>รายการ</span><span>รวม</span></div>
+                <div style="font-size:10px; margin-bottom:8px;">${itemsHtml}</div>
+                <div style="border-top:1px dashed #4b5563; padding-top:8px; display:flex; justify-content:space-between; font-weight:900; font-size:18px;">
+                    <span>TOTAL</span><span>${total.toLocaleString()}.-</span>
+                </div>
+                <div style="text-align:center; margin-top:24px; font-size:10px; font-weight:bold;">THANK YOU!</div>
+            `;
+            printDocument(html);
         }
 
+        // 2. พิมพ์เช็คสต๊อกท้ายรถ
         async function printMyStock() {
             if (products.length === 0) return alert('คุณยังไม่มีสินค้าในท้ายรถครับ');
-            await loadProducts(); const date = new Date(); document.getElementById('pStockDate').innerText = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH'); document.getElementById('pStockSalesman').innerText = currentSalesman.name; document.getElementById('pSignSalesman').innerText = currentSalesman.name;
-            document.getElementById('pStockItems').innerHTML = products.map((p, index) => `<div class="flex justify-between items-end border-b border-gray-300 pb-1"><span class="w-3/5 truncate pr-1">${index + 1}. ${p.name}</span><span class="w-1/5 text-center font-bold">${p.stock}</span><span class="w-1/5 text-right">___</span></div>`).join('');
-            document.body.className = "print-stock"; window.print(); document.body.className = "bg-slate-100 font-sans text-slate-900 pb-10";
+            await loadProducts(); 
+            const date = new Date();
+            const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
+            
+            const itemsHtml = products.map((p, index) => `
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #d1d5db; padding-bottom:4px; margin-bottom:4px;">
+                    <span style="width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:4px;">${index + 1}. ${p.name}</span>
+                    <span style="width:20%; text-align:center; font-weight:bold;">${p.stock}</span>
+                    <span style="width:20%; text-align:right;">___</span>
+                </div>
+            `).join('');
+
+            const html = `
+                <div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;">
+                    <h2 style="font-weight:900; font-size:18px; margin:0;">ใบเช็คสต๊อกท้ายรถ</h2>
+                    <p style="font-size:10px; margin-top:4px; color:#374151;">วันที่: <span>${dateStr}</span></p>
+                    <p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงาน: <span>${currentSalesman.name}</span></p>
+                </div>
+                <div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;">
+                    <span style="width:60%;">สินค้า</span>
+                    <span style="width:20%; text-align:center;">ระบบ</span>
+                    <span style="width:20%; text-align:right;">นับจริง</span>
+                </div>
+                <div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div>
+                <div style="border-top:1px dashed #4b5563; margin-top:24px; padding-top:16px; text-align:center; font-size:10px;">
+                    <p>ลงชื่อ ................................</p>
+                    <p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p>
+                    <p style="margin-top:4px; margin-bottom:24px;">ผู้ตรวจนับสินค้า</p>
+                    <p>ลงชื่อ ................................</p>
+                    <p style="margin-top:4px;">( ................................ )</p>
+                    <p style="margin-top:4px;">ผู้จัดการ/แอดมิน</p>
+                </div>
+            `;
+            printDocument(html);
+        }
+
+        // 3. พิมพ์ใบส่งเงินรายวัน
+        function printRemittance() {
+            if (!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลบิลสำหรับพิมพ์');
+            
+            const dateVal = document.getElementById('dashDate').value;
+            const [yyyy, mm, dd] = dateVal.split('-');
+            let dateLabel = `${dd}/${mm}/${yyyy}`;
+            if(currentReportType === 'month') dateLabel = `เดือน ${mm}/${yyyy}`;
+            if(currentReportType === 'year') dateLabel = `ปี ${yyyy}`;
+
+            const itemsHtml = window.currentReportData.map(o => `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #d1d5db; padding-bottom:4px; margin-bottom:4px;">
+                    <span style="width:20%; color:#6b7280;">#${o.id}</span>
+                    <span style="width:40%; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-weight:bold;">${o.customer_name}</span>
+                    <span style="width:40%; text-align:right; font-weight:900;">${(o.total_amount||0).toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            const html = `
+                <div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;">
+                    <h2 style="font-weight:900; font-size:18px; margin:0;">ใบส่งเงิน/รายงานขาย</h2>
+                    <p style="font-size:10px; margin-top:4px; color:#374151;">ประจำ: <span>${dateLabel}</span></p>
+                    <p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงานขาย: <span>${currentSalesman.name}</span></p>
+                </div>
+                <div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;">
+                    <span style="width:20%;">รหัสบิล</span>
+                    <span style="width:40%; text-align:center;">ลูกค้า/ร้านค้า</span>
+                    <span style="width:40%; text-align:right;">ยอดเงิน</span>
+                </div>
+                <div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div>
+                <div style="border-top:1px solid #4b5563; padding-top:12px; padding-bottom:8px; display:flex; justify-content:space-between; font-weight:900; font-size:14px;">
+                    <span>รวมส่งเงิน:</span>
+                    <span>${window.currentReportTotal.toLocaleString()}.-</span>
+                </div>
+                <div style="border-top:1px dashed #4b5563; margin-top:16px; padding-top:16px; text-align:center; font-size:10px;">
+                    <p>ผู้ส่งเงิน ................................</p>
+                    <p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p>
+                    <p style="margin-top:4px; margin-bottom:24px;">เซลส์ / พนักงานขาย</p>
+                    <p>ผู้รับเงิน ................................</p>
+                    <p style="margin-top:4px;">( ................................ )</p>
+                    <p style="margin-top:4px;">แคชเชียร์ / บัญชี</p>
+                </div>
+            `;
+            printDocument(html);
         }
 
         /* --- TRANSFER (ย่อ) --- */
@@ -343,21 +385,16 @@
             try {
                 const dateVal = document.getElementById('dashDate').value;
                 if(!dateVal) return;
-                const [yyyy, mm, dd] = dateVal.split('-'); // ดึงค่า YYYY, MM, DD แบบเป๊ะๆ
+                const [yyyy, mm, dd] = dateVal.split('-');
 
-                // โหลดบิลทั้งหมดของเซลส์คนนี้มา กรองด้วย JavaScript เพื่อแก้ปัญหา Timezone
                 const { data, error } = await _client.from('orders').select('*').eq('salesman_id', currentSalesman.id).order('created_at', { ascending: true });
                 if (error) throw error;
 
                 const filteredData = data.filter(o => {
                     const oDate = new Date(o.created_at);
-                    if (currentReportType === 'day') {
-                        return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd;
-                    } else if (currentReportType === 'month') {
-                        return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm;
-                    } else if (currentReportType === 'year') {
-                        return oDate.getFullYear() == yyyy;
-                    }
+                    if (currentReportType === 'day') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd;
+                    else if (currentReportType === 'month') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm;
+                    else if (currentReportType === 'year') return oDate.getFullYear() == yyyy;
                     return false;
                 });
 
@@ -382,39 +419,10 @@
                     `).join('');
                 }
                 
-                // เก็บข้อมูลเตรียมไว้สำหรับพิมพ์ใบส่งเงิน
                 window.currentReportData = filteredData;
                 window.currentReportTotal = totalRevenue;
 
             } catch (err) {}
-        }
-
-        function printRemittance() {
-            if (!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลบิลสำหรับพิมพ์');
-            
-            const dateVal = document.getElementById('dashDate').value;
-            const [yyyy, mm, dd] = dateVal.split('-');
-            
-            let dateLabel = `${dd}/${mm}/${yyyy}`;
-            if(currentReportType === 'month') dateLabel = `เดือน ${mm}/${yyyy}`;
-            if(currentReportType === 'year') dateLabel = `ปี ${yyyy}`;
-
-            document.getElementById('pRemitDate').innerText = dateLabel;
-            document.getElementById('pRemitSalesman').innerText = currentSalesman.name;
-            document.getElementById('pSignRemitSalesman').innerText = currentSalesman.name;
-            document.getElementById('pRemitTotal').innerText = window.currentReportTotal.toLocaleString() + '.-';
-
-            document.getElementById('pRemitItems').innerHTML = window.currentReportData.map(o => `
-                <div class="flex justify-between items-start border-b border-dashed border-gray-300 pb-1">
-                    <span class="w-1/5 text-gray-500">#${o.id}</span>
-                    <span class="w-2/5 text-center truncate px-1 font-bold">${o.customer_name}</span>
-                    <span class="w-2/5 text-right font-black">${(o.total_amount||0).toLocaleString()}</span>
-                </div>
-            `).join('');
-
-            document.body.className = "print-remit"; 
-            window.print(); 
-            document.body.className = "bg-slate-100 font-sans text-slate-900 pb-10";
         }
     </script>
 </body>

@@ -21,7 +21,6 @@
 
     <div id="app-container" class="max-w-md mx-auto bg-white min-h-screen shadow-xl border-x border-slate-200">
         
-        <!-- LOGIN -->
         <div id="login-view" class="p-8 flex flex-col items-center justify-center min-h-[80vh]">
             <div class="bg-slate-900 text-white p-6 rounded-[2rem] w-full text-center shadow-2xl">
                 <h1 class="text-3xl font-black tracking-tighter mb-2">ASN SALES</h1>
@@ -33,10 +32,8 @@
             </div>
         </div>
 
-        <!-- MAIN APP -->
         <div id="main-view" class="hidden">
             
-            <!-- NAVBAR -->
             <div class="bg-slate-900 p-4 text-white flex justify-between items-center sticky top-0 z-50 shadow-md">
                 <div class="text-[10px] leading-tight">
                     <span class="text-slate-400">พนักงานขาย: </span><br>
@@ -49,7 +46,6 @@
                 </div>
             </div>
 
-            <!-- TAB 1: POS (เปิดบิล) -->
             <div id="pos-view" class="p-4 space-y-6">
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">ชื่อลูกค้า (Customer Name)</label>
@@ -79,7 +75,6 @@
                 </button>
             </div>
 
-            <!-- TAB 2: TRANSFER (เบิกสต๊อก) -->
             <div id="transfer-view" class="hidden p-4 space-y-6 bg-slate-50 min-h-screen">
                 
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
@@ -106,7 +101,6 @@
                 </div>
             </div>
 
-            <!-- TAB 3: DASHBOARD (ผลงาน) -->
             <div id="dash-view" class="hidden p-4 space-y-5">
                 <h2 class="font-black text-2xl text-slate-800 pt-2 mb-2">ผลงานของฉันวันนี้</h2>
                 <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-3xl text-white shadow-lg">
@@ -125,7 +119,6 @@
         </div>
     </div>
 
-    <!-- RECEIPT FORMAT -->
     <div id="receipt-view" class="hidden">
         <div class="flex justify-center mb-2">
             <img src="https://api.dicebear.com/7.x/initials/svg?seed=NC&backgroundColor=000000" alt="Logo" class="w-16 h-16 object-contain grayscale rounded-full">
@@ -330,49 +323,68 @@
             btn.disabled = true; btn.innerText = 'กำลังส่งข้อมูล...';
 
             try {
-                await _client.from('stock_transfers').insert([{
-                    salesman_id: currentSalesman.id, salesman_name: currentSalesman.name, product_id: pId, product_name: pName, quantity: qty, status: 'ส่งใบเบิกสินค้า'
+                // บันทึกลงฐานข้อมูล Supabase และเช็ค Error ตรงๆ
+                const { error } = await _client.from('stock_transfers').insert([{
+                    salesman_id: currentSalesman.id, 
+                    salesman_name: currentSalesman.name, 
+                    product_id: parseInt(pId), 
+                    product_name: pName, 
+                    quantity: qty, 
+                    status: 'ส่งใบเบิกสินค้า'
                 }]);
+                
+                // ถ้ามี Error จากฐานข้อมูล ให้เด้งเตือนทันที
+                if (error) throw error;
+
                 alert('✅ ส่งคำขอเบิกสินค้าเรียบร้อย!\nกรุณารอผู้จัดการกดอนุมัติในระบบครับ');
                 document.getElementById('reqQty').value = '';
                 loadMyTransfers();
-            } catch (e) { alert('Error: ' + e.message);
-            } finally { btn.disabled = false; btn.innerText = '📤 ส่งใบเบิกให้ผู้จัดการ'; }
+            } catch (e) { 
+                alert('❌ ฐานข้อมูลปฏิเสธการบันทึก!\n\n(อาจจะลืมรันคำสั่ง SQL ในขั้นตอนที่ 1 ครับ)\nรายละเอียด Error: ' + e.message);
+            } finally { 
+                btn.disabled = false; btn.innerText = '📤 ส่งใบเบิกให้ผู้จัดการ'; 
+            }
         }
 
         async function loadMyTransfers() {
-            const { data } = await _client.from('stock_transfers')
-                .select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(20);
-            
             const list = document.getElementById('myTransferList');
-            if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีประวัติการทำรายการ</p>'; return; }
+            try {
+                const { data, error } = await _client.from('stock_transfers')
+                    .select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(20);
+                
+                if (error) throw error; // ถ้าตารางไม่อัปเดตให้แจ้งเตือนตรงนี้ด้วย
 
-            list.innerHTML = data.map(t => {
-                let statusHtml = '';
-                if (t.status === 'ส่งใบเบิกสินค้า') {
-                    statusHtml = '<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-xl text-xs font-bold border border-amber-200">⏳ รอผู้จัดการอนุมัติ</span>';
-                } else if (t.status === 'อนุมัติแล้ว') {
-                    statusHtml = `<button onclick="receiveStock(${t.id}, ${t.product_id}, ${t.quantity})" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-lg active:scale-95 transition-transform">📥 กดรับสินค้าเข้าคลัง</button>`;
-                } else if (t.status === 'รับโอนแล้ว') {
-                    statusHtml = '<span class="bg-slate-100 text-green-600 px-3 py-1 rounded-xl text-xs font-bold">✔️ รับเข้าท้ายรถแล้ว</span>';
-                } else {
-                    statusHtml = `<span class="bg-red-50 text-red-600 px-3 py-1 rounded-xl text-xs font-bold border border-red-200">${t.status}</span>`;
-                }
+                if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีประวัติการทำรายการ</p>'; return; }
 
-                return `
-                <div class="border border-slate-200 p-4 rounded-2xl bg-white flex flex-col gap-3">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="font-black text-sm text-slate-800">${t.product_name}</p>
-                            <p class="text-xs text-slate-500 mt-0.5">จำนวน: <span class="text-blue-600 font-bold">${t.quantity}</span> ชิ้น</p>
+                list.innerHTML = data.map(t => {
+                    let statusHtml = '';
+                    if (t.status === 'ส่งใบเบิกสินค้า') {
+                        statusHtml = '<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-xl text-xs font-bold border border-amber-200">⏳ รอผู้จัดการอนุมัติ</span>';
+                    } else if (t.status === 'อนุมัติแล้ว') {
+                        statusHtml = `<button onclick="receiveStock(${t.id}, ${t.product_id}, ${t.quantity})" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-lg active:scale-95 transition-transform">📥 กดรับสินค้าเข้าคลัง</button>`;
+                    } else if (t.status === 'รับโอนแล้ว') {
+                        statusHtml = '<span class="bg-slate-100 text-green-600 px-3 py-1 rounded-xl text-xs font-bold">✔️ รับเข้าท้ายรถแล้ว</span>';
+                    } else {
+                        statusHtml = `<span class="bg-red-50 text-red-600 px-3 py-1 rounded-xl text-xs font-bold border border-red-200">${t.status}</span>`;
+                    }
+
+                    return `
+                    <div class="border border-slate-200 p-4 rounded-2xl bg-white flex flex-col gap-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-black text-sm text-slate-800">${t.product_name}</p>
+                                <p class="text-xs text-slate-500 mt-0.5">จำนวน: <span class="text-blue-600 font-bold">${t.quantity}</span> ชิ้น</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex justify-between items-center border-t border-slate-100 pt-3">
-                        <span class="text-[10px] text-slate-400">${new Date(t.transfer_date).toLocaleDateString('th-TH')} ${new Date(t.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</span>
-                        ${statusHtml}
-                    </div>
-                </div>`;
-            }).join('');
+                        <div class="flex justify-between items-center border-t border-slate-100 pt-3">
+                            <span class="text-[10px] text-slate-400">${new Date(t.transfer_date).toLocaleDateString('th-TH')} ${new Date(t.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</span>
+                            ${statusHtml}
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                list.innerHTML = `<p class="text-center text-xs text-red-500 py-4 font-bold">⚠️ ยังไม่ได้เพิ่มคอลัมน์ใน Supabase<br>ลองเช็คขั้นตอนที่ 1 ใหม่อีกรอบนะครับ</p>`;
+            }
         }
 
         async function receiveStock(transferId, productId, qty) {
@@ -380,8 +392,9 @@
             
             try {
                 // 1. อัปเดตสถานะบิลโอน
-                await _client.from('stock_transfers').update({ status: 'รับโอนแล้ว' }).eq('id', transferId);
-                
+                const { error: err1 } = await _client.from('stock_transfers').update({ status: 'รับโอนแล้ว' }).eq('id', transferId);
+                if (err1) throw err1;
+
                 // 2. เอาของเข้าท้ายรถเซลส์
                 const { data: inv } = await _client.from('salesman_inventory')
                     .select('*').eq('salesman_id', currentSalesman.id).eq('product_id', productId).maybeSingle();

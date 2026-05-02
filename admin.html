@@ -95,7 +95,10 @@
                     </div>
 
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
-                        <div class="flex justify-between items-center mb-4"><h3 class="font-black text-lg">📁 ประวัติการทำรายการ</h3><button onclick="downloadTransferCSV()" class="text-xs bg-slate-800 text-white px-3 py-2 rounded-lg font-bold">📥 CSV</button></div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-black text-lg">📁 ประวัติการทำรายการ</h3>
+                            <button onclick="downloadTransferCSV()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-lg font-bold shadow-sm active:scale-95 transition-transform">📥 CSV</button>
+                        </div>
                         <div class="overflow-x-auto max-h-[400px] border rounded-lg">
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-slate-100 sticky top-0"><tr><th class="p-3 border-b">วันที่/เลขที่บิล</th><th class="p-3 border-b">พนักงาน/สินค้า</th><th class="p-3 border-b text-center">สถานะ</th></tr></thead>
@@ -204,7 +207,6 @@
 
         async function loadAdminDashboard() { const { data: orders } = await _client.from('orders').select('total_amount'); if (orders) { document.getElementById('totalRevenue').innerText = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0).toLocaleString() + '.-'; document.getElementById('totalOrdersCount').innerText = orders.length; } const { count } = await _client.from('products').select('*', { count: 'exact', head: true }); document.getElementById('totalProductsCount').innerText = count || 0; }
         
-        /* --- INVENTORY (แก้ไขให้แสดงและบันทึก "หน่วย") --- */
         async function loadInventory() { 
             const { data } = await _client.from('products').select('*').order('id', { ascending: false }); 
             if (data) { 
@@ -216,7 +218,6 @@
         }
 
         function downloadTemplate() {
-            // เพิ่มคอลัมน์ unit ใน CSV
             const headers = "product_code,product_name,product_group,product_cost,product_price,master_stock,unit\n";
             const sample = "CODE001,กาแฟ Nice Coffee,กาแฟสุขภาพ,50,120,100,แพ็ค";
             const csvContent = "\uFEFF" + headers + sample;
@@ -242,7 +243,7 @@
                         productsToAdd.push({
                             product_code: row[0], name: row[1], product_group: row[2],
                             cost_price: Number(row[3])||0, sale_price: Number(row[4])||0, master_stock: Number(row[5])||0,
-                            unit: row[6] || 'ชิ้น' // ถ้าไม่ใส่ใน CSV ให้เป็นชิ้น
+                            unit: row[6] || 'ชิ้น'
                         });
                     }
                 }
@@ -257,26 +258,14 @@
 
         function openProductEdit(id) { 
             const p = allProducts.find(x=>x.id===id); 
-            document.getElementById('epId').value=p.id; 
-            document.getElementById('epName').value=p.name; 
-            document.getElementById('epSale').value=p.sale_price; 
-            document.getElementById('epCost').value=p.cost_price||0; 
-            document.getElementById('epStock').value=p.master_stock||0; 
-            document.getElementById('epUnit').value=p.unit||'ชิ้น'; 
+            document.getElementById('epId').value=p.id; document.getElementById('epName').value=p.name; document.getElementById('epSale').value=p.sale_price; document.getElementById('epCost').value=p.cost_price||0; document.getElementById('epStock').value=p.master_stock||0; document.getElementById('epUnit').value=p.unit||'ชิ้น'; 
             document.getElementById('editProductModal').classList.remove('hidden'); 
         }
 
         function closeProductEdit() { document.getElementById('editProductModal').classList.add('hidden'); }
-        
         async function saveProductEdit() { 
             const id = document.getElementById('epId').value; 
-            const payload = { 
-                name: document.getElementById('epName').value, 
-                sale_price: Number(document.getElementById('epSale').value), 
-                cost_price: Number(document.getElementById('epCost').value), 
-                master_stock: Number(document.getElementById('epStock').value),
-                unit: document.getElementById('epUnit').value.trim() || 'ชิ้น'
-            }; 
+            const payload = { name: document.getElementById('epName').value, sale_price: Number(document.getElementById('epSale').value), cost_price: Number(document.getElementById('epCost').value), master_stock: Number(document.getElementById('epStock').value), unit: document.getElementById('epUnit').value.trim() || 'ชิ้น' }; 
             await _client.from('products').update(payload).eq('id', id); 
             closeProductEdit(); loadInventory(); 
         }
@@ -329,52 +318,42 @@
             loadTransferLogs();
         }
 
-        /* --- ORDERS & REPORTS --- */
-        async function loadOrders() { 
-            const { data: oData } = await _client.from('orders').select('*').order('created_at', { ascending: false }); 
-            const { data: sData } = await _client.from('salesmen').select('id, name'); 
+        // ==========================================
+        // ฟังก์ชันดาวน์โหลด CSV ที่แก้ไขบั๊ก / (Slash) แล้ว
+        // ==========================================
+        async function downloadTransferCSV() {
+            const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false });
             
-            if (oData) { 
-                document.getElementById('adminOrdersList').innerHTML = oData.map(o => { 
-                    const isPaid = o.payment_status === 'จ่ายแล้ว'; 
-                    const sName = sData?.find(s => s.id === o.salesman_id)?.name || '-'; 
-                    const statusBtn = `<button onclick="togglePayment(${o.id}, '${o.payment_status}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${isPaid ? '✅ จ่ายแล้ว' : '❌ ค้างชำระ'}</button>`;
-                    const delBtn = currentAdmin.role === 'manager' ? `<button onclick="deleteOrder(${o.id})" class="text-red-500 text-xs font-bold underline">ลบ</button>` : '-';
+            if (!data || data.length === 0) return alert('ไม่มีประวัติการทำรายการในระบบครับ');
 
-                    return `<tr><td class="p-4 text-xs">#${o.id}<br>${new Date(o.created_at).toLocaleDateString()}</td><td class="p-4 font-bold text-indigo-600">${sName}</td><td class="p-4"><b>${o.customer_name}</b></td><td class="p-4 font-black text-green-600">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBtn}</td><td class="p-4 text-center">${delBtn}</td></tr>`; 
-                }).join(''); 
-            } 
+            let csv = '\uFEFF' + "วันที่,เวลา,ชื่อเซลส์,สินค้า,จำนวน,ผู้ทำรายการ,สถานะ\n";
+            data.forEach(l => {
+                const d = new Date(l.transfer_date);
+                csv += `${d.toLocaleDateString('th-TH')},${d.toLocaleTimeString('th-TH')},${l.salesman_name},${l.product_name},${l.quantity},${l.admin_name||'-'},${l.status}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            
+            // แก้ไข: ใช้ replace เพื่อเปลี่ยนเครื่องหมาย / เป็น - เพื่อไม่ให้เกิด Error ตอนเซฟไฟล์
+            const safeDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+            link.download = `ประวัติโอนสต๊อก_${safeDate}.csv`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        async function togglePayment(orderId, currentStatus) {
-            const newStatus = currentStatus === 'จ่ายแล้ว' ? 'ยังไม่จ่าย' : 'จ่ายแล้ว';
-            if(!confirm(`เปลี่ยนสถานะบิลนี้เป็น "${newStatus}" ใช่หรือไม่?`)) return;
-            try { await _client.from('orders').update({ payment_status: newStatus }).eq('id', orderId); loadOrders(); } catch(e) { alert('Error: ' + e.message); }
-        }
-
-        async function deleteOrder(id) { 
-            if(!confirm(`ลบบิลที่ #${id} ใช่หรือไม่?`)) return; 
-            await _client.from('orders').delete().eq('id', id); 
-            loadOrders(); loadAdminDashboard(); 
-        }
-
+        /* --- ORDERS & REPORTS --- */
+        async function loadOrders() { const { data: oData } = await _client.from('orders').select('*').order('created_at', { ascending: false }); const { data: sData } = await _client.from('salesmen').select('id, name'); if (oData) { document.getElementById('adminOrdersList').innerHTML = oData.map(o => { const isPaid = o.payment_status === 'จ่ายแล้ว'; const sName = sData?.find(s => s.id === o.salesman_id)?.name || '-'; const statusBtn = `<button onclick="togglePayment(${o.id}, '${o.payment_status}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${isPaid ? '✅ จ่ายแล้ว' : '❌ ค้างชำระ'}</button>`; const delBtn = currentAdmin.role === 'manager' ? `<button onclick="deleteOrder(${o.id})" class="text-red-500 text-xs font-bold underline">ลบ</button>` : '-'; return `<tr><td class="p-4 text-xs">#${o.id}<br>${new Date(o.created_at).toLocaleDateString()}</td><td class="p-4 font-bold text-indigo-600">${sName}</td><td class="p-4"><b>${o.customer_name}</b></td><td class="p-4 font-black text-green-600">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBtn}</td><td class="p-4 text-center">${delBtn}</td></tr>`; }).join(''); } }
+        async function togglePayment(orderId, currentStatus) { const newStatus = currentStatus === 'จ่ายแล้ว' ? 'ยังไม่จ่าย' : 'จ่ายแล้ว'; if(!confirm(`เปลี่ยนสถานะบิลนี้เป็น "${newStatus}" ใช่หรือไม่?`)) return; try { await _client.from('orders').update({ payment_status: newStatus }).eq('id', orderId); loadOrders(); } catch(e) { alert('Error: ' + e.message); } }
+        async function deleteOrder(id) { if(!confirm(`ลบบิลที่ #${id} ใช่หรือไม่?`)) return; await _client.from('orders').delete().eq('id', id); loadOrders(); loadAdminDashboard(); }
         async function initReports() { const { data: sales } = await _client.from('salesmen').select('id, name'); if(sales) document.getElementById('repSalesman').innerHTML = '<option value="">-- ทุกพนักงาน --</option>' + sales.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); generateReport(); }
         async function generateReport() { const startDate = document.getElementById('repStartDate').value; const endDate = document.getElementById('repEndDate').value; const salesmanId = document.getElementById('repSalesman').value; let query = _client.from('orders').select('*'); if(startDate) query = query.gte('created_at', startDate + 'T00:00:00.000Z'); if(endDate) query = query.lte('created_at', endDate + 'T23:59:59.999Z'); if(salesmanId) query = query.eq('salesman_id', salesmanId); const { data: oData } = await query.order('created_at', { ascending: false }); let totalPaid = 0; let totalUnpaid = 0; if(oData) { oData.forEach(o => { if (o.payment_status === 'จ่ายแล้ว') totalPaid += Number(o.total_amount || 0); else totalUnpaid += Number(o.total_amount || 0); }); } document.getElementById('repTotalPaid').innerText = totalPaid.toLocaleString() + '.-'; document.getElementById('repTotalUnpaid').innerText = totalUnpaid.toLocaleString() + '.-'; }
 
         /* --- SETTINGS (USER MANAGEMENT) --- */
-        async function loadUsers() { 
-            const { data } = await _client.from('salesmen').select('*').order('role').order('id'); 
-            if(data) { 
-                allUsers = data; 
-                document.getElementById('userTableBody').innerHTML = data.map(u => { 
-                    let rBadge = u.role==='manager' ? '👑 Manager' : (u.role==='admin' ? '🛠️ Admin' : '👤 Sales'); 
-                    let rColor = u.role==='manager' ? 'bg-amber-100 text-amber-800 border-amber-200' : (u.role==='admin' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-600 border-slate-200'); 
-                    const delBtn = currentAdmin.role === 'manager' && u.id !== currentAdmin.id ? `<button onclick="deleteUser(${u.id},'${u.name}')" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">ลบ</button>` : ''; 
-                    return `<tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-slate-800">${u.name}</td><td class="p-4 text-center"><span class="font-mono text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-lg tracking-widest">${u.pin||'-'}</span></td><td class="p-4"><span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${rColor}">${rBadge}</span></td><td class="p-4 text-center flex justify-center gap-2"><button onclick="editUser(${u.id})" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">แก้ไข</button>${delBtn}</td></tr>`; 
-                }).join(''); 
-            } 
-        }
-
+        async function loadUsers() { const { data } = await _client.from('salesmen').select('*').order('role').order('id'); if(data) { allUsers = data; document.getElementById('userTableBody').innerHTML = data.map(u => { let rBadge = u.role==='manager' ? '👑 Manager' : (u.role==='admin' ? '🛠️ Admin' : '👤 Sales'); let rColor = u.role==='manager' ? 'bg-amber-100 text-amber-800 border-amber-200' : (u.role==='admin' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-600 border-slate-200'); const delBtn = currentAdmin.role === 'manager' && u.id !== currentAdmin.id ? `<button onclick="deleteUser(${u.id},'${u.name}')" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">ลบ</button>` : ''; return `<tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-slate-800">${u.name}</td><td class="p-4 text-center"><span class="font-mono text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-lg tracking-widest">${u.pin||'-'}</span></td><td class="p-4"><span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${rColor}">${rBadge}</span></td><td class="p-4 text-center flex justify-center gap-2"><button onclick="editUser(${u.id})" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">แก้ไข</button>${delBtn}</td></tr>`; }).join(''); } }
         function editUser(id) { const u = allUsers.find(x => x.id === id); if(!u) return; document.getElementById('formUserTitle').innerHTML = '<span>✏️</span> แก้ไขข้อมูลผู้ใช้'; document.getElementById('editUserId').value = u.id; document.getElementById('inpUserName').value = u.name; document.getElementById('inpUserPin').value = u.pin; document.getElementById('inpUserRole').value = u.role || 'sales'; document.getElementById('btnSaveUser').innerText = 'อัปเดตข้อมูล'; document.getElementById('btnCancelUser').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function cancelEditUser() { document.getElementById('formUserTitle').innerHTML = '<span>➕</span> เพิ่มผู้ใช้ใหม่'; document.getElementById('editUserId').value = ''; document.getElementById('inpUserName').value = ''; document.getElementById('inpUserPin').value = ''; document.getElementById('inpUserRole').value = 'sales'; document.getElementById('btnSaveUser').innerText = 'บันทึกข้อมูล'; document.getElementById('btnCancelUser').classList.add('hidden'); }
         async function saveUser() { const id = document.getElementById('editUserId').value; const name = document.getElementById('inpUserName').value.trim(); const pin = document.getElementById('inpUserPin').value.trim(); const role = document.getElementById('inpUserRole').value; if(!name || !pin) return alert('⚠️ กรุณากรอกชื่อและรหัส PIN ให้ครบถ้วน'); if(currentAdmin.role !== 'manager' && role === 'manager') return alert('❌ คุณไม่มีสิทธิ์สร้างบัญชีระดับ Manager ได้'); const btn = document.getElementById('btnSaveUser'); btn.disabled = true; btn.innerText = 'กำลังบันทึก...'; try { if(id) { await _client.from('salesmen').update({ name, pin, role }).eq('id', id); alert('✅ อัปเดตข้อมูลสำเร็จ'); } else { await _client.from('salesmen').insert([{ name, pin, role }]); alert('✅ เพิ่มผู้ใช้งานใหม่สำเร็จ'); } cancelEditUser(); loadUsers(); } catch (err) { alert('ผิดพลาด: ' + err.message); } finally { btn.disabled = false; btn.innerText = id ? 'อัปเดตข้อมูล' : 'บันทึกข้อมูล'; } }

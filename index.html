@@ -8,7 +8,33 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        @media print { #app-container { display: none !important; } @page { margin: 0; } body { background-color: white; display: flex; justify-content: center; padding-top: 5mm; } #receipt-view { display: block !important; width: 75mm; padding: 0 5mm; font-family: 'Courier New', monospace; color: black; } }
+        
+        /* สไตล์สำหรับการพิมพ์ */
+        @media print {
+            #app-container { display: none !important; }
+            @page { margin: 0; } /* สำคัญมากสำหรับ Thermal Printer ปิด Margin รอบๆ */
+            body { background-color: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
+            
+            /* สไตล์ร่วมสำหรับเอกสาร Thermal Printer (ใบเสร็จ และ ใบเช็คสต๊อก) */
+            .thermal-print-area { 
+                display: block !important; 
+                width: 75mm; /* ขนาดกระดาษ 3 นิ้ว (80mm) เผื่อขอบนิดหน่อย */
+                margin: 0 auto; 
+                padding: 5mm; 
+                font-family: 'Courier New', Courier, monospace; /* ใช้ฟอนต์ที่อ่านง่ายบนสลิป */
+                font-size: 12px; /* ขนาดตัวอักษรพื้นฐาน */
+                line-height: 1.2;
+            }
+
+            /* ซ่อนทุกอย่างยกเว้นโซนที่จะพิมพ์ */
+            body > *:not(.thermal-print-area) { display: none !important; }
+
+            /* เฉพาะกรณีสั่งพิมพ์ใบเสร็จ */
+            body.print-receipt #receipt-view { display: block !important; }
+            
+            /* เฉพาะกรณีสั่งพิมพ์ใบเช็คสต๊อก */
+            body.print-stock #stock-print-view { display: block !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 pb-10">
@@ -35,7 +61,18 @@
 
             <div id="pos-view" class="p-4 space-y-6">
                 <div><input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า..." class="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm"></div>
-                <div><div class="flex justify-between items-end mb-3 ml-1"><h2 class="font-black text-slate-800 text-xl">📦 สต๊อกท้ายรถ</h2><button onclick="loadProducts()" class="text-xs text-blue-600 font-bold">🔄 อัปเดต</button></div><div id="productList" class="space-y-3"></div></div>
+                
+                <div>
+                    <div class="flex justify-between items-end mb-3 ml-1">
+                        <h2 class="font-black text-slate-800 text-xl">📦 สต๊อกท้ายรถ</h2>
+                        <div class="space-x-2">
+                            <button onclick="printMyStock()" class="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded font-bold border border-slate-200 shadow-sm">🖨️ พิมพ์ใบเช็ค</button>
+                            <button onclick="loadProducts()" class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded">🔄 อัปเดต</button>
+                        </div>
+                    </div>
+                    <div id="productList" class="space-y-3"></div>
+                </div>
+
                 <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl"><div id="cartItems" class="space-y-3 text-sm text-slate-300 mb-6 min-h-[50px]"></div><div class="flex justify-between items-center border-t border-slate-700 pt-5"><span class="text-slate-400 font-bold text-xs uppercase">ยอดรวมสุทธิ</span><span id="totalAmount" class="text-3xl font-black text-white">0.-</span></div></div>
                 <button onclick="submitOrder()" id="btnSubmit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg text-xl">บันทึกออเดอร์ & พิมพ์สลิป</button>
             </div>
@@ -62,26 +99,50 @@
         </div>
     </div>
 
-    <div id="receipt-view" class="hidden">
-        <div class="flex justify-center mb-2">
-            <img src="https://api.dicebear.com/7.x/initials/svg?seed=NC&backgroundColor=000000" alt="Logo" class="w-16 h-16 object-contain grayscale rounded-full">
+    <div id="receipt-view" class="hidden thermal-print-area">
+        <div class="text-center mb-4 border-b border-dashed border-gray-600 pb-2">
+            <h2 class="font-black text-xl tracking-tight">NICE COFFEE</h2>
+            <p class="text-[10px] mt-1 text-gray-700">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p>
+            <p class="text-xs font-bold mt-2">ใบเสร็จรับเงิน</p>
         </div>
-        <div class="text-center mb-4 border-b-2 border-dashed border-gray-400 pb-4">
-            <h2 class="font-black text-2xl tracking-tight">NICE COFFEE</h2>
-            <p class="text-[11px] leading-relaxed mt-2 text-gray-700">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>123 ถ.ล้านช้าง นครหลวงเวียงจันทน์<br>โทร: 020-XXXX-XXXX<br>TAX ID: 01055XXXXXXXX</p>
-            <p class="text-sm font-bold mt-3">ใบเสร็จรับเงิน / RECEIPT</p>
-        </div>
-        <div class="text-xs mb-3 space-y-1 border-b-2 border-dashed border-gray-400 pb-3">
+        <div class="text-[10px] mb-2 space-y-1 border-b border-dashed border-gray-600 pb-2">
             <div class="flex justify-between"><span>วันที่:</span> <span id="rDate"></span></div>
             <div class="flex justify-between"><span>ลูกค้า:</span> <span id="rCustomer" class="font-bold"></span></div>
             <div class="flex justify-between"><span>พนักงาน:</span> <span id="rStaff"></span></div>
         </div>
-        <div class="text-xs font-bold flex justify-between mb-2"><span>รายการสินค้า</span><span>รวม</span></div>
-        <div id="rItems" class="text-xs space-y-2 mb-4"></div>
-        <div class="border-t-2 border-dashed border-gray-400 pt-3 flex justify-between font-black text-xl">
+        <div class="text-[10px] font-bold flex justify-between mb-1"><span>รายการ</span><span>รวม</span></div>
+        <div id="rItems" class="text-[10px] space-y-1 mb-2"></div>
+        <div class="border-t border-dashed border-gray-600 pt-2 flex justify-between font-black text-lg">
             <span>TOTAL</span><span id="rTotal">0.-</span>
         </div>
-        <div class="text-center mt-8 text-xs font-bold">THANK YOU!<br><span class="font-normal text-[11px]">ขอขอบคุณที่อุดหนุนครับ</span></div>
+        <div class="text-center mt-6 text-[10px] font-bold">THANK YOU!</div>
+    </div>
+
+    <div id="stock-print-view" class="hidden thermal-print-area">
+        <div class="text-center border-b border-dashed border-gray-600 pb-2 mb-2">
+            <h2 class="font-black text-lg">ใบเช็คสต๊อกท้ายรถ</h2>
+            <p class="text-[10px] mt-1 text-gray-700">วันที่: <span id="pStockDate"></span></p>
+            <p class="text-[10px] font-bold mt-1">พนักงาน: <span id="pStockSalesman"></span></p>
+        </div>
+        
+        <div class="text-[10px] font-bold flex justify-between border-b border-gray-600 pb-1 mb-2">
+            <span class="w-3/5">สินค้า</span>
+            <span class="w-1/5 text-center">มี</span>
+            <span class="w-1/5 text-right">นับจริง</span>
+        </div>
+        
+        <div id="pStockItems" class="text-[10px] space-y-2 mb-4">
+            </div>
+
+        <div class="border-t border-dashed border-gray-600 mt-6 pt-4 text-center text-[10px]">
+            <p>ลงชื่อ ................................</p>
+            <p class="mt-1">( <span id="pSignSalesman"></span> )</p>
+            <p class="mt-1">ผู้ตรวจนับสินค้า</p>
+            
+            <p class="mt-6">ลงชื่อ ................................</p>
+            <p class="mt-1">( ................................ )</p>
+            <p class="mt-1">ผู้จัดการ/แอดมิน</p>
+        </div>
     </div>
 
     <script>
@@ -113,9 +174,64 @@
         function addToCart(id) { const p = products.find(x => x.id === id); const inCart = cart.find(x => x.id === id); const currentQty = inCart ? inCart.qty : 0; if (currentQty >= p.stock) return alert(`สต๊อกไม่พอ!`); if (inCart) inCart.qty++; else cart.push({ ...p, qty: 1 }); renderCart(); }
         function removeCart(index) { cart.splice(index, 1); renderCart(); }
         function renderCart() { const list = document.getElementById('cartItems'); if(cart.length === 0) { list.innerHTML = '<p class="text-center italic opacity-40 text-xs mt-2">ยังไม่มีสินค้าในตะกร้า</p>'; document.getElementById('totalAmount').innerText = '0.-'; return; } list.innerHTML = cart.map((c, index) => `<div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-2 last:border-0"><span><span class="font-bold">${c.name}</span> <span class="text-blue-400 font-bold ml-1">x${c.qty}</span></span><div class="flex items-center space-x-3"><span class="font-black text-white">${((c.sale_price || 0)*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-500 text-xs font-bold bg-slate-800 px-2 py-1 rounded">ลบ</button></div></div>`).join(''); document.getElementById('totalAmount').innerText = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0).toLocaleString() + '.-'; }
-        async function submitOrder() { const name = document.getElementById('customerName').value; if(!name || cart.length === 0) return; const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0); const { data: orderData } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select(); const newOrderId = orderData[0].id; const itemsToInsert = cart.map(c => ({ order_id: newOrderId, product_id: c.id, product_name: c.name, quantity: c.qty, price: c.sale_price || 0 })); await _client.from('order_items').insert(itemsToInsert); await Promise.all(cart.map(async (c) => { await _client.from('salesman_inventory').update({ quantity: c.stock - c.qty }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id); })); cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); alert('บันทึกบิลสำเร็จ!'); }
+        async function submitOrder() { 
+            const name = document.getElementById('customerName').value; if(!name || cart.length === 0) return alert('กรุณาระบุชื่อลูกค้าและเลือกสินค้า'); 
+            const total = cart.reduce((s, c) => s + ((c.sale_price || 0)*c.qty), 0); 
+            const btn = document.getElementById('btnSubmit'); btn.innerText = 'กำลังบันทึกและตัดสต๊อก...'; btn.disabled = true;
+            try {
+                const { data: orderData } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select(); const newOrderId = orderData[0].id; 
+                const itemsToInsert = cart.map(c => ({ order_id: newOrderId, product_id: c.id, product_name: c.name, quantity: c.qty, price: c.sale_price || 0 })); await _client.from('order_items').insert(itemsToInsert); 
+                await Promise.all(cart.map(async (c) => { await _client.from('salesman_inventory').update({ quantity: c.stock - c.qty }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id); })); 
+                
+                generateReceipt(name, total); 
+                document.body.className = "print-receipt"; // เปลี่ยน CSS เป็นโหมดพิมพ์ใบเสร็จ
+                window.print();
+                document.body.className = "bg-slate-100 font-sans text-slate-900 pb-10"; // คืนค่า
 
-        /* --- TRANSFER (GROUP LOGIC) --- */
+                cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); alert('บันทึกบิลสำเร็จ!'); 
+            } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
+        }
+
+        function generateReceipt(customerName, total) {
+            const date = new Date();
+            document.getElementById('rDate').innerText = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
+            document.getElementById('rCustomer').innerText = customerName;
+            document.getElementById('rStaff').innerText = currentSalesman.name;
+            document.getElementById('rItems').innerHTML = cart.map(c => `
+                <div class="flex justify-between items-start">
+                    <span class="w-3/4">${c.name} <span class="text-gray-500 ml-1">x${c.qty}</span></span>
+                    <span class="w-1/4 text-right">${((c.sale_price || 0)*c.qty).toLocaleString()}</span>
+                </div>
+            `).join('');
+            document.getElementById('rTotal').innerText = total.toLocaleString() + '.-';
+        }
+
+        /* --- PRINT STOCK (พิมพ์ใบเช็คสต๊อก ขนาด Thermal 3 นิ้ว) --- */
+        async function printMyStock() {
+            if (products.length === 0) return alert('คุณยังไม่มีสินค้าในท้ายรถครับ');
+            
+            // โหลดสต๊อกอัปเดตล่าสุด
+            await loadProducts(); 
+            
+            const date = new Date();
+            document.getElementById('pStockDate').innerText = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH');
+            document.getElementById('pStockSalesman').innerText = currentSalesman.name;
+            document.getElementById('pSignSalesman').innerText = currentSalesman.name;
+            
+            document.getElementById('pStockItems').innerHTML = products.map((p, index) => `
+                <div class="flex justify-between items-end border-b border-gray-300 pb-1">
+                    <span class="w-3/5 truncate pr-1">${index + 1}. ${p.name}</span>
+                    <span class="w-1/5 text-center font-bold">${p.stock}</span>
+                    <span class="w-1/5 text-right">___</span>
+                </div>
+            `).join('');
+
+            document.body.className = "print-stock"; // เปลี่ยน CSS เป็นโหมดพิมพ์ใบเช็คสต๊อก
+            window.print();
+            document.body.className = "bg-slate-100 font-sans text-slate-900 pb-10"; // คืนค่า
+        }
+
+        /* --- TRANSFER --- */
         async function loadTransferProductDropdown() {
             const { data } = await _client.from('products').select('*').order('name');
             if (data) document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + data.map(p => `<option value="${p.id}" data-name="${p.name}">${p.name}</option>`).join('');
@@ -170,7 +286,6 @@
 
                 allMyTransfers = data;
 
-                // จัดกลุ่มใบเบิก
                 const grouped = {};
                 data.forEach(t => {
                     const ref = t.transfer_ref || `NO-REF-${t.id}`;
@@ -206,18 +321,13 @@
             const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'อนุมัติแล้ว');
             if(itemsToReceive.length === 0) return;
 
-            // ล็อกปุ่มกันดับเบิ้ลคลิก
             if(btnElement) {
-                btnElement.disabled = true;
-                btnElement.innerText = 'กำลังโหลดของเข้าท้ายรถ...';
-                btnElement.className = 'bg-slate-400 text-white px-4 py-2 rounded-xl text-xs font-black shadow-md w-full mt-2 cursor-not-allowed';
+                btnElement.disabled = true; btnElement.innerText = 'กำลังโหลดของเข้าท้ายรถ...'; btnElement.className = 'bg-slate-400 text-white px-4 py-2 rounded-xl text-xs font-black shadow-md w-full mt-2 cursor-not-allowed';
             }
 
             try {
-                // ใช้วิธีวนลูปอัปเดตสถานะราย ID ชัวร์สุด
                 for(let item of itemsToReceive) {
                     await _client.from('stock_transfers').update({ status: 'เซลรับสินค้าแล้ว' }).eq('id', item.id);
-
                     const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle();
                     if (inv) {
                         await _client.from('salesman_inventory').update({ quantity: inv.quantity + item.quantity }).eq('id', inv.id);
@@ -225,16 +335,10 @@
                         await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: item.quantity }]);
                     }
                 }
-                
-                alert('🎉 เยี่ยมมาก! สินค้าทั้งหมดในบิลนี้ เข้าสต๊อกท้ายรถคุณเรียบร้อยแล้ว');
-                loadMyTransfers();
+                alert('🎉 เยี่ยมมาก! สินค้าทั้งหมดในบิลนี้ เข้าสต๊อกท้ายรถคุณเรียบร้อยแล้ว'); loadMyTransfers();
             } catch (e) { 
                 alert('Error: ' + e.message); 
-                if(btnElement) {
-                    btnElement.disabled = false;
-                    btnElement.innerText = '📥 กดยืนยันรับของทั้งบิล';
-                    btnElement.className = 'bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2 active:scale-95 transition-transform';
-                }
+                if(btnElement) { btnElement.disabled = false; btnElement.innerText = '📥 กดยืนยันรับของทั้งบิล'; btnElement.className = 'bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2 active:scale-95 transition-transform'; }
             }
         }
 

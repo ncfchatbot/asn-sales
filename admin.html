@@ -52,8 +52,20 @@
             <div id="inventory-view" class="hidden space-y-6">
                 <div class="flex flex-wrap justify-between items-center border-b-2 border-indigo-100 pb-2 gap-2">
                     <h2 class="text-2xl font-black">จัดการคลังสินค้าหลัก</h2>
-                    <div class="flex gap-2"><button onclick="openProductEdit()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm">➕ เพิ่มสินค้าใหม่</button><button onclick="printInventorySheet()" class="bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm">🖨️ พิมพ์เช็คสต๊อก</button></div>
+                    <div class="flex gap-2">
+                        <button onclick="openProductEdit()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm">➕ เพิ่มสินค้าใหม่</button>
+                        <button onclick="downloadTemplate()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm">📥 โหลดฟอร์ม CSV</button>
+                        <button onclick="printInventorySheet()" class="bg-slate-800 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm">🖨️ พิมพ์เช็คสต๊อก</button>
+                    </div>
                 </div>
+                
+                <div class="no-print bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-1">
+                        <button onclick="uploadCSV()" id="btnUploadCsv" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all">อัปโหลดเข้าคลัง</button>
+                    </div>
+                </div>
+
                 <div class="print-only text-center mb-6"><h1 class="text-2xl font-bold">ใบเช็คสต็อกคลังหลัก</h1><p>วันที่พิมพ์: <span id="pPrintDate"></span></p></div>
                 <div class="bg-white rounded-2xl border shadow-sm overflow-x-auto"><table class="w-full text-left text-sm min-w-[800px]"><thead class="bg-slate-50 border-b" id="invTableHeader"></thead><tbody id="adminProductList" class="divide-y divide-slate-100"></tbody></table></div>
             </div>
@@ -234,6 +246,49 @@
             } 
         }
 
+        function downloadTemplate() {
+            // เพิ่มการรองรับคอลัมน์ใหม่ใน CSV
+            const headers = "product_code,product_name,category_name,cost_price,sale_price,master_stock,unit_name,pack_unit,pack_qty,pack_price,box_unit,box_qty,box_price,min_transfer_box\n";
+            const sample = "CODE001,กาแฟ Nice Coffee,เครื่องดื่ม,50,120,100,ซอง,แพ็ค,5,550,ลัง,60,6000,1";
+            const csvContent = "\uFEFF" + headers + sample;
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", "asn_template.csv");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        async function uploadCSV() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            if (!file) return alert('กรุณาเลือกไฟล์ CSV ก่อนครับ');
+            const btn = document.getElementById('btnUploadCsv'); btn.innerText = 'Uploading...'; btn.disabled = true;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l !== '');
+                const productsToAdd = [];
+                for(let i = 1; i < lines.length; i++) {
+                    const row = lines[i].split(',');
+                    if(row.length >= 6 && row[1] !== '') {
+                        productsToAdd.push({
+                            product_code: row[0] || null, name: row[1], category_name: row[2] || null,
+                            cost_price: Number(row[3])||0, sale_price: Number(row[4])||0, master_stock: Number(row[5])||0,
+                            unit_name: row[6] || 'ชิ้น',
+                            pack_unit: row[7] || null, pack_qty: Number(row[8])||0, pack_price: Number(row[9])||0,
+                            box_unit: row[10] || null, box_qty: Number(row[11])||0, box_price: Number(row[12])||0,
+                            min_transfer_box: Number(row[13])||1
+                        });
+                    }
+                }
+                try {
+                    await _client.from('products').insert(productsToAdd);
+                    alert(`✅ นำเข้าสินค้าจำนวน ${productsToAdd.length} รายการสำเร็จ!`);
+                    fileInput.value = ''; loadInventory(); loadAdminDashboard();
+                } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'อัปโหลดเข้าคลัง'; btn.disabled = false; }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
         function openProductEdit(id = null) { 
             document.getElementById('epCategory').innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>' + globalCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             if(id) {
@@ -287,16 +342,25 @@
             try { if(id) await _client.from('products').update(payload).eq('id', id); else await _client.from('products').insert([payload]); closeModal('editProductModal'); loadInventory(); } catch(e) { alert(e.message); }
         }
 
-        /* --- TRANSFER (ตัดสต๊อกตาม base_qty) --- */
+        function printInventorySheet() { document.getElementById('pPrintDate').innerText = new Date().toLocaleString('th-TH'); window.print(); }
+
+        /* --- TRANSFER (GROUP APPROVAL LOGIC) --- */
         async function loadTransferLogs() {
             const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }).limit(200);
             if(data) {
-                allTransferData = data; const pending = data.filter(x => x.status === 'ส่งใบเบิกสินค้า'); const groupedPending = {};
+                allTransferData = data;
+                const pending = data.filter(x => x.status === 'ส่งใบเบิกสินค้า');
+                const groupedPending = {};
                 pending.forEach(x => { const ref = x.transfer_ref || `NO-REF-${x.id}`; if(!groupedPending[ref]) { groupedPending[ref] = { ref: ref, salesman_name: x.salesman_name, date: x.transfer_date, items: [] }; } groupedPending[ref].items.push(x); });
                 const pendingArr = Object.values(groupedPending);
                 document.getElementById('pendingRequestsBody').innerHTML = pendingArr.length > 0 ? pendingArr.map(g => `<tr><td class="p-3"><div class="flex justify-between items-baseline mb-2"><b class="text-amber-700 text-sm">👤 ${g.salesman_name}</b><span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-mono">บิล: ${g.ref}</span></div><div class="bg-slate-50 p-2 rounded border border-slate-100 space-y-1">${g.items.map(i => `<div class="flex justify-between text-xs"><span class="text-slate-600">- ${i.product_name}</span><b class="text-blue-600">x${i.quantity} <span class="font-normal text-slate-400">(= ${i.base_qty||i.quantity} ชิ้นย่อย)</span></b></div>`).join('')}</div></td><td class="p-3 text-center align-top pt-5 space-y-2 w-[90px]"><button onclick="approveGroup('${g.ref}', this)" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all">อนุมัติ</button><button onclick="rejectGroup('${g.ref}', this)" class="block w-full bg-red-100 text-red-600 hover:bg-red-200 text-[10px] px-2 py-1.5 rounded-lg font-bold transition-all">ปฏิเสธ</button></td></tr>`).join('') : `<tr><td colspan="2" class="p-6 text-center text-slate-400">✅ ไม่มีคำขอเบิกสินค้าค้างอยู่</td></tr>`;
+
                 document.getElementById('transferLogBody').innerHTML = data.map(l => {
-                    let badge = ''; if(l.status === 'ส่งใบเบิกสินค้า') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-[10px]">รออนุมัติ</span>'; else if(l.status === 'อนุมัติแล้ว') badge = '<span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-[10px]">รอเซลกดรับ</span>'; else if(l.status === 'เซลรับสินค้าแล้ว' || l.status === 'รับโอนแล้ว') badge = '<span class="text-green-600 bg-green-50 px-2 py-1 rounded text-[10px]">เซลรับสินค้าแล้ว</span>'; else badge = `<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-[10px]">${l.status}</span>`;
+                    let badge = '';
+                    if(l.status === 'ส่งใบเบิกสินค้า') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-[10px]">รออนุมัติ</span>';
+                    else if(l.status === 'อนุมัติแล้ว') badge = '<span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-[10px]">รอเซลกดรับ</span>';
+                    else if(l.status === 'เซลรับสินค้าแล้ว' || l.status === 'รับโอนแล้ว') badge = '<span class="text-green-600 bg-green-50 px-2 py-1 rounded text-[10px]">เซลรับสินค้าแล้ว</span>';
+                    else badge = `<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-[10px]">${l.status}</span>`;
                     return `<tr><td class="p-3 text-xs text-slate-500">${new Date(l.transfer_date).toLocaleDateString('th-TH')} ${new Date(l.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}<br><span class="text-[9px] font-mono text-slate-400">${l.transfer_ref || '-'}</span></td><td class="p-3"><b class="text-slate-700">${l.salesman_name}</b><br><span class="text-xs text-slate-500">${l.product_name} <b class="text-blue-500">(x${l.quantity})</b></span></td><td class="p-3 text-center">${badge}</td></tr>`;
                 }).join('');
             }
@@ -319,31 +383,60 @@
                     await _client.from('products').update({ master_stock: prod.master_stock - baseToDeduct }).eq('id', item.product_id);
                     await _client.from('stock_transfers').update({ status: 'อนุมัติแล้ว', admin_name: currentAdmin.name }).eq('id', item.id);
                 }
-                alert('✅ อนุมัติใบเบิกสำเร็จ!'); loadInventory(); loadTransferLogs();
+                alert('✅ อนุมัติใบเบิกสำเร็จ! รอเซลส์กดรับสินค้าเข้าเครื่อง'); loadInventory(); loadTransferLogs();
             } catch(e) { alert('Error: ' + e.message); if(btnElement) { btnElement.disabled = false; btnElement.innerText = 'อนุมัติ'; btnElement.className = 'block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all'; } }
         }
 
-        async function rejectGroup(ref, btnElement) { if(!confirm(`ต้องการ "ปฏิเสธ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?`)) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังประมวลผล...'; btnElement.className = 'block w-full bg-slate-200 text-slate-500 px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-not-allowed'; } const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า'); for (let item of items) { await _client.from('stock_transfers').update({ status: 'ปฏิเสธ (แอดมินยกเลิก)', admin_name: currentAdmin.name }).eq('id', item.id); } loadTransferLogs(); }
+        async function rejectGroup(ref, btnElement) {
+            if(!confirm(`ต้องการ "ปฏิเสธ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?`)) return;
+            if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังประมวลผล...'; btnElement.className = 'block w-full bg-slate-200 text-slate-500 px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-not-allowed'; }
+            const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า');
+            for (let item of items) { await _client.from('stock_transfers').update({ status: 'ปฏิเสธ (แอดมินยกเลิก)', admin_name: currentAdmin.name }).eq('id', item.id); }
+            loadTransferLogs();
+        }
 
-        /* --- อื่นๆ ย่อไว้ --- */
+        // ==========================================
+        // ฟังก์ชันดาวน์โหลด CSV ที่แก้ไขบั๊ก / (Slash) แล้ว
+        // ==========================================
+        async function downloadTransferCSV() {
+            const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false });
+            
+            if (!data || data.length === 0) return alert('ไม่มีประวัติการทำรายการในระบบครับ');
+
+            let csv = '\uFEFF' + "วันที่,เวลา,ชื่อเซลส์,สินค้า,จำนวน,ผู้ทำรายการ,สถานะ\n";
+            data.forEach(l => {
+                const d = new Date(l.transfer_date);
+                csv += `${d.toLocaleDateString('th-TH')},${d.toLocaleTimeString('th-TH')},${l.salesman_name},${l.product_name},${l.quantity},${l.admin_name||'-'},${l.status}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            
+            // แก้ไข: ใช้ replace เพื่อเปลี่ยนเครื่องหมาย / เป็น - เพื่อไม่ให้เกิด Error ตอนเซฟไฟล์
+            const safeDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+            link.download = `ประวัติโอนสต๊อก_${safeDate}.csv`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* --- ORDERS & REPORTS --- */
         async function loadOrders() { const { data: oData } = await _client.from('orders').select('*').order('created_at', { ascending: false }); const { data: sData } = await _client.from('salesmen').select('id, name'); if (oData) { document.getElementById('adminOrdersList').innerHTML = oData.map(o => { const isPaid = o.payment_status === 'จ่ายแล้ว'; const sName = sData?.find(s => s.id === o.salesman_id)?.name || '-'; const statusBtn = `<button onclick="togglePayment(${o.id}, '${o.payment_status}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${isPaid ? '✅ จ่ายแล้ว' : '❌ ค้างชำระ'}</button>`; const delBtn = currentAdmin.role === 'manager' ? `<button onclick="deleteOrder(${o.id})" class="text-red-500 text-xs font-bold underline mt-1 block w-full">ลบบิล</button>` : '-'; return `<tr><td class="p-4 text-xs">#${o.id}<br>${new Date(o.created_at).toLocaleDateString()}</td><td class="p-4 font-bold text-indigo-600">${sName}</td><td class="p-4"><b>${o.customer_name}</b></td><td class="p-4 font-black text-green-600">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBtn}</td><td class="p-4 text-center">${delBtn}</td></tr>`; }).join(''); } }
         async function togglePayment(orderId, currentStatus) { const newStatus = currentStatus === 'จ่ายแล้ว' ? 'ยังไม่จ่าย' : 'จ่ายแล้ว'; if(!confirm(`เปลี่ยนสถานะบิลนี้เป็น "${newStatus}" ใช่หรือไม่?`)) return; try { await _client.from('orders').update({ payment_status: newStatus }).eq('id', orderId); loadOrders(); } catch(e) { alert('Error: ' + e.message); } }
         async function deleteOrder(id) { if(!confirm(`ลบบิลที่ #${id} ใช่หรือไม่?`)) return; await _client.from('orders').delete().eq('id', id); loadOrders(); loadAdminDashboard(); }
         async function initReports() { const { data: sales } = await _client.from('salesmen').select('id, name'); if(sales) document.getElementById('repSalesman').innerHTML = '<option value="">-- ทุกพนักงาน --</option>' + sales.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); generateReport(); }
         async function generateReport() { const startDate = document.getElementById('repStartDate').value; const endDate = document.getElementById('repEndDate').value; const salesmanId = document.getElementById('repSalesman').value; let query = _client.from('orders').select('*'); if(startDate) query = query.gte('created_at', startDate + 'T00:00:00.000Z'); if(endDate) query = query.lte('created_at', endDate + 'T23:59:59.999Z'); if(salesmanId) query = query.eq('salesman_id', salesmanId); const { data: oData } = await query.order('created_at', { ascending: false }); let totalPaid = 0; let totalUnpaid = 0; if(oData) { oData.forEach(o => { if (o.payment_status === 'จ่ายแล้ว') totalPaid += Number(o.total_amount || 0); else totalUnpaid += Number(o.total_amount || 0); }); } document.getElementById('repTotalPaid').innerText = totalPaid.toLocaleString() + '.-'; document.getElementById('repTotalUnpaid').innerText = totalUnpaid.toLocaleString() + '.-'; }
 
-        /* --- SETTINGS & USERS & CUSTOMERS (ย่อ) --- */
-        async function loadSettingsPage() { loadUsers(); await loadSetupData(); document.getElementById('categoryList').innerHTML = globalCategories.length > 0 ? globalCategories.map(c => `<li class="p-3 flex justify-between"><span>${c.name}</span><button onclick="deleteCategory(${c.id})" class="text-red-500 text-xs hover:underline">ลบ</button></li>`).join('') : '<li class="p-3 text-slate-400 text-center">ไม่มีข้อมูล</li>'; document.getElementById('unitList').innerHTML = globalUnits.length > 0 ? globalUnits.map(u => `<li class="p-3 flex justify-between"><span>${u.name}</span><button onclick="deleteUnit(${u.id})" class="text-red-500 text-xs hover:underline">ลบ</button></li>`).join('') : '<li class="p-3 text-slate-400 text-center">ไม่มีข้อมูล</li>'; }
-        async function saveCategory() { const name = document.getElementById('inpCatName').value.trim(); if(!name) return; await _client.from('product_categories').insert([{name}]); document.getElementById('inpCatName').value=''; await loadSetupData(); loadSettingsPage(); }
-        async function deleteCategory(id) { if(!confirm('ลบหมวดหมู่นี้?')) return; await _client.from('product_categories').delete().eq('id', id); await loadSetupData(); loadSettingsPage(); }
-        async function saveUnit() { const name = document.getElementById('inpUnitName').value.trim(); if(!name) return; await _client.from('product_units').insert([{name}]); document.getElementById('inpUnitName').value=''; await loadSetupData(); loadSettingsPage(); }
-        async function deleteUnit(id) { if(!confirm('ลบหน่วยสินค้านี้?')) return; await _client.from('product_units').delete().eq('id', id); await loadSetupData(); loadSettingsPage(); }
-        async function loadUsers() { const { data } = await _client.from('salesmen').select('*').order('role').order('id'); if(data) { allUsers = data; document.getElementById('userTableBody').innerHTML = data.map(u => { let rBadge = u.role==='manager' ? '👑 Manager' : (u.role==='admin' ? '🛠️ Admin' : '👤 Sales'); let rColor = u.role==='manager' ? 'bg-amber-100 text-amber-800' : (u.role==='admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'); const delBtn = currentAdmin.role === 'manager' && u.id !== currentAdmin.id ? `<button onclick="deleteUser(${u.id})" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 px-2 py-1 rounded text-xs transition-all">ลบ</button>` : ''; return `<tr class="hover:bg-slate-50"><td class="p-3"><p class="font-bold text-slate-800 text-xs">${u.name}</p><span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold ${rColor}">${rBadge}</span></td><td class="p-3 text-center"><span class="font-mono text-slate-600 bg-white border border-slate-200 px-2 py-1 rounded tracking-widest text-xs">${u.pin||'-'}</span></td><td class="p-3 text-center flex justify-center gap-1 mt-1"><button onclick="openUserEdit(${u.id})" class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs font-bold transition-all">แก้ไข</button>${delBtn}</td></tr>`; }).join(''); } }
-        function openUserEdit(id = null) { if(id) { const u = allUsers.find(x => x.id === id); document.getElementById('euTitle').innerHTML = '✏️ แก้ไขพนักงาน'; document.getElementById('euId').value = u.id; document.getElementById('euName').value = u.name; document.getElementById('euPin').value = u.pin; document.getElementById('euRole').value = u.role || 'sales'; } else { document.getElementById('euTitle').innerHTML = '➕ เพิ่มพนักงานใหม่'; document.getElementById('euId').value = ''; document.getElementById('euName').value = ''; document.getElementById('euPin').value = ''; document.getElementById('euRole').value = 'sales'; } document.getElementById('editUserModal').classList.remove('hidden'); }
-        async function saveUserEdit() { const id = document.getElementById('euId').value; const payload = { name: document.getElementById('euName').value.trim(), pin: document.getElementById('euPin').value.trim(), role: document.getElementById('euRole').value }; if(!payload.name || !payload.pin) return alert('กรอกชื่อและรหัส PIN ให้ครบถ้วน'); if(currentAdmin.role !== 'manager' && payload.role === 'manager') return alert('❌ คุณไม่มีสิทธิ์สร้างบัญชีระดับ Manager ได้'); try { if(id) { await _client.from('salesmen').update(payload).eq('id', id); } else { await _client.from('salesmen').insert([payload]); } closeModal('editUserModal'); loadUsers(); } catch (err) { alert(err.message); } }
-        async function deleteUser(id) { if(!confirm(`⚠️ ต้องการลบพนักงานรายนี้ใช่หรือไม่?`)) return; await _client.from('salesmen').delete().eq('id', id); loadUsers(); }
-        async function clearSystemData(type) { if(currentAdmin.role !== 'manager') return; if(type === 'orders') { const pass = prompt('พิมพ์ "CONFIRM" เพื่อยืนยันการลบประวัติการขายทั้งหมด'); if(pass !== 'CONFIRM') return; await _client.from('order_items').delete().neq('id', 0); await _client.from('orders').delete().neq('id', 0); alert('✅ ลบประวัติการขายเรียบร้อย'); } else if (type === 'inventory') { const pass = prompt('พิมพ์ "CONFIRM" เพื่อยืนยันการล้างสต๊อกทั้งหมด'); if(pass !== 'CONFIRM') return; await _client.from('salesman_inventory').delete().neq('id', 0); await _client.from('products').delete().neq('id', 0); alert('✅ ล้างสต๊อกเรียบร้อย'); } location.reload(); }
-        async function downloadTransferCSV() { const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }); if (!data || data.length === 0) return alert('ไม่มีประวัติการทำรายการในระบบครับ'); let csv = '\uFEFF' + "วันที่,เวลา,ชื่อเซลส์,สินค้า,จำนวนตามหน่วย,จำนวนชิ้นย่อย,ผู้ทำรายการ,สถานะ\n"; data.forEach(l => { const d = new Date(l.transfer_date); csv += `${d.toLocaleDateString('th-TH')},${d.toLocaleTimeString('th-TH')},${l.salesman_name},${l.product_name},${l.quantity},${l.base_qty||l.quantity},${l.admin_name||'-'},${l.status}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); const safeDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-'); link.download = `ประวัติโอนสต๊อก_${safeDate}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+        /* --- SETTINGS (USER MANAGEMENT) --- */
+        async function loadUsers() { const { data } = await _client.from('salesmen').select('*').order('role').order('id'); if(data) { allUsers = data; document.getElementById('userTableBody').innerHTML = data.map(u => { let rBadge = u.role==='manager' ? '👑 Manager' : (u.role==='admin' ? '🛠️ Admin' : '👤 Sales'); let rColor = u.role==='manager' ? 'bg-amber-100 text-amber-800 border-amber-200' : (u.role==='admin' ? 'bg-indigo-100 text-indigo-700 border-indigo-200' : 'bg-slate-100 text-slate-600 border-slate-200'); const delBtn = currentAdmin.role === 'manager' && u.id !== currentAdmin.id ? `<button onclick="deleteUser(${u.id},'${u.name}')" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">ลบ</button>` : ''; return `<tr class="hover:bg-slate-50 transition-colors"><td class="p-4 font-bold text-slate-800">${u.name}</td><td class="p-4 text-center"><span class="font-mono text-slate-600 bg-white border border-slate-200 px-3 py-1 rounded-lg tracking-widest">${u.pin||'-'}</span></td><td class="p-4"><span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${rColor}">${rBadge}</span></td><td class="p-4 text-center flex justify-center gap-2"><button onclick="editUser(${u.id})" class="text-blue-600 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">แก้ไข</button>${delBtn}</td></tr>`; }).join(''); } }
+        function editUser(id) { const u = allUsers.find(x => x.id === id); if(!u) return; document.getElementById('formUserTitle').innerHTML = '<span>✏️</span> แก้ไขข้อมูลผู้ใช้'; document.getElementById('editUserId').value = u.id; document.getElementById('inpUserName').value = u.name; document.getElementById('inpUserPin').value = u.pin; document.getElementById('inpUserRole').value = u.role || 'sales'; document.getElementById('btnSaveUser').innerText = 'อัปเดตข้อมูล'; document.getElementById('btnCancelUser').classList.remove('hidden'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function cancelEditUser() { document.getElementById('formUserTitle').innerHTML = '<span>➕</span> เพิ่มผู้ใช้ใหม่'; document.getElementById('editUserId').value = ''; document.getElementById('inpUserName').value = ''; document.getElementById('inpUserPin').value = ''; document.getElementById('inpUserRole').value = 'sales'; document.getElementById('btnSaveUser').innerText = 'บันทึกข้อมูล'; document.getElementById('btnCancelUser').classList.add('hidden'); }
+        async function saveUser() { const id = document.getElementById('editUserId').value; const name = document.getElementById('inpUserName').value.trim(); const pin = document.getElementById('inpUserPin').value.trim(); const role = document.getElementById('inpUserRole').value; if(!name || !pin) return alert('⚠️ กรุณากรอกชื่อและรหัส PIN ให้ครบถ้วน'); if(currentAdmin.role !== 'manager' && role === 'manager') return alert('❌ คุณไม่มีสิทธิ์สร้างบัญชีระดับ Manager ได้'); const btn = document.getElementById('btnSaveUser'); btn.disabled = true; btn.innerText = 'กำลังบันทึก...'; try { if(id) { await _client.from('salesmen').update({ name, pin, role }).eq('id', id); alert('✅ อัปเดตข้อมูลสำเร็จ'); } else { await _client.from('salesmen').insert([{ name, pin, role }]); alert('✅ เพิ่มผู้ใช้งานใหม่สำเร็จ'); } cancelEditUser(); loadUsers(); } catch (err) { alert('ผิดพลาด: ' + err.message); } finally { btn.disabled = false; btn.innerText = id ? 'อัปเดตข้อมูล' : 'บันทึกข้อมูล'; } }
+        async function deleteUser(id, name) { if(id === currentAdmin.id) return alert('❌ คุณไม่สามารถลบบัญชีตัวเองได้'); if(!confirm(`⚠️ คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งาน "${name}"?\nข้อมูลการขายของพนักงานคนนี้อาจสูญหาย!`)) return; await _client.from('salesmen').delete().eq('id', id); loadUsers(); }
+        async function clearSystemData(type) { if(currentAdmin.role !== 'manager') return; if(type === 'orders') { const pass = prompt('พิมพ์ "CONFIRM" ตัวพิมพ์ใหญ่ทั้งหมด เพื่อยืนยันการลบประวัติการขายทั้งหมด'); if(pass !== 'CONFIRM') return; await _client.from('order_items').delete().neq('id', 0); await _client.from('orders').delete().neq('id', 0); alert('✅ ลบประวัติการขายเรียบร้อย'); } else if (type === 'inventory') { const pass = prompt('พิมพ์ "CONFIRM" ตัวพิมพ์ใหญ่ทั้งหมด เพื่อยืนยันการล้างสต๊อกทั้งหมด'); if(pass !== 'CONFIRM') return; await _client.from('salesman_inventory').delete().neq('id', 0); await _client.from('products').delete().neq('id', 0); alert('✅ ล้างสต๊อกเรียบร้อย'); } location.reload(); }
+        async function downloadRawData() { const {data} = await _client.from('orders').select('*'); if(!data) return alert('ไม่มีข้อมูล'); let csv='\uFEFFOrder_ID,Date,Customer,Total,Status\n'; data.forEach(o=>csv+=`${o.id},${o.created_at},${o.customer_name},${o.total_amount},${o.payment_status}\n`); const blob=new Blob([csv],{type:'text/csv'}); const link=document.createElement("a"); link.href=URL.createObjectURL(blob); link.download="RawData.csv"; link.click(); }
     </script>
 </body>
 </html>

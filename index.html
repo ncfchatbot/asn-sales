@@ -41,7 +41,7 @@
             <div id="pos-view" class="p-4 space-y-5 bg-slate-50 min-h-screen">
                 <div class="relative">
                     <label class="block text-[10px] font-bold text-slate-500 mb-1 ml-1">ลูกค้ารับสินค้า</label>
-                    <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า / เบอร์โทร..." autocomplete="off" onkeyup="searchCustomer()" onfocus="searchCustomer()" class="w-full p-4 bg-white border border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
+                    <input type="text" id="customerName" placeholder="ระบุชื่อ / รหัสลูกค้า / เบอร์โทร..." autocomplete="off" onkeyup="searchCustomer()" onfocus="searchCustomer()" class="w-full p-4 bg-white border border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
                     <div id="customerSuggestions" class="absolute z-50 w-full bg-white border border-slate-200 shadow-xl rounded-xl mt-1 max-h-[200px] overflow-auto hidden"></div>
                 </div>
                 
@@ -112,7 +112,7 @@
                     <h2 class="text-2xl font-black text-slate-800">👥 ลูกค้าของฉัน</h2>
                     <button onclick="openCustomerEdit()" class="text-[10px] bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold shadow-sm">➕ เพิ่มลูกค้า</button>
                 </div>
-                <input type="text" id="searchSalesCusInput" onkeyup="searchSalesCustomer()" placeholder="ค้นหาชื่อลูกค้า หรือเบอร์โทร..." class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500">
+                <input type="text" id="searchSalesCusInput" onkeyup="searchSalesCustomer()" placeholder="ค้นหา รหัส, ชื่อลูกค้า หรือเบอร์โทร..." class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                 <div id="salesCustomerList" class="space-y-3 mt-4"></div>
             </div>
 
@@ -130,6 +130,7 @@
             <h3 class="text-xl font-black mb-4 text-indigo-800" id="ecTitle">➕ เพิ่มลูกค้าใหม่</h3>
             <input type="hidden" id="ecId">
             <div class="space-y-4">
+                <div><label class="text-xs font-bold text-slate-500 ml-1">รหัสลูกค้า</label><input type="text" id="ecCode" placeholder="เว้นว่างได้" class="w-full p-3 border rounded-xl bg-slate-50 font-mono text-sm"></div>
                 <div><label class="text-xs font-bold text-slate-500 ml-1">ชื่อลูกค้า / ร้านค้า <span class="text-red-500">*</span></label><input type="text" id="ecName" class="w-full p-3 border rounded-xl font-bold bg-slate-50"></div>
                 <div><label class="text-xs font-bold text-slate-500 ml-1">เบอร์โทรศัพท์</label><input type="text" id="ecPhone" class="w-full p-3 border rounded-xl bg-slate-50 font-mono"></div>
                 <div><label class="text-xs font-bold text-slate-500 ml-1">ที่อยู่รายละเอียด</label><textarea id="ecAddress" rows="3" class="w-full p-3 border rounded-xl bg-slate-50 text-sm"></textarea></div>
@@ -175,15 +176,36 @@
             if(tab === 'dash') { if(!document.getElementById('dashDate').value) document.getElementById('dashDate').value = new Date().toISOString().split('T')[0]; loadDashboard(); }
         }
 
-        /* --- CRM (ย่อ) --- */
+        /* --- CRM --- */
         async function loadCustomers() { const { data } = await _client.from('customers').select('*').order('name'); if (data) { allCustomers = data; renderSalesCustomers(data); } }
-        function renderSalesCustomers(data) { const list = document.getElementById('salesCustomerList'); if(!list) return; if(data.length === 0) return list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีรายชื่อลูกค้า</p>'; list.innerHTML = data.map(c => `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center"><div><p class="font-bold text-slate-800">${c.name}</p><p class="text-xs text-slate-500 mt-1">📞 ${c.phone || '-'}</p></div><button onclick="openCustomerEdit(${c.id})" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">แก้ไข</button></div>`).join(''); }
-        function searchSalesCustomer() { const query = document.getElementById('searchSalesCusInput').value.toLowerCase(); const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query))); renderSalesCustomers(filtered); }
-        function searchCustomer() { const input = document.getElementById('customerName').value.toLowerCase(); const suggestBox = document.getElementById('customerSuggestions'); if (input.length < 1) { suggestBox.classList.add('hidden'); return; } const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input)); if (filtered.length > 0) { suggestBox.innerHTML = filtered.map(c => `<div onclick="selectCustomer('${c.name}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><p class="font-bold text-sm text-slate-800">${c.name}</p></div>`).join(''); suggestBox.classList.remove('hidden'); } else { suggestBox.classList.add('hidden'); } }
+        function renderSalesCustomers(data) {
+            const list = document.getElementById('salesCustomerList'); if(!list) return;
+            if(data.length === 0) return list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีรายชื่อลูกค้า</p>';
+            list.innerHTML = data.map(c => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-slate-800">${c.customer_code ? `[${c.customer_code}] ` : ''}${c.name}</p>
+                        <p class="text-xs text-slate-500 mt-1">📞 ${c.phone || '-'}</p>
+                    </div>
+                    <button onclick="openCustomerEdit(${c.id})" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">แก้ไข</button>
+                </div>
+            `).join('');
+        }
+        function searchSalesCustomer() { const query = document.getElementById('searchSalesCusInput').value.toLowerCase(); const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query)) || (c.customer_code && c.customer_code.toLowerCase().includes(query))); renderSalesCustomers(filtered); }
+        function searchCustomer() { const input = document.getElementById('customerName').value.toLowerCase(); const suggestBox = document.getElementById('customerSuggestions'); if (input.length < 1) { suggestBox.classList.add('hidden'); return; } const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input) || (c.customer_code && c.customer_code.toLowerCase().includes(input))); if (filtered.length > 0) { suggestBox.innerHTML = filtered.map(c => `<div onclick="selectCustomer('${c.name}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><p class="font-bold text-sm text-slate-800">${c.customer_code ? `[${c.customer_code}] ` : ''}${c.name}</p></div>`).join(''); suggestBox.classList.remove('hidden'); } else { suggestBox.classList.add('hidden'); } }
         function selectCustomer(name) { document.getElementById('customerName').value = name; document.getElementById('customerSuggestions').classList.add('hidden'); }
         document.addEventListener('click', function(e) { if (e.target.id !== 'customerName') { const sug = document.getElementById('customerSuggestions'); if(sug) sug.classList.add('hidden'); } });
-        function openCustomerEdit(id = null) { if(id) { const c = allCustomers.find(x => x.id === id); document.getElementById('ecTitle').innerHTML = '✏️ แก้ไขข้อมูลลูกค้า'; document.getElementById('ecId').value = c.id; document.getElementById('ecName').value = c.name; document.getElementById('ecPhone').value = c.phone || ''; document.getElementById('ecAddress').value = c.address || ''; } else { document.getElementById('ecTitle').innerHTML = '➕ เพิ่มลูกค้าใหม่'; document.getElementById('ecId').value = ''; document.getElementById('ecName').value = ''; document.getElementById('ecPhone').value = ''; document.getElementById('ecAddress').value = ''; } document.getElementById('editCustomerModal').classList.remove('hidden'); }
-        async function saveCustomerEdit() { const id = document.getElementById('ecId').value; const payload = { name: document.getElementById('ecName').value.trim(), phone: document.getElementById('ecPhone').value.trim(), address: document.getElementById('ecAddress').value.trim(), salesman_id: currentSalesman.id }; if(!payload.name) return alert('กรุณาระบุชื่อลูกค้า'); try { if(id) await _client.from('customers').update(payload).eq('id', id); else await _client.from('customers').insert([payload]); closeModal('editCustomerModal'); loadCustomers(); } catch(e) { alert(e.message); } }
+
+        function openCustomerEdit(id = null) {
+            if(id) { const c = allCustomers.find(x => x.id === id); document.getElementById('ecTitle').innerHTML = '✏️ แก้ไขข้อมูลลูกค้า'; document.getElementById('ecId').value = c.id; document.getElementById('ecCode').value = c.customer_code || ''; document.getElementById('ecName').value = c.name; document.getElementById('ecPhone').value = c.phone || ''; document.getElementById('ecAddress').value = c.address || ''; } 
+            else { document.getElementById('ecTitle').innerHTML = '➕ เพิ่มลูกค้าใหม่'; document.getElementById('ecId').value = ''; document.getElementById('ecCode').value = ''; document.getElementById('ecName').value = ''; document.getElementById('ecPhone').value = ''; document.getElementById('ecAddress').value = ''; }
+            document.getElementById('editCustomerModal').classList.remove('hidden');
+        }
+        async function saveCustomerEdit() {
+            const id = document.getElementById('ecId').value; const payload = { customer_code: document.getElementById('ecCode').value.trim() || null, name: document.getElementById('ecName').value.trim(), phone: document.getElementById('ecPhone').value.trim(), address: document.getElementById('ecAddress').value.trim(), salesman_id: currentSalesman.id };
+            if(!payload.name) return alert('กรุณาระบุชื่อลูกค้า');
+            try { if(id) await _client.from('customers').update(payload).eq('id', id); else await _client.from('customers').insert([payload]); closeModal('editCustomerModal'); loadCustomers(); } catch(e) { alert(e.message); }
+        }
 
         /* --- POS & STOCK --- */
         async function loadProducts() { 
@@ -203,10 +225,8 @@
         }
         
         function updatePosUnitOptions() {
-            const pId = document.getElementById('posProduct').value;
-            const uSel = document.getElementById('posUnit');
+            const pId = document.getElementById('posProduct').value; const uSel = document.getElementById('posUnit');
             if(!pId) { uSel.innerHTML = '<option value="">- เลือกหน่วย -</option>'; return; }
-            
             const p = products.find(x => x.id == pId);
             let opts = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1" data-price="${p.sale_price}">${p.unit_name||'ชิ้น'} (${p.sale_price}.-)</option>`;
             if(p.pack_qty > 0) opts += `<option value="pack" data-name="${p.pack_unit}" data-mul="${p.pack_qty}" data-price="${p.pack_price}">${p.pack_unit} (${p.pack_price}.-)</option>`;
@@ -264,7 +284,7 @@
             } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
         }
 
-        /* --- TRANSFER (เบิกสินค้า ระบุขั้นต่ำ) --- */
+        /* --- TRANSFER (เบิกของแบบจำกัดขั้นต่ำ) --- */
         let allMasterProducts = [];
         async function loadTransferProductDropdown() { 
             const { data } = await _client.from('products').select('*').order('name'); 
@@ -275,33 +295,22 @@
             }
         }
 
-        // จำกัดให้เบิกได้เฉพาะ "ลัง" เท่านั้น (Box Unit) และเช็คจำนวนขั้นต่ำ
         function updateReqUnitOptions() {
             const pId = document.getElementById('reqProduct').value;
             const uSel = document.getElementById('reqUnit');
             const msg = document.getElementById('reqMinMsg');
             
-            if(!pId) { 
-                uSel.innerHTML = '<option value="">- เลือกหน่วย -</option>'; 
-                uSel.disabled = true; msg.classList.add('hidden');
-                return; 
-            }
+            if(!pId) { uSel.innerHTML = '<option value="">- เลือกหน่วย -</option>'; uSel.disabled = true; msg.classList.add('hidden'); return; }
             
             const p = allMasterProducts.find(x => x.id == pId);
             const minBox = p.min_transfer_box || 1;
 
-            // บังคับให้เบิกเป็นลังเท่านั้น
             if (p.box_qty > 0) {
                 uSel.innerHTML = `<option value="box" data-name="${p.box_unit}" data-mul="${p.box_qty}">${p.box_unit}</option>`;
-                uSel.disabled = false;
-                msg.innerHTML = `*เบิกขั้นต่ำ ${minBox} ${p.box_unit}`;
-                msg.classList.remove('hidden');
+                uSel.disabled = false; msg.innerHTML = `*เบิกขั้นต่ำ ${minBox} ${p.box_unit}`; msg.classList.remove('hidden');
             } else {
-                // ถ้าแอดมินไม่ได้ตั้งค่าลังไว้ ก็ให้เบิกหน่วยฐานได้ แต่ยังใช้ขั้นต่ำ
                 uSel.innerHTML = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1">${p.unit_name||'ชิ้น'}</option>`;
-                uSel.disabled = false;
-                msg.innerHTML = `*เบิกขั้นต่ำ ${minBox} ${p.unit_name||'ชิ้น'}`;
-                msg.classList.remove('hidden');
+                uSel.disabled = false; msg.innerHTML = `*เบิกขั้นต่ำ ${minBox} ${p.unit_name||'ชิ้น'}`; msg.classList.remove('hidden');
             }
         }
 
@@ -316,10 +325,7 @@
             const unitName = uSel.options[uSel.selectedIndex].getAttribute('data-name');
             const unitMul = parseInt(uSel.options[uSel.selectedIndex].getAttribute('data-mul'));
             
-            // เช็คเงื่อนไขขั้นต่ำ
-            if (qty < minBox) {
-                return alert(`⚠️ สินค้านี้ต้องเบิกขั้นต่ำ ${minBox} ${unitName} ขึ้นไปครับ`);
-            }
+            if (qty < minBox) return alert(`⚠️ สินค้านี้ต้องเบิกขั้นต่ำ ${minBox} ${unitName} ขึ้นไปครับ`);
             
             reqCart.push({ product_id: pId, product_name: `${p.name} (${unitName})`, quantity: qty, base_qty: qty * unitMul }); 
             document.getElementById('reqQty').value = ''; sel.value = ''; updateReqUnitOptions(); renderReqCart(); 
@@ -337,9 +343,26 @@
             } catch (e) { alert('Error: ' + e.message); } finally { btn.disabled = false; btn.innerText = '📤 ส่งใบเบิก'; } 
         }
 
-        /* --- DASHBOARD, REPORTS & PRINT (เหมือนเดิม ย่อไว้เพื่อประหยัดพื้นที่) --- */
         async function loadMyTransfers() { const list = document.getElementById('myTransferList'); try { const { data } = await _client.from('stock_transfers').select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(50); if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ไม่มีประวัติ</p>'; return; } allMyTransfers = data; const grouped = {}; data.forEach(t => { const ref = t.transfer_ref || `NO-REF-${t.id}`; if(!grouped[ref]) grouped[ref] = { ref: ref, date: t.transfer_date, status: t.status, items: [] }; grouped[ref].items.push(t); }); list.innerHTML = Object.values(grouped).map(g => { let statusBtn = ''; if (g.status === 'ส่งใบเบิกสินค้า') statusBtn = '<span class="text-amber-600 font-bold text-xs">⏳ รออนุมัติ...</span>'; else if (g.status === 'อนุมัติแล้ว') statusBtn = `<button onclick="receiveGroup('${g.ref}', this)" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2">📥 กดยืนยันรับของทั้งบิล</button>`; else if (g.status === 'เซลรับสินค้าแล้ว' || g.status === 'รับโอนแล้ว') statusBtn = '<span class="text-green-600 font-bold text-xs">✔️ เซลรับสินค้าแล้ว</span>'; else statusBtn = `<span class="text-red-500 font-bold text-xs">${g.status}</span>`; return `<div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm"><div class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2"><span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">No: ${g.ref}</span></div><div class="space-y-1 mb-3">${g.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>- ${i.product_name}</span><span class="text-blue-600">x${i.quantity}</span></div>`).join('')}</div><div class="text-right">${statusBtn}</div></div>`; }).join(''); } catch (err) {} }
-        async function receiveGroup(ref, btnElement) { if (!confirm(`ยืนยัน "รับสินค้า" บิลเลขที่ ${ref} ?`)) return; const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'อนุมัติแล้ว'); if(itemsToReceive.length === 0) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังโหลด...'; } try { for(let item of itemsToReceive) { await _client.from('stock_transfers').update({ status: 'เซลรับสินค้าแล้ว' }).eq('id', item.id); const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle(); const baseToAdd = item.base_qty || item.quantity; if (inv) { await _client.from('salesman_inventory').update({ quantity: inv.quantity + baseToAdd }).eq('id', inv.id); } else { await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: baseToAdd }]); } } alert('🎉 รับสินค้าสำเร็จ'); loadMyTransfers(); } catch (e) { alert(e.message); } }
+        
+        async function receiveGroup(ref, btnElement) { 
+            if (!confirm(`ยืนยัน "รับสินค้า" บิลเลขที่ ${ref} ?`)) return; 
+            const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'อนุมัติแล้ว'); 
+            if(itemsToReceive.length === 0) return; 
+            if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังโหลด...'; } 
+            try { 
+                for(let item of itemsToReceive) { 
+                    await _client.from('stock_transfers').update({ status: 'เซลรับสินค้าแล้ว' }).eq('id', item.id); 
+                    const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle(); 
+                    const baseToAdd = item.base_qty || item.quantity;
+                    if (inv) { await _client.from('salesman_inventory').update({ quantity: inv.quantity + baseToAdd }).eq('id', inv.id); } 
+                    else { await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: baseToAdd }]); } 
+                } 
+                alert('🎉 รับสินค้าสำเร็จ'); loadMyTransfers(); 
+            } catch (e) { alert(e.message); } 
+        }
+
+        /* --- DASHBOARD & REPORTS (ย่อ) --- */
         window.currentReportData = []; window.currentReportTotal = 0; function setReportType(type) { currentReportType = type; ['day', 'month', 'year'].forEach(t => { const btn = document.getElementById('btnRep' + t.charAt(0).toUpperCase() + t.slice(1)); if (t === type) btn.className = 'flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all'; else btn.className = 'flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all'; }); loadDashboard(); } async function loadDashboard() { try { const dateVal = document.getElementById('dashDate').value; if(!dateVal) return; const [yyyy, mm, dd] = dateVal.split('-'); const { data, error } = await _client.from('orders').select('*').eq('salesman_id', currentSalesman.id).order('created_at', { ascending: true }); if (error) throw error; const filteredData = data.filter(o => { const oDate = new Date(o.created_at); if (currentReportType === 'day') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd; else if (currentReportType === 'month') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm; else if (currentReportType === 'year') return oDate.getFullYear() == yyyy; return false; }); const totalRevenue = filteredData.reduce((sum, order) => sum + Number(order.total_amount || 0), 0); document.getElementById('dashTotalSales').innerText = totalRevenue.toLocaleString() + '.-'; document.getElementById('dashTotalOrders').innerHTML = `${filteredData.length} <span class="text-xs font-normal text-slate-400">บิล</span>`; const list = document.getElementById('dashBillList'); if (filteredData.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 py-3">ไม่มีข้อมูล</p>'; document.getElementById('btnPrintRemit').classList.add('hidden'); } else { document.getElementById('btnPrintRemit').classList.remove('hidden'); list.innerHTML = filteredData.map(o => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100"><div class="w-3/4 pr-2"><p class="text-xs font-bold text-slate-800 truncate">🧑‍💼 ${o.customer_name}</p><p class="text-[10px] text-slate-500 mt-0.5">บิล: #${o.id} • ${new Date(o.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</p></div><span class="text-sm font-black text-blue-600">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); } window.currentReportData = filteredData; window.currentReportTotal = totalRevenue; } catch (err) {} } function printRemittance() { if (!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลบิลสำหรับพิมพ์'); const dateVal = document.getElementById('dashDate').value; const [yyyy, mm, dd] = dateVal.split('-'); let dateLabel = `${dd}/${mm}/${yyyy}`; if(currentReportType === 'month') dateLabel = `เดือน ${mm}/${yyyy}`; if(currentReportType === 'year') dateLabel = `ปี ${yyyy}`; const itemsHtml = window.currentReportData.map(o => `<div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #d1d5db; padding-bottom:4px; margin-bottom:4px;"><span style="width:20%; color:#6b7280;">#${o.id}</span><span style="width:40%; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-weight:bold;">${o.customer_name}</span><span style="width:40%; text-align:right; font-weight:900;">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); const html = `<div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;"><h2 style="font-weight:900; font-size:18px; margin:0;">ใบส่งเงิน/รายงานขาย</h2><p style="font-size:10px; margin-top:4px; color:#374151;">ประจำ: <span>${dateLabel}</span></p><p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงานขาย: <span>${currentSalesman.name}</span></p></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;"><span style="width:20%;">รหัสบิล</span><span style="width:40%; text-align:center;">ลูกค้า/ร้านค้า</span><span style="width:40%; text-align:right;">ยอดเงิน</span></div><div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div><div style="border-top:1px solid #4b5563; padding-top:12px; padding-bottom:8px; display:flex; justify-content:space-between; font-weight:900; font-size:14px;"><span>รวมส่งเงิน:</span><span>${window.currentReportTotal.toLocaleString()}.-</span></div><div style="border-top:1px dashed #4b5563; margin-top:16px; padding-top:16px; text-align:center; font-size:10px;"><p>ผู้ส่งเงิน ................................</p><p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p><p style="margin-top:4px; margin-bottom:24px;">เซลส์ / พนักงานขาย</p><p>ผู้รับเงิน ................................</p><p style="margin-top:4px;">( ................................ )</p><p style="margin-top:4px;">แคชเชียร์ / บัญชี</p></div>`; printDocument(html); }
     </script>
 </body>

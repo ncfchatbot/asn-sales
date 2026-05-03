@@ -9,18 +9,7 @@
     <style>
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* สไตล์สำหรับการพิมพ์ */
-        @media print {
-            #app-container { display: none !important; }
-            @page { margin: 0; }
-            body { background-color: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
-            .thermal-print-area { display: block !important; width: 75mm; margin: 0 auto; padding: 5mm; font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.2; }
-            body > *:not(.thermal-print-area) { display: none !important; }
-            body.print-receipt #receipt-view { display: block !important; }
-            body.print-stock #stock-print-view { display: block !important; }
-            body.print-remit #remit-print-view { display: block !important; }
-        }
+        @media print { #app-container { display: none !important; } @page { margin: 0; } body { background-color: white !important; color: black !important; padding: 0 !important; margin: 0 !important; } .thermal-print-area { display: block !important; width: 75mm; margin: 0 auto; padding: 5mm; font-family: 'Courier New', Courier, monospace; font-size: 12px; line-height: 1.2; } body > *:not(.thermal-print-area) { display: none !important; } body.print-receipt #receipt-view { display: block !important; } body.print-stock #stock-print-view { display: block !important; } body.print-remit #remit-print-view { display: block !important; } }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 pb-10">
@@ -110,10 +99,7 @@
                         </div>
                         <div class="col-span-2">
                             <label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label>
-                            <div class="flex gap-1">
-                                <input type="number" id="reqQty" min="1" placeholder="ตัวเลข" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">
-                                <button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-3 rounded-xl text-xs h-[42px] active:scale-95 mt-auto">เพิ่ม</button>
-                            </div>
+                            <div class="flex gap-1"><input type="number" id="reqQty" min="1" placeholder="ตัวเลข" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-3 rounded-xl text-xs h-[42px] active:scale-95 mt-auto">เพิ่ม</button></div>
                         </div>
                     </div>
                     <div><p class="text-xs font-bold text-slate-500 mb-2">📋 รายการที่จะเบิก:</p><div id="reqCartItems" class="space-y-2 min-h-[40px]"></div></div>
@@ -126,10 +112,7 @@
             </div>
 
             <div id="customers-view" class="hidden p-4 space-y-4 bg-slate-50 min-h-screen">
-                <div class="flex justify-between items-end border-b-2 border-indigo-100 pb-3">
-                    <h2 class="text-2xl font-black text-slate-800">👥 ลูกค้าของฉัน</h2>
-                    <button onclick="openCustomerEdit()" class="text-[10px] bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold shadow-sm">➕ เพิ่มลูกค้า</button>
-                </div>
+                <div class="flex justify-between items-end border-b-2 border-indigo-100 pb-3"><h2 class="text-2xl font-black text-slate-800">👥 ลูกค้าของฉัน</h2><button onclick="openCustomerEdit()" class="text-[10px] bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold shadow-sm">➕ เพิ่มลูกค้า</button></div>
                 <input type="text" id="searchSalesCusInput" onkeyup="searchSalesCustomer()" placeholder="ค้นหา รหัส, ชื่อลูกค้า หรือเบอร์โทร..." class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                 <div id="salesCustomerList" class="space-y-3 mt-4"></div>
             </div>
@@ -198,7 +181,7 @@
             if(tab === 'dash') { if(!document.getElementById('dashDate').value) document.getElementById('dashDate').value = new Date().toISOString().split('T')[0]; loadDashboard(); }
         }
 
-        /* --- CRM --- */
+        /* --- CRM (ย่อ) --- */
         async function loadCustomers() { const { data } = await _client.from('customers').select('*').order('name'); if (data) { allCustomers = data; renderSalesCustomers(data); } }
         function renderSalesCustomers(data) { const list = document.getElementById('salesCustomerList'); if(!list) return; if(data.length === 0) return list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีรายชื่อลูกค้า</p>'; list.innerHTML = data.map(c => `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center"><div><p class="font-bold text-slate-800">${c.customer_code ? `[${c.customer_code}] ` : ''}${c.name}</p><p class="text-xs text-slate-500 mt-1">📞 ${c.phone || '-'}</p></div><button onclick="openCustomerEdit(${c.id})" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">แก้ไข</button></div>`).join(''); }
         function searchSalesCustomer() { const query = document.getElementById('searchSalesCusInput').value.toLowerCase(); const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query)) || (c.customer_code && c.customer_code.toLowerCase().includes(query))); renderSalesCustomers(filtered); }
@@ -208,33 +191,43 @@
         function openCustomerEdit(id = null) { if(id) { const c = allCustomers.find(x => x.id === id); document.getElementById('ecTitle').innerHTML = '✏️ แก้ไขข้อมูลลูกค้า'; document.getElementById('ecId').value = c.id; document.getElementById('ecCode').value = c.customer_code || ''; document.getElementById('ecName').value = c.name; document.getElementById('ecPhone').value = c.phone || ''; document.getElementById('ecAddress').value = c.address || ''; } else { document.getElementById('ecTitle').innerHTML = '➕ เพิ่มลูกค้าใหม่'; document.getElementById('ecId').value = ''; document.getElementById('ecCode').value = ''; document.getElementById('ecName').value = ''; document.getElementById('ecPhone').value = ''; document.getElementById('ecAddress').value = ''; } document.getElementById('editCustomerModal').classList.remove('hidden'); }
         async function saveCustomerEdit() { const id = document.getElementById('ecId').value; const payload = { customer_code: document.getElementById('ecCode').value.trim() || null, name: document.getElementById('ecName').value.trim(), phone: document.getElementById('ecPhone').value.trim(), address: document.getElementById('ecAddress').value.trim(), salesman_id: currentSalesman.id }; if(!payload.name) return alert('กรุณาระบุชื่อลูกค้า'); try { if(id) await _client.from('customers').update(payload).eq('id', id); else await _client.from('customers').insert([payload]); closeModal('editCustomerModal'); loadCustomers(); } catch(e) { alert(e.message); } }
 
-        /* --- LOAD PROMOTIONS --- */
+        /* --- PROMOTIONS --- */
         async function loadPromotions() {
             const { data } = await _client.from('promotions').select('*').eq('is_active', true);
-            if(data) {
-                allPromotions = data;
-                renderPromoBanner();
-            }
+            if(data) { allPromotions = data; renderPromoBanner(); }
         }
 
         function renderPromoBanner() {
             const banner = document.getElementById('posPromoBanner');
             const list = document.getElementById('posPromoList');
-            if(allPromotions.length === 0) {
-                banner.classList.add('hidden'); return;
-            }
+            if(allPromotions.length === 0) { banner.classList.add('hidden'); return; }
+            
             banner.classList.remove('hidden');
-            list.innerHTML = allPromotions.map(p => {
-                const buyProd = products.find(prod => prod.id == p.buy_product_id);
-                if(!buyProd) return '';
-                let msg = `ซื้อ <b>${buyProd.name}</b> ขั้นต่ำ ${p.buy_qty} ${p.buy_unit} `;
-                if(p.type === 'discount') msg += `👉 <b>ได้ราคาพิเศษ ${(p.discount_price||0).toLocaleString()}.-/${p.buy_unit}</b>`;
+            let bannerHtml = '';
+
+            allPromotions.forEach(p => {
+                if(!p.tiers || p.tiers.length === 0) return;
+                let prodNames = [];
+                (p.skus || []).forEach(sku => {
+                    const pd = products.find(x => x.id == sku);
+                    if(pd) prodNames.push(pd.name);
+                });
+                if(prodNames.length === 0) return;
+
+                // โชว์แค่ขั้นต่ำสุดของโปรนั้นเป็นน้ำจิ้มในแบนเนอร์
+                const minTier = p.tiers.reduce((prev, curr) => (curr.min < prev.min ? curr : prev), p.tiers[0]);
+                
+                let msg = `ซื้อ <b>${prodNames[0]} ${prodNames.length>1?`(+อีก ${prodNames.length-1} อย่าง)`:''}</b> `;
+                msg += `ขั้นต่ำ ${minTier.min} ${minTier.buy_unit} `;
+                
+                if(p.type === 'discount') msg += `👉 <b>ราคาพิเศษ ${minTier.reward.toLocaleString()}.-</b>`;
                 else {
                     const freeProd = products.find(prod => prod.id == p.free_product_id);
-                    msg += `👉 <b class="text-emerald-600">ฟรี! ${freeProd?freeProd.name:'สินค้า'} ${p.free_qty} ${p.free_unit}</b>`;
+                    msg += `👉 <b class="text-emerald-600">ฟรี! ${freeProd?freeProd.name:'สินค้า'} x${minTier.reward} ${p.free_unit||''}</b>`;
                 }
-                return `<li>${msg}</li>`;
-            }).join('');
+                bannerHtml += `<li>${msg} <span class="text-slate-400 text-[8px]">(มี ${p.tiers.length} ขั้น)</span></li>`;
+            });
+            list.innerHTML = bannerHtml;
         }
 
         /* --- POS & STOCK --- */
@@ -281,22 +274,31 @@
             const unitMul = parseInt(uSel.options[uSel.selectedIndex].getAttribute('data-mul'));
             const originalPrice = parseFloat(uSel.options[uSel.selectedIndex].getAttribute('data-price'));
 
-            // เช็คว่าการซื้อครั้งนี้ เข้าเงื่อนไขโปรโมชั่นไหนบ้างไหม?
+            // === ระบบคำนวณโปรโมชั่นอัจฉริยะแบบขั้นบันได (Advanced Tiers) ===
             let finalPrice = originalPrice;
             let promoApplied = false;
             let freebiesToAdd = [];
 
-            const applicablePromos = allPromotions.filter(promo => promo.buy_product_id == pId && promo.buy_unit === unitName);
+            // หาว่าสินค้านี้อยู่ในโปรไหนบ้างไหม?
+            const applicablePromos = allPromotions.filter(promo => (promo.skus || []).includes(pId));
             
             applicablePromos.forEach(promo => {
-                if (qty >= promo.buy_qty) {
+                // หาขั้นบันไดที่เหมาะสมที่สุด (ซื้อถึง min และไม่เกิน max และตรงหน่วย)
+                let matchedTier = null;
+                (promo.tiers || []).forEach(tier => {
+                    if(unitName === tier.buy_unit && qty >= tier.min && qty <= tier.max) {
+                        matchedTier = tier;
+                    }
+                });
+
+                if (matchedTier) {
                     if (promo.type === 'discount') {
-                        finalPrice = promo.discount_price; // ปรับราคาเป็นราคาโปร
+                        finalPrice = matchedTier.reward; // เปลี่ยนเป็นราคาพิเศษตามขั้น
                         promoApplied = true;
                     } else if (promo.type === 'freebie') {
-                        // คำนวณของแถมแบบทวีคูณ (ซื้อ 10 แถม 1, ถ้าซื้อ 20 แถม 2)
-                        const multiplier = Math.floor(qty / promo.buy_qty);
-                        const totalFreeQty = promo.free_qty * multiplier;
+                        // คำนวณของแถมแบบทวีคูณ (ซื้อ 10 แถม 1, ซื้อ 20 แถม 2)
+                        const multiplier = Math.floor(qty / matchedTier.min);
+                        const totalFreeQty = matchedTier.reward * multiplier;
                         
                         const freeProd = products.find(fp => fp.id == promo.free_product_id);
                         if (freeProd) {
@@ -309,7 +311,7 @@
                                 qty: totalFreeQty, 
                                 unit_name_sell: promo.free_unit, 
                                 unitMul: freeUnitMul, 
-                                sell_price: 0, // ของแถม ราคา 0 บาท
+                                sell_price: 0, 
                                 isFreebie: true
                             });
                         }
@@ -328,9 +330,8 @@
             freebiesToAdd.forEach(fb => {
                 const fbTotalBaseNeed = fb.qty * fb.unitMul;
                 const fbCurrentCartBaseQty = cart.filter(c => c.id === fb.id).reduce((s, c) => s + (c.qty * c.unitMul), 0);
-                // ของตัวเอง (หลัก) + ของที่เคยแถม + ของแถมรอบนี้
                 let totalStockNeed = fbCurrentCartBaseQty + fbTotalBaseNeed;
-                if(pId === fb.id) totalStockNeed += totalBaseQtyNeeded; // ถ้าซื้อของแล้วแถมของตัวเอง
+                if(pId === fb.id) totalStockNeed += totalBaseQtyNeeded;
 
                 if(totalStockNeed > fb.stock) {
                     alert(`⚠️ ไม่สามารถแถมสินค้า "${fb.name}" ได้ เนื่องจากสต๊อกในรถของคุณมีไม่พอแจกของแถมครับ`);
@@ -338,12 +339,10 @@
                 }
             });
 
-            if(!canAddFreebies) return; // ยกเลิกการเพิ่มเข้าตะกร้า
+            if(!canAddFreebies) return; // ยกเลิกถ้ารถเซลส์ของไม่พอแถม
 
-            // เพิ่มสินค้าหลัก
+            // ยัดลงตะกร้า!
             cart.push({ ...p, qty: qty, unit_name_sell: unitName, unitMul: unitMul, sell_price: finalPrice, hasPromo: promoApplied });
-            
-            // เพิ่มของแถม (ถ้ามี)
             freebiesToAdd.forEach(fb => cart.push(fb));
 
             document.getElementById('posQty').value = ''; sel.value = ''; updatePosUnitOptions(); renderCart();
@@ -356,7 +355,6 @@
             list.innerHTML = cart.map((c, index) => {
                 const isFree = c.isFreebie ? '<span class="bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[8px] ml-2 font-bold uppercase animate-pulse">ฟรี!</span>' : '';
                 const promoBadge = c.hasPromo ? '<span class="bg-amber-100 text-amber-700 px-1 rounded text-[8px] font-bold border border-amber-200">โปรโมชั่น</span>' : '';
-                
                 return `<div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-2 last:border-0"><span class="w-3/4 pr-2"><span class="font-bold text-white text-xs">${c.name} ${isFree}</span><br><span class="text-amber-400 font-bold">x${c.qty} <span class="text-[10px] font-normal text-slate-400">${c.unit_name_sell}</span></span> ${promoBadge}</span><div class="flex items-center space-x-3"><span class="font-black text-white text-lg">${(c.sell_price*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold border border-slate-600 px-2 py-1 rounded">ลบ</button></div></div>`;
             }).join(''); 
             document.getElementById('totalAmount').innerText = cart.reduce((s, c) => s + (c.sell_price*c.qty), 0).toLocaleString() + '.-'; 
@@ -373,17 +371,14 @@
 
                 const { data: orderData } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select(); const newOrderId = orderData[0].id; 
                 
-                // เซฟ Order Items (พ่วงคำว่า ฟรี หรือ โปรโมชั่น ไว้ในชื่อสินค้าเลยจะได้ดูสลิปง่ายๆ)
                 const itemsToInsert = cart.map(c => {
                     let finalName = `${c.name} (${c.unit_name_sell})`;
                     if(c.isFreebie) finalName = `[ของแถม] ` + finalName;
                     else if(c.hasPromo) finalName = `[โปรโมชั่น] ` + finalName;
-
                     return { order_id: newOrderId, product_id: c.id, product_name: finalName, quantity: c.qty, price: c.sell_price, base_qty: c.qty * c.unitMul };
                 }); 
                 await _client.from('order_items').insert(itemsToInsert); 
                 
-                // ตัดสต๊อก (รวมทั้งของขายและของแถม)
                 for(let c of cart) {
                     const { data: inv } = await _client.from('salesman_inventory').select('quantity').eq('salesman_id', currentSalesman.id).eq('product_id', c.id).single();
                     await _client.from('salesman_inventory').update({ quantity: inv.quantity - (c.qty * c.unitMul) }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id);
@@ -404,7 +399,7 @@
         async function loadMyTransfers() { const list = document.getElementById('myTransferList'); try { const { data } = await _client.from('stock_transfers').select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(50); if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ไม่มีประวัติ</p>'; return; } allMyTransfers = data; const grouped = {}; data.forEach(t => { const ref = t.transfer_ref || `NO-REF-${t.id}`; if(!grouped[ref]) grouped[ref] = { ref: ref, date: t.transfer_date, status: t.status, items: [] }; grouped[ref].items.push(t); }); list.innerHTML = Object.values(grouped).map(g => { let statusBtn = ''; if (g.status === 'ส่งใบเบิกสินค้า') statusBtn = '<span class="text-amber-600 font-bold text-xs">⏳ รออนุมัติ...</span>'; else if (g.status === 'อนุมัติแล้ว') statusBtn = `<button onclick="receiveGroup('${g.ref}', this)" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2">📥 กดยืนยันรับของทั้งบิล</button>`; else if (g.status === 'เซลรับสินค้าแล้ว' || g.status === 'รับโอนแล้ว') statusBtn = '<span class="text-green-600 font-bold text-xs">✔️ เซลรับสินค้าแล้ว</span>'; else statusBtn = `<span class="text-red-500 font-bold text-xs">${g.status}</span>`; return `<div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm"><div class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2"><span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">No: ${g.ref}</span></div><div class="space-y-1 mb-3">${g.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>- ${i.product_name}</span><span class="text-blue-600">x${i.quantity}</span></div>`).join('')}</div><div class="text-right">${statusBtn}</div></div>`; }).join(''); } catch (err) {} }
         async function receiveGroup(ref, btnElement) { if (!confirm(`ยืนยัน "รับสินค้า" บิลเลขที่ ${ref} ?`)) return; const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'อนุมัติแล้ว'); if(itemsToReceive.length === 0) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังโหลด...'; } try { for(let item of itemsToReceive) { await _client.from('stock_transfers').update({ status: 'เซลรับสินค้าแล้ว' }).eq('id', item.id); const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle(); const baseToAdd = item.base_qty || item.quantity; if (inv) { await _client.from('salesman_inventory').update({ quantity: inv.quantity + baseToAdd }).eq('id', inv.id); } else { await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: baseToAdd }]); } } alert('🎉 รับสินค้าสำเร็จ'); loadMyTransfers(); } catch (e) { alert(e.message); } }
 
-        /* --- DASHBOARD, REPORTS & PRINT (เหมือนเดิม ย่อไว้เพื่อประหยัดพื้นที่) --- */
+        /* --- DASHBOARD, REPORTS & PRINT (เหมือนเดิม ย่อไว้) --- */
         window.currentReportData = []; window.currentReportTotal = 0; function setReportType(type) { currentReportType = type; ['day', 'month', 'year'].forEach(t => { const btn = document.getElementById('btnRep' + t.charAt(0).toUpperCase() + t.slice(1)); if (t === type) btn.className = 'flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all'; else btn.className = 'flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all'; }); loadDashboard(); } async function loadDashboard() { try { const dateVal = document.getElementById('dashDate').value; if(!dateVal) return; const [yyyy, mm, dd] = dateVal.split('-'); const { data, error } = await _client.from('orders').select('*').eq('salesman_id', currentSalesman.id).order('created_at', { ascending: true }); if (error) throw error; const filteredData = data.filter(o => { const oDate = new Date(o.created_at); if (currentReportType === 'day') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd; else if (currentReportType === 'month') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm; else if (currentReportType === 'year') return oDate.getFullYear() == yyyy; return false; }); const totalRevenue = filteredData.reduce((sum, order) => sum + Number(order.total_amount || 0), 0); document.getElementById('dashTotalSales').innerText = totalRevenue.toLocaleString() + '.-'; document.getElementById('dashTotalOrders').innerHTML = `${filteredData.length} <span class="text-xs font-normal text-slate-400">บิล</span>`; const list = document.getElementById('dashBillList'); if (filteredData.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 py-3">ไม่มีข้อมูล</p>'; document.getElementById('btnPrintRemit').classList.add('hidden'); } else { document.getElementById('btnPrintRemit').classList.remove('hidden'); list.innerHTML = filteredData.map(o => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100"><div class="w-3/4 pr-2"><p class="text-xs font-bold text-slate-800 truncate">🧑‍💼 ${o.customer_name}</p><p class="text-[10px] text-slate-500 mt-0.5">บิล: #${o.id} • ${new Date(o.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</p></div><span class="text-sm font-black text-blue-600">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); } window.currentReportData = filteredData; window.currentReportTotal = totalRevenue; } catch (err) {} }
         
         function printReceipt(customerName, total, cartData) { const date = new Date(); const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH'); const itemsHtml = cartData.map(c => { const freeBadge = c.isFreebie ? '[ฟรี] ' : ''; const pBadge = c.hasPromo ? '[โปร] ' : ''; return `<div style="display:flex; justify-content:space-between; align-items:start;"><span style="width:75%;">${freeBadge}${pBadge}${c.name} <span style="color:gray; margin-left:4px;">x${c.qty} ${c.unit_name_sell||''}</span></span><span style="width:25%; text-align:right;">${(c.sell_price*c.qty).toLocaleString()}</span></div>` }).join(''); const html = `<div style="text-align:center; margin-bottom:16px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><h2 style="font-weight:900; font-size:20px; margin:0;">NICE COFFEE</h2><p style="font-size:10px; margin-top:4px; color:#374151;">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p><p style="font-size:12px; font-weight:bold; margin-top:8px;">ใบเสร็จรับเงิน</p></div><div style="font-size:10px; margin-bottom:8px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>วันที่:</span> <span>${dateStr}</span></div><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>ลูกค้า:</span> <span style="font-weight:bold;">${customerName}</span></div><div style="display:flex; justify-content:space-between;"><span>พนักงาน:</span> <span>${currentSalesman.name}</span></div></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:4px;"><span>รายการ</span><span>รวม</span></div><div style="font-size:10px; margin-bottom:8px;">${itemsHtml}</div><div style="border-top:1px dashed #4b5563; padding-top:8px; display:flex; justify-content:space-between; font-weight:900; font-size:18px;"><span>TOTAL</span><span>${total.toLocaleString()}.-</span></div><div style="text-align:center; margin-top:24px; font-size:10px; font-weight:bold;">THANK YOU!</div>`; printDocument(html); }

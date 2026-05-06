@@ -6,13 +6,15 @@
     <title>ASN Master System - หลังบ้าน</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <style>
+        body { font-family: 'Sarabun', sans-serif; }
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         @media print { @page { size: A4 portrait; margin: 1cm; } body { background-color: white !important; color: black !important; } nav, .no-print, #admin-login-view, button, .modal { display: none !important; } .print-only { display: block !important; } .max-w-7xl { max-w: 100% !important; margin: 0 !important; padding: 0 !important; } table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; } th, td { border: 1px solid #000 !important; padding: 6px !important; } .bg-slate-50 { background-color: transparent !important; } .shadow-sm { box-shadow: none !important; border: none !important; } .overflow-x-auto { overflow: visible !important; } }
         .print-only { display: none; } .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 pb-10">
+<body class="bg-slate-50 text-slate-800 pb-10">
 
     <div id="admin-login-view" class="min-h-screen flex items-center justify-center bg-indigo-950 p-4 relative">
         <div class="absolute top-4 right-4 flex gap-2">
@@ -28,13 +30,11 @@
     </div>
 
     <div id="admin-main-view" class="hidden">
+        
         <nav class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50 no-print">
             <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="flex items-center justify-between w-full md:w-auto">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-2xl">⚙️</span>
-                        <h1 class="text-xl font-black">ASN MASTER <span id="navRoleBadge" class="text-xs bg-amber-500 text-slate-900 px-2 py-0.5 rounded ml-2"></span></h1>
-                    </div>
+                    <div class="flex items-center space-x-2"><span class="text-2xl">⚙️</span><h1 class="text-xl font-black">ASN MASTER <span id="navRoleBadge" class="text-xs bg-amber-500 text-slate-900 px-2 py-0.5 rounded ml-2"></span></h1></div>
                     <div class="flex gap-1 md:hidden">
                         <button onclick="setAdminLanguage('th')" class="lang-btn-th bg-indigo-800 text-white px-2 py-1 rounded text-[10px] font-bold border border-transparent">TH</button>
                         <button onclick="setAdminLanguage('la')" class="lang-btn-la bg-indigo-800 text-white px-2 py-1 rounded text-[10px] font-bold border border-transparent">LA</button>
@@ -83,7 +83,7 @@
                     <div class="w-full"><label class="block text-xs font-bold mb-1 text-slate-500">แยกตามพนักงานขาย</label><select id="repSalesman" class="w-full p-3 border rounded-xl outline-none font-bold text-slate-700 bg-slate-50 focus:bg-white focus:border-amber-500"></select></div>
                     <button onclick="generateReport()" class="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-slate-900 font-black py-3 px-8 rounded-xl shadow-md transition-all whitespace-nowrap">🔍 ค้นหาข้อมูล</button>
                     <button onclick="printAdminRemittance()" id="btnPrintAdminRemit" class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-6 rounded-xl shadow-md transition-all whitespace-nowrap" data-i18n="print_remit">🖨️ พิมพ์ใบส่งเงิน</button>
-                    <button onclick="exportReportCSV()" id="btnExportReport" class="hidden w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white font-black py-3 px-6 rounded-xl shadow-md transition-all whitespace-nowrap">📥 โหลด CSV</button>
+                    <button onclick="exportReportCSV()" id="btnExportReport" class="hidden w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white font-black py-3 px-6 rounded-xl shadow-md transition-all whitespace-nowrap">📥 โหลด Raw Data</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-emerald-700 font-bold mb-1">🟢 ยอดขาย (จ่ายแล้ว)</p><p id="repTotalPaid" class="text-4xl font-black text-emerald-600">0.-</p></div></div>
@@ -117,7 +117,17 @@
                 </div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden max-h-[300px] overflow-y-auto">
-                <table class="w-full text-left text-sm"><thead class="bg-indigo-50 text-indigo-800 sticky top-0"><tr><th class="p-3">สินค้า</th><th class="p-3 text-center">จำนวน</th><th class="p-3 text-right">ราคา/หน่วย</th><th class="p-3 text-right">รวม</th></tr></thead><tbody id="odItemsList" class="divide-y divide-slate-100"><tr><td colspan="4" class="p-4 text-center">กำลังโหลด...</td></tr></tbody><tfoot class="bg-slate-100 font-bold border-t-2 border-slate-200"><tr><td colspan="3" class="p-3 text-right text-slate-700">ยอดรวมสุทธิ:</td><td class="p-3 text-right text-indigo-700 text-lg" id="odTotalAmount">0.-</td></tr></tfoot></table>
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-indigo-50 text-indigo-800 sticky top-0">
+                        <tr><th class="p-3">สินค้าที่ซื้อ</th><th class="p-3 text-center">จำนวน</th><th class="p-3 text-right">ราคา/หน่วย</th><th class="p-3 text-right">รวม</th></tr>
+                    </thead>
+                    <tbody id="odItemsList" class="divide-y divide-slate-100">
+                        <tr><td colspan="4" class="p-4 text-center">⏳ กำลังโหลดข้อมูลสินค้า...</td></tr>
+                    </tbody>
+                    <tfoot class="bg-slate-100 font-bold border-t-2 border-slate-200">
+                        <tr><td colspan="3" class="p-3 text-right text-slate-700">ยอดรวมสุทธิ:</td><td class="p-3 text-right text-indigo-700 text-lg" id="odTotalAmount">0.-</td></tr>
+                    </tfoot>
+                </table>
             </div>
             <div class="mt-6 flex justify-end"><button onclick="closeModal('orderDetailModal')" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-xl transition-colors">ปิดหน้าต่าง</button></div>
         </div>
@@ -129,34 +139,27 @@
     <div id="editPromoModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-[100] hidden flex items-center justify-center p-4 modal overflow-y-auto"><div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 my-auto"><h3 class="text-xl font-black mb-4 text-indigo-800" id="epromoTitle">➕ สร้างโปรโมชั่นใหม่ (Multi-Tiers)</h3><input type="hidden" id="epromoId"><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-4 border-r pr-4"><div><label class="text-xs font-bold text-slate-500 ml-1">ชื่อโปรโมชั่น <span class="text-red-500">*</span></label><input type="text" id="epromoName" placeholder="เช่น ซื้อกาแฟ 10 ลัง ได้ราคา X" class="w-full p-3 border rounded-xl font-bold bg-slate-50 text-sm"></div><div class="flex justify-between items-center bg-emerald-50 p-2 rounded-lg border border-emerald-100"><label class="text-xs font-bold text-emerald-800 ml-1">รูปแบบโปรโมชั่น</label><select id="epromoType" onchange="togglePromoType()" class="p-1 border rounded bg-white text-xs font-bold text-emerald-700"><option value="discount">ลดราคา / ให้ราคาพิเศษ</option><option value="freebie">แถมสินค้า</option></select></div><div id="promoTypeFreebie" class="bg-blue-50 p-3 rounded-lg border border-blue-100 hidden"><label class="text-[10px] font-bold text-slate-500 block mb-1">เลือกสินค้าที่จะแถม (Freebie)</label><select id="epromoFreeProduct" class="w-full p-2 border rounded text-xs bg-white"></select><input type="text" id="epromoFreeUnit" placeholder="หน่วยของแถม (เช่น ชิ้น)" class="w-full p-2 border rounded text-xs mt-2 bg-white"></div><div><label class="text-xs font-bold text-slate-500 ml-1 block mb-2">☑️ สินค้าที่ร่วมรายการ (เลือกได้สูงสุด 50 ตัว)</label><div class="h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 space-y-1" id="promoSkusContainer"></div></div><div class="flex items-center gap-2 mt-4 bg-slate-100 p-2 rounded-lg"><input type="checkbox" id="epromoIsActive" class="w-4 h-4 text-indigo-600 rounded"><label for="epromoIsActive" class="text-sm font-bold text-slate-700">เปิดใช้งานโปรโมชั่นนี้ทันที</label></div></div><div class="space-y-4"><div class="flex justify-between items-center"><h4 class="font-black text-slate-800 text-sm">📈 กำหนดขั้นบันได (สูงสุด 7 ขั้น)</h4><button onclick="addPromoTier()" class="text-[10px] bg-indigo-600 text-white px-2 py-1 rounded shadow-sm">+ เพิ่มขั้น</button></div><div id="promoTiersContainer" class="space-y-2 max-h-[400px] overflow-y-auto p-1"></div></div></div><div class="flex gap-2 mt-6 border-t pt-4"><button onclick="savePromoEdit()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl transition-colors">บันทึกโปรโมชั่น</button><button onclick="closeModal('editPromoModal')" class="w-full bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">ยกเลิก</button></div></div></div>
 
     <script>
+        // ======================= i18n =======================
         const i18nAdmin = {
             th: {
                 login_btn: "เข้าสู่ระบบ", login_err: "❌ รหัส PIN ไม่ถูกต้อง",
                 nav_dash: "ภาพรวม", nav_pos: "เปิดบิล", nav_inv: "คลังหลัก", nav_trans: "เบิก/โอน", nav_ord: "ประวัติบิล", nav_cus: "ลูกค้า", nav_pro: "โปรโมชั่น", nav_rep: "รายงาน", nav_set: "ตั้งค่าระบบ",
                 title_dash: "ภาพรวมยอดขายบริษัท", title_inv: "📦 จัดการคลังสินค้าหลัก", title_trans: "จัดการการเบิก-โอนสต๊อก", title_ord: "ประวัติการขายทั้งหมด", title_cus: "👥 จัดการข้อมูลลูกค้า", title_pro: "🎁 จัดการระบบโปรโมชั่น (Advanced)", title_rep: "📊 รายงานยอดขายแบบละเอียด", title_set: "⚙️ ตั้งค่าระบบส่วนกลาง",
-                btn_add_prod: "➕ เพิ่มสินค้าใหม่", btn_print_stock: "🖨️ เช็คสต๊อก",
-                import_csv: "📥 นำเข้าสินค้าพร้อมกันหลายรายการ (CSV)", dl_template: "ดาวน์โหลดฟอร์มต้นแบบ", upload_btn: "อัปโหลดเข้าคลัง", tip_edit: "💡 Tip: คุณสามารถคลิกที่แถวของสินค้าเพื่อแก้ไขรายละเอียดหรือลบสินค้าได้ทันที",
+                btn_add_prod: "➕ เพิ่มสินค้าใหม่", btn_print_stock: "🖨️ เช็คสต๊อก", import_csv: "📥 นำเข้าสินค้าพร้อมกันหลายรายการ (CSV)", dl_template: "ดาวน์โหลดฟอร์มต้นแบบ", upload_btn: "อัปโหลดเข้าคลัง", tip_edit: "💡 Tip: คุณสามารถคลิกที่แถวของสินค้าเพื่อแก้ไขรายละเอียดหรือลบสินค้าได้ทันที",
                 th_code: "รหัส", th_cat: "หมวดหมู่", th_name: "ชื่อสินค้า", th_stock: "คงเหลือ", th_cost: "ทุน (฿)", th_price: "ราคาขาย (฿)",
                 btn_add_cus: "➕ เพิ่มลูกค้าใหม่", btn_add_pro: "➕ สร้างโปรโมชั่นใหม่",
-                title_pos: "🛒 เปิดบิล / สร้างออเดอร์", pos_select_sales: "เครดิตยอดขายให้ (พนักงาน/สำนักงาน)", pos_cus: "ลูกค้ารับสินค้า",
-                pos_prod: "ค้นหา / เลือกรายการสินค้า", pos_unit: "เลือกหน่วยนับ", pos_qty: "จำนวน", pos_add: "เพิ่ม",
-                pos_cart: "🛒 ตะกร้าสินค้า (ตัดคลังหลัก)", pos_clear: "ล้างตะกร้า", pos_total: "ยอดรวมสุทธิ", pos_save: "บันทึกออเดอร์",
-                print_remit: "🖨️ พิมพ์ใบส่งเงิน", 
-                btn_view_bill: "🔍 ดูรายละเอียด", modal_bill_title: "🧾 รายละเอียดบิล", status_paid: "✅ จ่ายแล้ว", status_unpaid: "❌ ค้างชำระ", click_to_change: "(คลิกเพื่อเปลี่ยน)"
+                title_pos: "🛒 เปิดบิล / สร้างออเดอร์", pos_select_sales: "เครดิตยอดขายให้ (พนักงาน/สำนักงาน)", pos_cus: "ลูกค้ารับสินค้า", pos_prod: "ค้นหา / เลือกรายการสินค้า", pos_unit: "เลือกหน่วยนับ", pos_qty: "จำนวน", pos_add: "เพิ่ม", pos_cart: "🛒 ตะกร้าสินค้า (ตัดคลังหลัก)", pos_clear: "ล้างตะกร้า", pos_total: "ยอดรวมสุทธิ", pos_save: "บันทึกออเดอร์",
+                print_remit: "🖨️ พิมพ์ใบส่งเงิน", btn_view_bill: "🔍 ดูรายละเอียด", modal_bill_title: "🧾 รายละเอียดบิล", status_paid: "✅ จ่ายแล้ว", status_unpaid: "❌ ค้างชำระ", click_to_change: "(คลิกเพื่อเปลี่ยน)"
             },
             la: {
                 login_btn: "ເຂົ້າສູ່ລະບົບ", login_err: "❌ ລະຫັດ PIN ບໍ່ຖືກຕ້ອງ",
                 nav_dash: "ພາບລວມ", nav_pos: "ເປີດບິນ", nav_inv: "ຄັງຫຼັກ", nav_trans: "ເບີກ/ໂອນ", nav_ord: "ປະຫວັດບິນ", nav_cus: "ລູກຄ້າ", nav_pro: "ໂປຣໂມຊັ່ນ", nav_rep: "ລາຍງານ", nav_set: "ຕັ້ງຄ່າລະບົບ",
                 title_dash: "ພາບລວມຍອດຂາຍບໍລິສັດ", title_inv: "📦 ຈັດການຄັງສິນຄ້າຫຼັກ", title_trans: "ຈັດການການເບີກ-ໂອນສະຕັອກ", title_ord: "ປະຫວັດການຂາຍທັງໝົດ", title_cus: "👥 ຈັດການຂໍ້ມູນລູກຄ້າ", title_pro: "🎁 ຈັດການລະບົບໂປຣໂມຊັ່ນ (Advanced)", title_rep: "📊 ລາຍງານຍອດຂາຍແບບລະອຽດ", title_set: "⚙️ ຕັ້ງຄ່າລະບົບສ່ວນກາງ",
-                btn_add_prod: "➕ ເພີ່ມສິນຄ້າໃໝ່", btn_print_stock: "🖨️ ເຊັກສະຕັອກ",
-                import_csv: "📥 ນຳເຂົ້າສິນຄ້າພ້ອມກັນຫຼາຍລາຍການ (CSV)", dl_template: "ດາວໂຫຼດຟອມຕົ້ນແບບ", upload_btn: "ອັບໂຫຼດເຂົ້າຄັງ", tip_edit: "💡 Tip: ທ່ານສາມາດຄລິກທີ່ແຖວຂອງສິນຄ້າເພື່ອແກ້ໄຂລາຍລະອຽດຫຼືລຶບສິນຄ້າໄດ້ທັນທີ",
+                btn_add_prod: "➕ ເພີ່ມສິນຄ້າໃໝ່", btn_print_stock: "🖨️ ເຊັກສະຕັອກ", import_csv: "📥 ນຳເຂົ້າສິນຄ້າພ້ອມກັນຫຼາຍລາຍການ (CSV)", dl_template: "ດາວໂຫຼດຟອມຕົ້ນແບບ", upload_btn: "ອັບໂຫຼດເຂົ້າຄັງ", tip_edit: "💡 Tip: ທ່ານສາມາດຄລິກທີ່ແຖວຂອງສິນຄ້າເພື່ອແກ້ໄຂລາຍລະອຽດຫຼືລຶບສິນຄ້າໄດ້ທັນທີ",
                 th_code: "ລະຫັດ", th_cat: "ໝວດໝູ່", th_name: "ຊື່ສິນຄ້າ", th_stock: "ຄົງເຫຼືອ", th_cost: "ທຶນ (₭)", th_price: "ລາຄາຂາຍ (₭)",
                 btn_add_cus: "➕ ເພີ່ມລູກຄ້າໃໝ່", btn_add_pro: "➕ ສ້າງໂປຣໂມຊັ່ນໃໝ່",
-                title_pos: "🛒 ເປີດບິນ / ສ້າງອໍເດີ", pos_select_sales: "ເຄຣດິດຍອດຂາຍໃຫ້ (ພະນັກງານ/ສຳນັກງານ)", pos_cus: "ລູກຄ້າຮັບສິນຄ້າ",
-                pos_prod: "ຄົ້ນຫາ / ເລືອກລາຍການສິນຄ້າ", pos_unit: "ເລືອກຫົວໜ່ວຍ", pos_qty: "ຈຳນວນ", pos_add: "ເພີ່ມ",
-                pos_cart: "🛒 ກະຕ່າສິນຄ້າ (ຕັດຄັງຫຼັກ)", pos_clear: "ລ້າງກະຕ່າ", pos_total: "ຍອດລວມສຸດທິ", pos_save: "ບັນທຶກອໍເດີ",
-                print_remit: "🖨️ ພິມໃບສົ່ງເງິນ",
-                btn_view_bill: "🔍 ເບິ່ງລາຍລະອຽດ", modal_bill_title: "🧾 ລາຍລະອຽດບິນ", status_paid: "✅ ຈ່າຍແລ້ວ", status_unpaid: "❌ ຄ້າງຊຳລະ", click_to_change: "(ຄລິກເພື່ອປ່ຽນ)"
+                title_pos: "🛒 ເປີດບິນ / ສ້າງອໍເດີ", pos_select_sales: "ເຄຣດິດຍອດຂາຍໃຫ້ (ພະນັກງານ/ສຳນັກງານ)", pos_cus: "ລູກຄ້າຮັບສິນຄ້າ", pos_prod: "ຄົ້ນຫາ / ເລືອກລາຍການສິນຄ້າ", pos_unit: "ເລືອກຫົວໜ່ວຍ", pos_qty: "ຈຳນວນ", pos_add: "ເພີ່ມ", pos_cart: "🛒 ກະຕ່າສິນຄ້າ (ຕັດຄັງຫຼັກ)", pos_clear: "ລ້າງກະຕ່າ", pos_total: "ຍອດລວມສຸດທິ", pos_save: "ບັນທຶກອໍເດີ",
+                print_remit: "🖨️ ພິມໃບສົ່ງເງິນ", btn_view_bill: "🔍 ເບິ່ງລາຍລະອຽດ", modal_bill_title: "🧾 ລາຍລະອຽດບິນ", status_paid: "✅ ຈ່າຍແລ້ວ", status_unpaid: "❌ ຄ້າງຊຳລະ", click_to_change: "(ຄລິກເພື່ອປ່ຽນ)"
             }
         };
 
@@ -165,21 +168,10 @@
         function setAdminLanguage(lang) {
             currentAdminLang = lang;
             localStorage.setItem('asn_admin_lang', lang);
-            
             document.querySelectorAll('.lang-btn-th').forEach(el => el.classList.toggle('border-amber-400', lang === 'th'));
             document.querySelectorAll('.lang-btn-la').forEach(el => el.classList.toggle('border-amber-400', lang === 'la'));
-            
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if(i18nAdmin[currentAdminLang][key]) {
-                    el.innerHTML = i18nAdmin[currentAdminLang][key];
-                }
-            });
-
-            if(!document.getElementById('inventory-view').classList.contains('hidden')) {
-                renderInvCategoryPills();
-                renderAdminProductList();
-            }
+            document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if(i18nAdmin[currentAdminLang][key]) el.innerHTML = i18nAdmin[currentAdminLang][key]; });
+            if(!document.getElementById('inventory-view').classList.contains('hidden')) { renderInvCategoryPills(); renderAdminProductList(); }
             if(!document.getElementById('orders-view').classList.contains('hidden')) loadOrders();
             if(!document.getElementById('reports-view').classList.contains('hidden')) generateReport();
         }
@@ -191,306 +183,50 @@
         const _client = supabase.createClient(SB_URL, SB_KEY);
 
         let currentAdmin = null; let allProducts = []; let allTransferData = []; let allUsers = []; let allCustomers = []; let allPromotions = []; let globalCategories = []; let globalUnits = [];
-        window.currentReportData = []; 
-        let currentInvCategory = 'all'; 
-        let adminCart = []; 
-        let currentSelectedOrder = null;
+        window.currentReportData = []; let currentInvCategory = 'all'; let adminCart = []; let currentSelectedOrder = null;
 
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function printDocument(contentHtml) { const printWindow = window.open('', '_blank', 'width=400,height=600'); printWindow.document.write(`<html><head><title>พิมพ์เอกสาร</title><style>body{margin:0;padding:0;background:white;}@media print{@page{margin:0;size:auto;}}.thermal-print-format{width:75mm;margin:0 auto;padding:5mm;font-family:'Courier New',Courier,monospace;font-size:12px;line-height:1.2;color:black;}</style></head><body onload="window.print(); window.close();"><div class="thermal-print-format">${contentHtml}</div></body></html>`); printWindow.document.close(); }
-
-        // ==========================================
-        // LOGIN & TABS
-        // ==========================================
-        async function adminLogin() {
-            const btn = document.getElementById('btnAdminLogin');
-            btn.innerText = '⏳ กำลังเชื่อมต่อข้อมูล... (รอสักครู่)';
-            btn.disabled = true;
-
-            try {
-                const pin = document.getElementById('adminPinInput').value;
-                const { data, error } = await _client.from('salesmen').select('*').eq('pin', pin).single();
-                if (error || !data || (data.role !== 'admin' && data.role !== 'manager')) { 
-                    document.getElementById('adminLoginErr').classList.remove('hidden'); 
-                    return; 
-                }
-                
-                currentAdmin = data; 
-                document.getElementById('navRoleBadge').innerText = data.role === 'manager' ? 'ผู้จัดการ' : 'แอดมิน';
-                if(data.role === 'manager') document.getElementById('dangerZone').classList.remove('hidden');
-                
-                document.getElementById('admin-login-view').classList.add('hidden'); 
-                document.getElementById('admin-main-view').classList.remove('hidden');
-                
-                await loadSetupData(); 
-                const { data: users } = await _client.from('salesmen').select('*');
-                if(users) allUsers = users;
-
-                switchTab('dashboard');
-            } catch(e) {
-                alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ: " + e.message);
-            } finally {
-                btn.innerText = i18nAdmin[currentAdminLang]['login_btn'];
-                btn.disabled = false;
-            }
+        
+        // อัปเกรดระบบพิมพ์เอกสารให้เป็น A4 เต็มรูปแบบ สวยงาม
+        function printDocument(contentHtml, title = 'พิมพ์เอกสาร') { 
+            const printWindow = window.open('', '_blank'); 
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;900&display=swap" rel="stylesheet">
+                    <style>
+                        body { margin: 0; padding: 0; background: white; font-family: 'Sarabun', sans-serif; color: #1e293b; }
+                        @page { size: A4 portrait; margin: 1.5cm; }
+                        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                        .a4-container { width: 100%; max-width: 210mm; margin: 0 auto; font-size: 14px; line-height: 1.5; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+                        th { background-color: #f1f5f9; font-weight: bold; color: #0f172a; border-bottom: 2px solid #94a3b8; }
+                        .text-center { text-align: center; } .text-right { text-align: right; } .font-bold { font-weight: bold; }
+                        .header-title { font-size: 24px; font-weight: 900; margin-bottom: 5px; text-align: center; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; }
+                        .header-subtitle { font-size: 14px; color: #475569; margin-bottom: 25px; text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; }
+                        .footer-signatures { display: flex; justify-content: space-around; margin-top: 60px; text-align: center; }
+                        .signature-box { width: 35%; }
+                        .signature-line { border-bottom: 1px dotted #94a3b8; margin-bottom: 8px; padding-top: 40px; }
+                    </style>
+                </head>
+                <body onload="setTimeout(() => { window.print(); window.close(); }, 800);">
+                    <div class="a4-container">${contentHtml}</div>
+                </body>
+                </html>
+            `); 
+            printWindow.document.close(); 
         }
-
-        function switchTab(tab) {
-            ['dashboard', 'pos', 'inventory', 'transfer', 'orders', 'customers', 'promotions', 'reports', 'settings'].forEach(t => { 
-                document.getElementById(`${t}-view`).classList.add('hidden'); 
-                let btn = document.getElementById(`btnTab-${t}`); 
-                if(btn) btn.className = 'px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap'; 
-            });
-            let activeClass = 'px-3 py-2 bg-indigo-700 text-white font-bold rounded-lg text-[11px] shadow-inner whitespace-nowrap'; 
-            if(tab === 'reports') activeClass = 'px-3 py-2 bg-amber-600 text-white font-bold rounded-lg text-[11px] shadow-inner whitespace-nowrap'; 
-            if(tab === 'settings') activeClass = 'px-3 py-2 bg-slate-950 text-white font-bold rounded-lg text-[11px] shadow-inner whitespace-nowrap';
-            
-            let btnTab = document.getElementById(`btnTab-${tab}`);
-            if(btnTab) btnTab.className = activeClass; 
-            document.getElementById(`${tab}-view`).classList.remove('hidden');
-            
-            try {
-                if(tab === 'dashboard') loadAdminDashboard(); 
-                if(tab === 'pos') loadAdminPosData(); 
-                if(tab === 'inventory') { document.getElementById('adminProductList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadInventory(); }
-                if(tab === 'transfer') { document.getElementById('transferLogBody').innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadTransferLogs(); }
-                if(tab === 'orders') { document.getElementById('adminOrdersList').innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadOrders(); }
-                if(tab === 'customers') { document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadAdminCustomers(); }
-                if(tab === 'promotions') { document.getElementById('adminPromoList').innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadPromotions(); }
-                if(tab === 'reports') initReports(); 
-                if(tab === 'settings') loadSettingsPage();
-            } catch(e) {
-                console.error("Tab Load Error:", e);
-            }
-        }
-
-        /* --- DASHBOARD --- */
-        async function loadAdminDashboard() { 
-            try {
-                const { data: orders, error } = await _client.from('orders').select('total_amount'); 
-                if(error) throw error;
-                if (orders) { 
-                    document.getElementById('totalRevenue').innerText = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0).toLocaleString() + '.-'; 
-                    document.getElementById('totalOrdersCount').innerText = orders.length; 
-                } 
-                const { count, error: errCount } = await _client.from('products').select('*', { count: 'exact', head: true }); 
-                if(errCount) throw errCount;
-                document.getElementById('totalProductsCount').innerText = count || 0; 
-            } catch(e) { alert("เกิดข้อผิดพลาดแดชบอร์ด: " + e.message); }
-        }
-        async function loadSetupData() { 
-            try {
-                const { data: cats } = await _client.from('product_categories').select('*').order('name'); 
-                const { data: units } = await _client.from('product_units').select('*').order('name'); 
-                globalCategories = cats || []; globalUnits = units || []; 
-            } catch(e) { console.error(e); }
-        }
-
-        /* ==================================================
-           POS สำหรับ ADMIN
-        ================================================== */
-        async function loadAdminPosData() {
-            try {
-                if (allProducts.length === 0) await loadInventory();
-                if (allCustomers.length === 0) await loadAdminCustomers();
-                if (allUsers.length === 0) { const { data } = await _client.from('salesmen').select('*'); if (data) allUsers = data; }
-                if (allPromotions.length === 0) { const { data } = await _client.from('promotions').select('*').eq('is_active', true); if (data) allPromotions = data; }
-
-                const salesSelect = document.getElementById('adminPosSalesman');
-                let opts = `<option value="${currentAdmin.id}">🏢 สำนักงานขายเอง (Office)</option>`;
-                allUsers.forEach(u => { if (u.id !== currentAdmin.id && u.role === 'sales') { opts += `<option value="${u.id}">👤 ${u.name}</option>`; } });
-                salesSelect.innerHTML = opts;
-
-                const prodSelect = document.getElementById('adminPosProduct');
-                let prodOpts = `<option value="">-- พิมพ์ชื่อ หรือ รหัสสินค้า --</option>`;
-                allProducts.forEach(p => { if(p.master_stock > 0) { prodOpts += `<option value="${p.id}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name} (คลังหลัก: ${p.master_stock})</option>`; } });
-                prodSelect.innerHTML = prodOpts;
-            } catch (e) {
-                alert("เกิดข้อผิดพลาดในการโหลดข้อมูลเปิดบิล: " + e.message);
-            }
-        }
-
-        function searchAdminPosCustomer() {
-            const input = document.getElementById('adminPosCustomerName').value.toLowerCase();
-            const suggestBox = document.getElementById('adminPosCustomerSuggestions');
-            if (input.length < 1) { suggestBox.classList.add('hidden'); return; }
-            const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input) || (c.customer_code && c.customer_code.toLowerCase().includes(input)) || (c.phone && c.phone.includes(input)));
-            if (filtered.length > 0) {
-                suggestBox.innerHTML = filtered.map(c => `
-                    <div onclick="selectAdminPosCustomer('${c.name.replace(/'/g, "\\'")}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer">
-                        <p class="font-bold text-sm text-slate-800">${c.customer_code ? `<span class="text-indigo-600">[${c.customer_code}]</span> ` : ''}${c.name}</p>
-                        <p class="text-[10px] text-slate-500">${c.phone ? '📞 ' + c.phone : ''} ${c.address ? '- ' + c.address : ''}</p>
-                    </div>
-                `).join('');
-                suggestBox.classList.remove('hidden');
-            } else { 
-                suggestBox.innerHTML = `<div class="p-3 text-xs text-slate-400 italic">ไม่พบข้อมูล (ระบบจะบันทึกเป็นลูกค้าใหม่)</div>`;
-                suggestBox.classList.remove('hidden'); 
-            }
-        }
-
-        function selectAdminPosCustomer(name) { document.getElementById('adminPosCustomerName').value = name; document.getElementById('adminPosCustomerSuggestions').classList.add('hidden'); }
-        document.addEventListener('click', function(e) { if (e.target.id !== 'adminPosCustomerName') { const sug = document.getElementById('adminPosCustomerSuggestions'); if(sug) sug.classList.add('hidden'); } });
-
-        function updateAdminPosUnitOptions() {
-            const pId = document.getElementById('adminPosProduct').value; const uSel = document.getElementById('adminPosUnit');
-            if(!pId) { uSel.innerHTML = `<option value="">- เลือกหน่วย -</option>`; return; }
-            const p = allProducts.find(x => x.id == pId);
-            let opts = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1" data-price="${p.sale_price}">${p.unit_name||'ชิ้น'} (${p.sale_price}.-)</option>`;
-            if(p.pack_qty > 0) opts += `<option value="pack" data-name="${p.pack_unit}" data-mul="${p.pack_qty}" data-price="${p.pack_price}">${p.pack_unit} (${p.pack_price}.-)</option>`;
-            if(p.box_qty > 0) opts += `<option value="box" data-name="${p.box_unit}" data-mul="${p.box_qty}" data-price="${p.box_price}">${p.box_unit} (${p.box_price}.-)</option>`;
-            uSel.innerHTML = opts;
-        }
-
-        function addAdminPosCart() {
-            const sel = document.getElementById('adminPosProduct'); const pId = parseInt(sel.value);
-            const uSel = document.getElementById('adminPosUnit'); const qty = parseInt(document.getElementById('adminPosQty').value);
-            if (!pId || !qty || qty <= 0) return;
-            
-            const p = allProducts.find(x => x.id === pId); if (!p) return;
-            const unitName = uSel.options[uSel.selectedIndex].getAttribute('data-name');
-            const unitMul = parseInt(uSel.options[uSel.selectedIndex].getAttribute('data-mul'));
-            const originalPrice = parseFloat(uSel.options[uSel.selectedIndex].getAttribute('data-price'));
-
-            let finalPrice = originalPrice; let promoApplied = false; let freebiesToAdd = [];
-            const applicablePromos = allPromotions.filter(promo => (promo.skus || []).includes(pId));
-            
-            applicablePromos.forEach(promo => {
-                let matchedTier = null;
-                (promo.tiers || []).forEach(tier => { if(unitName === tier.buy_unit && qty >= tier.min && qty <= tier.max) matchedTier = tier; });
-                if (matchedTier) {
-                    if (promo.type === 'discount') { finalPrice = matchedTier.reward; promoApplied = true; } 
-                    else if (promo.type === 'freebie') {
-                        const multiplier = Math.floor(qty / matchedTier.min);
-                        const totalFreeQty = matchedTier.reward * multiplier;
-                        const freeProd = allProducts.find(fp => fp.id == promo.free_product_id);
-                        if (freeProd) {
-                            let freeUnitMul = 1;
-                            if(promo.free_unit === freeProd.pack_unit) freeUnitMul = freeProd.pack_qty;
-                            if(promo.free_unit === freeProd.box_unit) freeUnitMul = freeProd.box_qty;
-                            freebiesToAdd.push({ ...freeProd, qty: totalFreeQty, unit_name_sell: promo.free_unit, unitMul: freeUnitMul, sell_price: 0, isFreebie: true });
-                        }
-                    }
-                }
-            });
-
-            const totalBaseQtyNeeded = qty * unitMul;
-            let currentCartBaseQty = adminCart.filter(c => c.id === pId).reduce((s, c) => s + (c.qty * c.unitMul), 0);
-            if (currentCartBaseQty + totalBaseQtyNeeded > p.master_stock) return alert(`⚠️ สต๊อกคลังหลักไม่พอ!\nสินค้า "${p.name}" เหลือ ${p.master_stock}`);
-
-            let canAddFreebies = true;
-            freebiesToAdd.forEach(fb => {
-                const fbTotalBaseNeed = fb.qty * fb.unitMul;
-                const fbCurrentCartBaseQty = adminCart.filter(c => c.id === fb.id).reduce((s, c) => s + (c.qty * c.unitMul), 0);
-                let totalStockNeed = fbCurrentCartBaseQty + fbTotalBaseNeed;
-                if(pId === fb.id) totalStockNeed += totalBaseQtyNeeded;
-                if(totalStockNeed > fb.master_stock) { alert(`⚠️ สต๊อกคลังหลักไม่พอแถม!\nสินค้า "${fb.name}"`); canAddFreebies = false; }
-            });
-            if(!canAddFreebies) return; 
-
-            adminCart.push({ ...p, qty: qty, unit_name_sell: unitName, unitMul: unitMul, sell_price: finalPrice, hasPromo: promoApplied });
-            freebiesToAdd.forEach(fb => adminCart.push(fb));
-
-            document.getElementById('adminPosQty').value = ''; sel.value = ''; updateAdminPosUnitOptions(); renderAdminPosCart();
-        }
-
-        function removeAdminPosCart(index) { adminCart.splice(index, 1); renderAdminPosCart(); }
-        function clearAdminPosCart() { if (adminCart.length === 0) return; if (confirm('⚠️ ต้องการล้างรายการในตะกร้าคลังหลักใช่หรือไม่?')) { adminCart = []; renderAdminPosCart(); } }
-
-        function renderAdminPosCart() { 
-            const list = document.getElementById('adminPosCartItems'); 
-            if(adminCart.length === 0) { list.innerHTML = `<p class="text-center italic opacity-40 text-xs mt-4">ตะกร้าว่างเปล่า</p>`; document.getElementById('adminPosTotalAmount').innerText = '0.-'; return; } 
-            list.innerHTML = adminCart.map((c, index) => {
-                const isFree = c.isFreebie ? `<span class="bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[8px] ml-2 font-bold uppercase animate-pulse">ฟรี!</span>` : '';
-                const promoBadge = c.hasPromo ? `<span class="bg-amber-100 text-amber-700 px-1 rounded text-[8px] font-bold border border-amber-200">โปรโมชั่น</span>` : '';
-                return `
-                <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-3 last:border-0">
-                    <span class="w-3/4 pr-2">
-                        <span class="font-bold text-white text-xs">${c.name} ${isFree}</span><br>
-                        <span class="text-amber-400 font-bold">x${c.qty} <span class="text-[10px] font-normal text-slate-400">${c.unit_name_sell}</span></span> ${promoBadge}
-                    </span>
-                    <div class="flex flex-col items-end space-y-1">
-                        <span class="font-black text-white text-lg">${(c.sell_price*c.qty).toLocaleString()}.-</span>
-                        <button onclick="removeAdminPosCart(${index})" class="bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-md shadow-sm transition-all flex items-center gap-1">
-                            <span>🗑️</span> ลบ
-                        </button>
-                    </div>
-                </div>`;
-            }).join(''); 
-            document.getElementById('adminPosTotalAmount').innerText = adminCart.reduce((s, c) => s + (c.sell_price*c.qty), 0).toLocaleString() + '.-'; 
-        }
-
-        async function submitAdminPosOrder() { 
-            const name = document.getElementById('adminPosCustomerName').value.trim(); 
-            const selectedSalesmanId = document.getElementById('adminPosSalesman').value;
-
-            if(!name || adminCart.length === 0) return alert('กรุณาระบุชื่อลูกค้าและเลือกสินค้าลงตะกร้า'); 
-            const total = adminCart.reduce((s, c) => s + (c.sell_price*c.qty), 0); 
-            const btn = document.getElementById('btnAdminPosSubmit'); btn.innerText = 'กำลังบันทึก...'; btn.disabled = true;
-            try {
-                const existingCus = allCustomers.find(c => c.name === name);
-                if (!existingCus) { await _client.from('customers').insert([{ name: name, salesman_id: selectedSalesmanId }]); }
-
-                const { data: orderData, error: orderErr } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: selectedSalesmanId }]).select(); 
-                if(orderErr) throw orderErr;
-                const newOrderId = orderData[0].id; 
-                
-                const itemsToInsert = adminCart.map(c => {
-                    let finalName = `${c.name} (${c.unit_name_sell})`;
-                    if(c.isFreebie) finalName = `[ฟรี] ` + finalName;
-                    else if(c.hasPromo) finalName = `[โปรโมชั่น] ` + finalName;
-                    return { order_id: newOrderId, product_id: c.id, product_name: finalName, quantity: c.qty, price: c.sell_price, base_qty: c.qty * c.unitMul };
-                }); 
-                const { error: itemErr } = await _client.from('order_items').insert(itemsToInsert); 
-                if(itemErr) throw itemErr;
-                
-                for(let c of adminCart) {
-                    const { data: prod } = await _client.from('products').select('master_stock').eq('id', c.id).single();
-                    if(prod) { await _client.from('products').update({ master_stock: prod.master_stock - (c.qty * c.unitMul) }).eq('id', c.id); }
-                }
-                
-                alert('✅ บันทึกออเดอร์ (ตัดคลังหลัก) สำเร็จ!');
-                adminCart = []; document.getElementById('adminPosCustomerName').value = ''; renderAdminPosCart(); 
-                loadInventory(); loadOrders(); loadAdminDashboard();
-            } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ (ตัดคลังหลัก)'; btn.disabled = false; }
-        }
-
-        /* --- INVENTORY --- */
-        async function loadInventory() { 
-            try {
-                const { data, error } = await _client.from('products').select('*').order('id', { ascending: false }); 
-                if (error) throw error;
-                if (data) { 
-                    allProducts = data; 
-                    renderInvCategoryPills(); 
-                    renderAdminProductList(); 
-                } 
-            } catch(e) { alert("เกิดข้อผิดพลาดคลังสินค้า: " + e.message); }
-        }
-        function renderInvCategoryPills() { const container = document.getElementById('invCategoryPills'); let labelAll = currentAdminLang === 'la' ? 'ທັງໝົດ' : 'ทั้งหมด'; let html = `<button onclick="filterInventory('all')" class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${currentInvCategory === 'all' ? 'bg-slate-800 text-white' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'}">${labelAll}</button>`; globalCategories.forEach(c => { html += `<button onclick="filterInventory('${c.name}')" class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${currentInvCategory === c.name ? 'bg-slate-800 text-white' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'}">${c.name}</button>`; }); container.innerHTML = html; }
-        function filterInventory(catName) { currentInvCategory = catName; renderInvCategoryPills(); renderAdminProductList(); }
-        function renderAdminProductList() { const isManager = currentAdmin.role === 'manager'; const tbody = document.getElementById('adminProductList'); let filtered = allProducts; if(currentInvCategory !== 'all') { filtered = allProducts.filter(p => p.category_name === currentInvCategory); } if(filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-bold">ไม่มีสินค้าในหมวดหมู่นี้</td></tr>`; return; } tbody.innerHTML = filtered.map(p => { let priceStr = `${p.sale_price.toLocaleString()}/${p.unit_name||'ชิ้น'} `; if(p.pack_qty > 0) priceStr += `<br><span class="text-[10px] text-slate-400">${p.pack_price.toLocaleString()}/${p.pack_unit} (x${p.pack_qty})</span>`; if(p.box_qty > 0) priceStr += `<br><span class="text-[10px] text-slate-400">${p.box_price.toLocaleString()}/${p.box_unit} (x${p.box_qty})</span>`; return `<tr onclick="openProductEdit(${p.id})" class="cursor-pointer hover:bg-amber-50 transition-colors"><td class="p-4 text-xs font-mono text-slate-500 pr-2">▶ ${p.product_code || '-'}</td><td class="p-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-full text-[10px] font-bold border border-slate-200">${p.category_name||'ไม่ระบุ'}</span></td><td class="p-4 font-bold text-slate-800">${p.name}</td><td class="p-4 text-center font-black text-indigo-700">${p.master_stock||0}</td><td class="p-4 text-right ${isManager ? 'text-emerald-600 font-bold' : 'text-slate-300'}">${isManager ? (p.cost_price||0).toLocaleString() : '***'}</td><td class="p-4 text-right font-bold text-slate-800 pr-6">${priceStr}</td></tr>`; }).join(''); }
-        function downloadTemplate() { const headers = "product_code,product_name,category_name,cost_price,sale_price,master_stock,unit_name,pack_unit,pack_qty,pack_price,box_unit,box_qty,box_price,min_transfer_box\n"; const sample = "CODE001,กาแฟ Nice Coffee,เครื่องดื่ม,50,120,100,ซอง,แพ็ค,5,550,ลัง,60,6000,1"; const csvContent = "\uFEFF" + headers + sample; const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.setAttribute("download", "asn_template.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
-        async function uploadCSV() { const fileInput = document.getElementById('csvFile'); const file = fileInput.files[0]; if (!file) return alert('กรุณาเลือกไฟล์ CSV ก่อนครับ'); const btn = document.getElementById('btnUploadCsv'); btn.innerText = 'Uploading...'; btn.disabled = true; const reader = new FileReader(); reader.onload = async function(e) { const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l !== ''); const productsToAdd = []; for(let i = 1; i < lines.length; i++) { const row = lines[i].split(','); if(row.length >= 6 && row[1] !== '') { productsToAdd.push({ product_code: row[0] || null, name: row[1], category_name: row[2] || null, cost_price: Number(row[3])||0, sale_price: Number(row[4])||0, master_stock: Number(row[5])||0, unit_name: row[6] || 'ชิ้น', pack_unit: row[7] || null, pack_qty: Number(row[8])||0, pack_price: Number(row[9])||0, box_unit: row[10] || null, box_qty: Number(row[11])||0, box_price: Number(row[12])||0, min_transfer_box: Number(row[13])||1 }); } } try { await _client.from('products').insert(productsToAdd); alert(`✅ นำเข้าสินค้าจำนวน ${productsToAdd.length} รายการสำเร็จ!`); fileInput.value = ''; document.getElementById('bulkUploadSection').classList.add('hidden'); loadInventory(); loadAdminDashboard(); } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'อัปโหลดเข้าคลัง'; btn.disabled = false; } }; reader.readAsText(file, 'UTF-8'); }
-        function openProductEdit(id = null) { document.getElementById('epCategory').innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>' + globalCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join(''); if(id) { const p = allProducts.find(x=>x.id===id); document.getElementById('epTitle').innerHTML = '✏️ แก้ไขข้อมูลสินค้า'; document.getElementById('epId').value = p.id; document.getElementById('epCode').value = p.product_code || ''; document.getElementById('epName').value = p.name; document.getElementById('epCategory').value = p.category_name || ''; document.getElementById('epCost').value = p.cost_price||0; document.getElementById('epStock').value = p.master_stock||0; document.getElementById('epUnit').value = p.unit_name || 'ชิ้น'; document.getElementById('epSale').value = p.sale_price || 0; document.getElementById('epPackUnit').value = p.pack_unit || ''; document.getElementById('epPackQty').value = p.pack_qty || ''; document.getElementById('epPackPrice').value = p.pack_price || ''; document.getElementById('epBoxUnit').value = p.box_unit || ''; document.getElementById('epBoxQty').value = p.box_qty || ''; document.getElementById('epBoxPrice').value = p.box_price || ''; document.getElementById('epMinTransferBox').value = p.min_transfer_box || 1; document.getElementById('btnDeleteProduct').classList.remove('hidden'); } else { document.getElementById('epTitle').innerHTML = '➕ เพิ่มสินค้าใหม่'; ['epId','epCode','epName','epCategory','epCost','epPackUnit','epPackQty','epPackPrice','epBoxUnit','epBoxQty','epBoxPrice'].forEach(id => document.getElementById(id).value = ''); document.getElementById('epUnit').value = 'ชิ้น'; document.getElementById('epSale').value = ''; document.getElementById('epStock').value = 0; document.getElementById('epMinTransferBox').value = 1; document.getElementById('btnDeleteProduct').classList.add('hidden'); } document.getElementById('editProductModal').classList.remove('hidden'); }
-        async function saveProductEdit() { const id = document.getElementById('epId').value; const payload = { product_code: document.getElementById('epCode').value.trim() || null, name: document.getElementById('epName').value.trim(), category_name: document.getElementById('epCategory').value || null, cost_price: Number(document.getElementById('epCost').value)||0, master_stock: Number(document.getElementById('epStock').value)||0, unit_name: document.getElementById('epUnit').value.trim() || 'ชิ้น', sale_price: Number(document.getElementById('epSale').value)||0, pack_unit: document.getElementById('epPackUnit').value.trim() || null, pack_qty: Number(document.getElementById('epPackQty').value)||0, pack_price: Number(document.getElementById('epPackPrice').value)||0, box_unit: document.getElementById('epBoxUnit').value.trim() || null, box_qty: Number(document.getElementById('epBoxQty').value)||0, box_price: Number(document.getElementById('epBoxPrice').value)||0, min_transfer_box: Number(document.getElementById('epMinTransferBox').value)||1 }; if(!payload.name || !payload.sale_price) return alert('กรุณากรอกชื่อและราคาขายหน่วยย่อยระดับ 1 ให้ครบถ้วน'); try { if(id) await _client.from('products').update(payload).eq('id', id); else await _client.from('products').insert([payload]); closeModal('editProductModal'); loadInventory(); } catch(e) { alert(e.message); } }
-        async function deleteProduct() { const id = document.getElementById('epId').value; if(!id) return; if(confirm('🚨 คำเตือน: ต้องการลบสินค้านี้ใช่หรือไม่?\nการลบสินค้าจะทำให้ประวัติการขายที่เกี่ยวข้องกับสินค้านี้ไม่สมบูรณ์!')) { try { await _client.from('products').delete().eq('id', id); closeModal('editProductModal'); loadInventory(); } catch(e) { alert('ไม่สามารถลบได้: ' + e.message); } } }
-        function printInventorySheet() { document.getElementById('pPrintDate').innerText = new Date().toLocaleString('th-TH'); window.print(); }
-
-        /* --- TRANSFER (ย่อ) --- */
-        async function loadTransferLogs() { try { const { data, error } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }).limit(200); if(error) throw error; if(data) { allTransferData = data; const pending = data.filter(x => x.status === 'ส่งใบเบิกสินค้า'); const groupedPending = {}; pending.forEach(x => { const ref = x.transfer_ref || `NO-REF-${x.id}`; if(!groupedPending[ref]) { groupedPending[ref] = { ref: ref, salesman_name: x.salesman_name, date: x.transfer_date, items: [] }; } groupedPending[ref].items.push(x); }); const pendingArr = Object.values(groupedPending); document.getElementById('pendingRequestsBody').innerHTML = pendingArr.length > 0 ? pendingArr.map(g => `<tr><td class="p-3"><div class="flex justify-between items-baseline mb-2"><b class="text-amber-700 text-sm">👤 ${g.salesman_name}</b><span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-mono">บิล: ${g.ref}</span></div><div class="bg-slate-50 p-2 rounded border border-slate-100 space-y-1">${g.items.map(i => `<div class="flex justify-between text-xs"><span class="text-slate-600">- ${i.product_name}</span><b class="text-blue-600">x${i.quantity} <span class="font-normal text-slate-400">(= ${i.base_qty||i.quantity} ชิ้นย่อย)</span></b></div>`).join('')}</div></td><td class="p-3 text-center align-top pt-5 space-y-2 w-[90px]"><button onclick="approveGroup('${g.ref}', this)" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all">อนุมัติ</button><button onclick="rejectGroup('${g.ref}', this)" class="block w-full bg-red-100 text-red-600 hover:bg-red-200 text-[10px] px-2 py-1.5 rounded-lg font-bold transition-all">ปฏิเสธ</button></td></tr>`).join('') : `<tr><td colspan="2" class="p-6 text-center text-slate-400">✅ ไม่มีคำขอเบิกสินค้าค้างอยู่</td></tr>`; document.getElementById('transferLogBody').innerHTML = data.map(l => { let badge = ''; if(l.status === 'ส่งใบเบิกสินค้า') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-[10px]">รออนุมัติ</span>'; else if(l.status === 'อนุมัติแล้ว') badge = '<span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-[10px]">รอเซลกดรับ</span>'; else if(l.status === 'เซลรับสินค้าแล้ว' || l.status === 'รับโอนแล้ว') badge = '<span class="text-green-600 bg-green-50 px-2 py-1 rounded text-[10px]">เซลรับสินค้าแล้ว</span>'; else badge = `<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-[10px]">${l.status}</span>`; return `<tr><td class="p-3 text-xs text-slate-500">${new Date(l.transfer_date).toLocaleDateString('th-TH')} ${new Date(l.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}<br><span class="text-[9px] font-mono text-slate-400">${l.transfer_ref || '-'}</span></td><td class="p-3"><b class="text-slate-700">${l.salesman_name}</b><br><span class="text-xs text-slate-500">${l.product_name} <b class="text-blue-500">(x${l.quantity})</b></span></td><td class="p-3 text-center">${badge}</td></tr>`; }).join(''); } } catch(e) { alert("เกิดข้อผิดพลาดการเบิกโอน: " + e.message); } }
-        async function approveGroup(ref, btnElement) { if(!confirm(`ยืนยัน "อนุมัติ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?\n(ระบบจะตัดสต๊อกคลังหลักทันที)`)) return; const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า'); if (allProducts.length === 0) await loadInventory(); for (let item of items) { const prod = allProducts.find(p => p.id === item.product_id); const baseToDeduct = item.base_qty || item.quantity; if (!prod || prod.master_stock < baseToDeduct) return alert(`❌ อนุมัติไม่ได้!\nสินค้า "${item.product_name}" ในคลังหลักมีไม่พอตัด (ต้องการ ${baseToDeduct} ชิ้นย่อย)`); } if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังประมวลผล...'; btnElement.className = 'block w-full bg-slate-400 text-white font-bold px-2 py-2 rounded-lg text-[10px] shadow-sm cursor-not-allowed'; } try { for (let item of items) { const prod = allProducts.find(p => p.id === item.product_id); const baseToDeduct = item.base_qty || item.quantity; await _client.from('products').update({ master_stock: prod.master_stock - baseToDeduct }).eq('id', item.product_id); await _client.from('stock_transfers').update({ status: 'อนุมัติแล้ว', admin_name: currentAdmin.name }).eq('id', item.id); } alert('✅ อนุมัติใบเบิกสำเร็จ!'); loadInventory(); loadTransferLogs(); } catch(e) { alert('Error: ' + e.message); if(btnElement) { btnElement.disabled = false; btnElement.innerText = 'อนุมัติ'; btnElement.className = 'block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all'; } } }
-        async function rejectGroup(ref, btnElement) { if(!confirm(`ต้องการ "ปฏิเสธ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?`)) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังประมวลผล...'; btnElement.className = 'block w-full bg-slate-200 text-slate-500 px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-not-allowed'; } const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า'); for (let item of items) { await _client.from('stock_transfers').update({ status: 'ปฏิเสธ (แอดมินยกเลิก)', admin_name: currentAdmin.name }).eq('id', item.id); } loadTransferLogs(); }
-        async function downloadTransferCSV() { const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }); if (!data || data.length === 0) return alert('ไม่มีประวัติการทำรายการในระบบครับ'); let csv = '\uFEFF' + "วันที่,เวลา,ชื่อเซลส์,สินค้า,จำนวนตามหน่วย,จำนวนชิ้นย่อย,ผู้ทำรายการ,สถานะ\n"; data.forEach(l => { const d = new Date(l.transfer_date); csv += `${d.toLocaleDateString('th-TH')},${d.toLocaleTimeString('th-TH')},${l.salesman_name},${l.product_name},${l.quantity},${l.base_qty||l.quantity},${l.admin_name||'-'},${l.status}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); const safeDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-'); link.download = `ประวัติโอนสต๊อก_${safeDate}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
 
         /* =========================================================
-           ระบบดูรายละเอียดบิล (เพิ่มใหม่แบบสมบูรณ์)
+           ระบบดูรายละเอียดบิล (View Details)
         ========================================================= */
         async function viewOrderDetails(orderId) {
             try {
                 document.getElementById('orderDetailModal').classList.remove('hidden');
                 document.getElementById('odBillNo').innerText = orderId;
-                document.getElementById('odItemsList').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">กำลังโหลดข้อมูล...</td></tr>';
+                document.getElementById('odItemsList').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">⏳ กำลังโหลดข้อมูลสินค้า...</td></tr>';
                 
                 const { data: orderData, error: orderErr } = await _client.from('orders').select('*').eq('id', orderId).single();
                 if(orderErr) throw orderErr;
@@ -561,131 +297,235 @@
             } catch(e) { alert('อัปเดตสถานะไม่สำเร็จ: ' + e.message); }
         }
 
-        /* --- ORDERS --- */
-        async function loadOrders() { 
+        /* =========================================================
+           ระบบส่งออก CSV (Raw Data - ละเอียดถึงระดับสินค้า)
+        ========================================================= */
+        async function exportReportCSV() {
+            if(!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลสำหรับดาวน์โหลด');
+
+            const btnExport = document.getElementById('btnExportReport');
+            const originalText = btnExport.innerText;
+            btnExport.innerText = '⏳ กำลังดึงข้อมูล...';
+            btnExport.disabled = true;
+
             try {
-                const { data: oData, error } = await _client.from('orders').select('*').order('created_at', { ascending: false }); 
+                const orderIds = window.currentReportData.map(o => o.id);
+                const { data: allItems, error } = await _client.from('order_items').select('*').in('order_id', orderIds);
                 if(error) throw error;
-                if (oData) { 
-                    document.getElementById('adminOrdersList').innerHTML = oData.map(o => { 
-                        const isPaid = o.payment_status === 'จ่ายแล้ว'; 
-                        const salesman = allUsers.find(u => u.id == o.salesman_id);
-                        const sName = salesman ? salesman.name : 'สำนักงานขาย'; 
-                        const statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${isPaid ? '✅ จ่ายแล้ว' : '❌ ค้างชำระ'}</span>`; 
-                        
-                        const viewBtn = `<button onclick="viewOrderDetails(${o.id})" class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm mb-1 w-full hover:bg-indigo-100" data-i18n="btn_view_bill">🔍 ดูรายละเอียด</button>`;
-                        const delBtn = currentAdmin.role === 'manager' ? `<button onclick="deleteOrder(${o.id})" class="text-red-400 text-xs font-bold underline block w-full text-center hover:text-red-600 mt-1">ลบบิล</button>` : ''; 
-                        
-                        return `<tr><td class="p-4 text-xs font-mono">#${o.id}<br><span class="text-slate-500">${new Date(o.created_at).toLocaleDateString()}</span></td><td class="p-4 font-bold text-indigo-600">${sName}</td><td class="p-4"><b>${o.customer_name}</b></td><td class="p-4 font-black text-green-600">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBadge}</td><td class="p-4 text-center">${viewBtn}${delBtn}</td></tr>`; 
-                    }).join(''); 
-                    if(currentAdminLang==='la') setAdminLanguage('la'); 
-                } 
-            } catch(e) { alert("เกิดข้อผิดพลาดโหลดบิล: " + e.message); }
+
+                let csv = '\uFEFFวันที่,เวลา,เลขที่บิล,พนักงานขาย,ลูกค้า,สถานะบิล,สินค้าที่ขาย,ราคาต่อหน่วย,จำนวนที่ซื้อ,รวมมูลค่า\n';
+
+                window.currentReportData.forEach(o => {
+                    const salesman = allUsers.find(u => u.id == o.salesman_id);
+                    const sName = salesman ? salesman.name : 'สำนักงานขาย';
+                    const d = new Date(o.created_at);
+                    const dateStr = d.toLocaleDateString('th-TH');
+                    const timeStr = d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+
+                    const itemsInOrder = allItems ? allItems.filter(item => item.order_id === o.id) : [];
+
+                    if(itemsInOrder.length > 0) {
+                        itemsInOrder.forEach(item => {
+                            const itemName = `"${(item.product_name || '').replace(/"/g, '""')}"`;
+                            const price = item.price || 0;
+                            const qty = item.quantity || 0;
+                            const totalItemPrice = price * qty;
+                            csv += `${dateStr},${timeStr},#${o.id},"${sName}","${o.customer_name}",${o.payment_status},${itemName},${price},${qty},${totalItemPrice}\n`;
+                        });
+                    } else {
+                        csv += `${dateStr},${timeStr},#${o.id},"${sName}","${o.customer_name}",${o.payment_status},-,-,-,-\n`;
+                    }
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute("download", `RawData_ยอดขาย_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch(e) {
+                alert('เกิดข้อผิดพลาดในการโหลด Raw Data: ' + e.message);
+            } finally {
+                btnExport.innerText = originalText;
+                btnExport.disabled = false;
+            }
         }
 
-        async function deleteOrder(id) { if(!confirm(`ลบบิลที่ #${id} ใช่หรือไม่?`)) return; await _client.from('orders').delete().eq('id', id); loadOrders(); loadAdminDashboard(); }
-
-        /* --- REPORTS (มีปุ่มดูรายละเอียด) --- */
-        async function initReports() { 
-            try {
-                const { data: sales, error } = await _client.from('salesmen').select('id, name'); 
-                if(error) throw error;
-                if(sales) { document.getElementById('repSalesman').innerHTML = '<option value="">-- รวมพนักงานทั้งหมด --</option>' + sales.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); } 
-                if(allUsers.length === 0 && sales) allUsers = sales; 
-            } catch(e) { console.error(e); }
-        }
+        // ==========================================
+        // ฟังก์ชันย่อๆ ส่วนที่เหลือ (ห้ามลบ)
+        // ==========================================
+        async function adminLogin() { const btn = document.getElementById('btnAdminLogin'); btn.innerText = '⏳ กำลังเชื่อมต่อข้อมูล... (รอสักครู่)'; btn.disabled = true; try { const pin = document.getElementById('adminPinInput').value; const { data, error } = await _client.from('salesmen').select('*').eq('pin', pin).single(); if (error || !data || (data.role !== 'admin' && data.role !== 'manager')) { document.getElementById('adminLoginErr').classList.remove('hidden'); return; } currentAdmin = data; document.getElementById('navRoleBadge').innerText = data.role === 'manager' ? 'ผู้จัดการ' : 'แอดมิน'; if(data.role === 'manager') document.getElementById('dangerZone').classList.remove('hidden'); document.getElementById('admin-login-view').classList.add('hidden'); document.getElementById('admin-main-view').classList.remove('hidden'); await loadSetupData(); const { data: users } = await _client.from('salesmen').select('*'); if(users) allUsers = users; switchTab('dashboard'); } catch(e) { alert("เข้าสู่ระบบผิดพลาด: " + e.message); } finally { btn.innerText = i18nAdmin[currentAdminLang]['login_btn']; btn.disabled = false; } }
+        async function loadAdminPosData() { try { if (allProducts.length === 0) await loadInventory(); if (allCustomers.length === 0) await loadAdminCustomers(); if (allUsers.length === 0) { const { data } = await _client.from('salesmen').select('*'); if (data) allUsers = data; } if (allPromotions.length === 0) { const { data } = await _client.from('promotions').select('*').eq('is_active', true); if (data) allPromotions = data; } const salesSelect = document.getElementById('adminPosSalesman'); let opts = `<option value="${currentAdmin.id}">🏢 สำนักงานขายเอง (Office)</option>`; allUsers.forEach(u => { if (u.id !== currentAdmin.id && u.role === 'sales') { opts += `<option value="${u.id}">👤 ${u.name}</option>`; } }); salesSelect.innerHTML = opts; const prodSelect = document.getElementById('adminPosProduct'); let prodOpts = `<option value="">-- พิมพ์ชื่อ หรือ รหัสสินค้า --</option>`; allProducts.forEach(p => { if(p.master_stock > 0) { prodOpts += `<option value="${p.id}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name} (คลังหลัก: ${p.master_stock})</option>`; } }); prodSelect.innerHTML = prodOpts; } catch (e) {} }
+        function searchAdminPosCustomer() { const input = document.getElementById('adminPosCustomerName').value.toLowerCase(); const suggestBox = document.getElementById('adminPosCustomerSuggestions'); if (input.length < 1) { suggestBox.classList.add('hidden'); return; } const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input) || (c.customer_code && c.customer_code.toLowerCase().includes(input)) || (c.phone && c.phone.includes(input))); if (filtered.length > 0) { suggestBox.innerHTML = filtered.map(c => `<div onclick="selectAdminPosCustomer('${c.name.replace(/'/g, "\\'")}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><p class="font-bold text-sm text-slate-800">${c.customer_code ? `<span class="text-indigo-600">[${c.customer_code}]</span> ` : ''}${c.name}</p><p class="text-[10px] text-slate-500">${c.phone ? '📞 ' + c.phone : ''} ${c.address ? '- ' + c.address : ''}</p></div>`).join(''); suggestBox.classList.remove('hidden'); } else { suggestBox.innerHTML = `<div class="p-3 text-xs text-slate-400 italic">ไม่พบข้อมูล (ระบบจะบันทึกเป็นลูกค้าใหม่)</div>`; suggestBox.classList.remove('hidden'); } }
+        function selectAdminPosCustomer(name) { document.getElementById('adminPosCustomerName').value = name; document.getElementById('adminPosCustomerSuggestions').classList.add('hidden'); }
+        document.addEventListener('click', function(e) { if (e.target.id !== 'adminPosCustomerName') { const sug = document.getElementById('adminPosCustomerSuggestions'); if(sug) sug.classList.add('hidden'); } });
+        function updateAdminPosUnitOptions() { const pId = document.getElementById('adminPosProduct').value; const uSel = document.getElementById('adminPosUnit'); if(!pId) { uSel.innerHTML = `<option value="">- เลือกหน่วย -</option>`; return; } const p = allProducts.find(x => x.id == pId); let opts = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1" data-price="${p.sale_price}">${p.unit_name||'ชิ้น'} (${p.sale_price}.-)</option>`; if(p.pack_qty > 0) opts += `<option value="pack" data-name="${p.pack_unit}" data-mul="${p.pack_qty}" data-price="${p.pack_price}">${p.pack_unit} (${p.pack_price}.-)</option>`; if(p.box_qty > 0) opts += `<option value="box" data-name="${p.box_unit}" data-mul="${p.box_qty}" data-price="${p.box_price}">${p.box_unit} (${p.box_price}.-)</option>`; uSel.innerHTML = opts; }
+        function addAdminPosCart() { const sel = document.getElementById('adminPosProduct'); const pId = parseInt(sel.value); const uSel = document.getElementById('adminPosUnit'); const qty = parseInt(document.getElementById('adminPosQty').value); if (!pId || !qty || qty <= 0) return; const p = allProducts.find(x => x.id === pId); if (!p) return; const unitName = uSel.options[uSel.selectedIndex].getAttribute('data-name'); const unitMul = parseInt(uSel.options[uSel.selectedIndex].getAttribute('data-mul')); const originalPrice = parseFloat(uSel.options[uSel.selectedIndex].getAttribute('data-price')); let finalPrice = originalPrice; let promoApplied = false; let freebiesToAdd = []; const applicablePromos = allPromotions.filter(promo => (promo.skus || []).includes(pId)); applicablePromos.forEach(promo => { let matchedTier = null; (promo.tiers || []).forEach(tier => { if(unitName === tier.buy_unit && qty >= tier.min && qty <= tier.max) matchedTier = tier; }); if (matchedTier) { if (promo.type === 'discount') { finalPrice = matchedTier.reward; promoApplied = true; } else if (promo.type === 'freebie') { const multiplier = Math.floor(qty / matchedTier.min); const totalFreeQty = matchedTier.reward * multiplier; const freeProd = allProducts.find(fp => fp.id == promo.free_product_id); if (freeProd) { let freeUnitMul = 1; if(promo.free_unit === freeProd.pack_unit) freeUnitMul = freeProd.pack_qty; if(promo.free_unit === freeProd.box_unit) freeUnitMul = freeProd.box_qty; freebiesToAdd.push({ ...freeProd, qty: totalFreeQty, unit_name_sell: promo.free_unit, unitMul: freeUnitMul, sell_price: 0, isFreebie: true }); } } } }); const totalBaseQtyNeeded = qty * unitMul; let currentCartBaseQty = adminCart.filter(c => c.id === pId).reduce((s, c) => s + (c.qty * c.unitMul), 0); if (currentCartBaseQty + totalBaseQtyNeeded > p.master_stock) return alert(`⚠️ สต๊อกคลังหลักไม่พอ!\nสินค้า "${p.name}" เหลือ ${p.master_stock}`); let canAddFreebies = true; freebiesToAdd.forEach(fb => { const fbTotalBaseNeed = fb.qty * fb.unitMul; const fbCurrentCartBaseQty = adminCart.filter(c => c.id === fb.id).reduce((s, c) => s + (c.qty * c.unitMul), 0); let totalStockNeed = fbCurrentCartBaseQty + fbTotalBaseNeed; if(pId === fb.id) totalStockNeed += totalBaseQtyNeeded; if(totalStockNeed > fb.master_stock) { alert(`⚠️ สต๊อกคลังหลักไม่พอแถม!\nสินค้า "${fb.name}"`); canAddFreebies = false; } }); if(!canAddFreebies) return; adminCart.push({ ...p, qty: qty, unit_name_sell: unitName, unitMul: unitMul, sell_price: finalPrice, hasPromo: promoApplied }); freebiesToAdd.forEach(fb => adminCart.push(fb)); document.getElementById('adminPosQty').value = ''; sel.value = ''; updateAdminPosUnitOptions(); renderAdminPosCart(); }
+        function removeAdminPosCart(index) { adminCart.splice(index, 1); renderAdminPosCart(); }
+        function clearAdminPosCart() { if (adminCart.length === 0) return; if (confirm('⚠️ ต้องการล้างรายการในตะกร้าคลังหลักใช่หรือไม่?')) { adminCart = []; renderAdminPosCart(); } }
+        function renderAdminPosCart() { const list = document.getElementById('adminPosCartItems'); if(adminCart.length === 0) { list.innerHTML = `<p class="text-center italic opacity-40 text-xs mt-4">ตะกร้าว่างเปล่า</p>`; document.getElementById('adminPosTotalAmount').innerText = '0.-'; return; } list.innerHTML = adminCart.map((c, index) => { const isFree = c.isFreebie ? `<span class="bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[8px] ml-2 font-bold uppercase animate-pulse">ฟรี!</span>` : ''; const promoBadge = c.hasPromo ? `<span class="bg-amber-100 text-amber-700 px-1 rounded text-[8px] font-bold border border-amber-200">โปรโมชั่น</span>` : ''; return `<div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-3 last:border-0"><span class="w-3/4 pr-2"><span class="font-bold text-white text-xs">${c.name} ${isFree}</span><br><span class="text-amber-400 font-bold">x${c.qty} <span class="text-[10px] font-normal text-slate-400">${c.unit_name_sell}</span></span> ${promoBadge}</span><div class="flex flex-col items-end space-y-1"><span class="font-black text-white text-lg">${(c.sell_price*c.qty).toLocaleString()}.-</span><button onclick="removeAdminPosCart(${index})" class="bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-md shadow-sm transition-all flex items-center gap-1"><span>🗑️</span> ลบ</button></div></div>`; }).join(''); document.getElementById('adminPosTotalAmount').innerText = adminCart.reduce((s, c) => s + (c.sell_price*c.qty), 0).toLocaleString() + '.-'; }
         
-        async function generateReport() { 
-            const startDate = document.getElementById('repStartDate').value; const endDate = document.getElementById('repEndDate').value; const salesmanId = document.getElementById('repSalesman').value; 
-            let query = _client.from('orders').select('*'); 
-            if(startDate) query = query.gte('created_at', startDate + 'T00:00:00.000Z'); 
-            if(endDate) query = query.lte('created_at', endDate + 'T23:59:59.999Z'); 
-            if(salesmanId) query = query.eq('salesman_id', salesmanId); 
-            
-            try {
-                const { data: oData, error } = await query.order('created_at', { ascending: false }); 
-                if(error) throw error;
-                
-                let totalPaid = 0; let totalUnpaid = 0; 
-                const list = document.getElementById('reportDetailList'); const btnExport = document.getElementById('btnExportReport'); const btnPrint = document.getElementById('btnPrintAdminRemit');
+        async function submitAdminPosOrder() { const name = document.getElementById('adminPosCustomerName').value.trim(); const selectedSalesmanId = document.getElementById('adminPosSalesman').value; if(!name || adminCart.length === 0) return alert('กรุณาระบุชื่อลูกค้าและเลือกสินค้าลงตะกร้า'); const total = adminCart.reduce((s, c) => s + (c.sell_price*c.qty), 0); const btn = document.getElementById('btnAdminPosSubmit'); btn.innerText = 'กำลังบันทึก...'; btn.disabled = true; try { const existingCus = allCustomers.find(c => c.name === name); if (!existingCus) { await _client.from('customers').insert([{ name: name, salesman_id: selectedSalesmanId }]); } const { data: orderData, error: orderErr } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: selectedSalesmanId }]).select(); if(orderErr) throw orderErr; const newOrderId = orderData[0].id; const itemsToInsert = adminCart.map(c => { let finalName = `${c.name} (${c.unit_name_sell})`; if(c.isFreebie) finalName = `[ฟรี] ` + finalName; else if(c.hasPromo) finalName = `[โปรโมชั่น] ` + finalName; return { order_id: newOrderId, product_id: c.id, product_name: finalName, quantity: c.qty, price: c.sell_price, base_qty: c.qty * c.unitMul }; }); const { error: itemErr } = await _client.from('order_items').insert(itemsToInsert); if(itemErr) throw itemErr; for(let c of adminCart) { const { data: prod } = await _client.from('products').select('master_stock').eq('id', c.id).single(); if(prod) { await _client.from('products').update({ master_stock: prod.master_stock - (c.qty * c.unitMul) }).eq('id', c.id); } } alert('✅ บันทึกออเดอร์ (ตัดคลังหลัก) สำเร็จ!'); adminCart = []; document.getElementById('adminPosCustomerName').value = ''; renderAdminPosCart(); loadInventory(); loadOrders(); loadAdminDashboard(); } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ (ตัดคลังหลัก)'; btn.disabled = false; } }
 
-                if(oData && oData.length > 0) { 
-                    window.currentReportData = oData; btnExport.classList.remove('hidden'); btnPrint.classList.remove('hidden');
-                    list.innerHTML = oData.map(o => { 
-                        const isPaid = o.payment_status === 'จ่ายแล้ว'; 
-                        if (isPaid) totalPaid += Number(o.total_amount || 0); else totalUnpaid += Number(o.total_amount || 0); 
-                        const salesman = allUsers.find(u => u.id == o.salesman_id); const sName = salesman ? salesman.name : 'สำนักงานขาย'; 
-                        const statusBadge = isPaid ? '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ จ่ายแล้ว</span>' : '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">❌ ค้างชำระ</span>'; 
-                        const d = new Date(o.created_at); const dateStr = d.toLocaleDateString('th-TH') + ' ' + d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}); 
-                        const viewBtn = `<button onclick="viewOrderDetails(${o.id})" class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:bg-indigo-100" data-i18n="btn_view_bill">🔍 ดูรายละเอียด</button>`;
-                        return `<tr class="hover:bg-slate-50"><td class="p-4 text-xs">${dateStr}</td><td class="p-4 text-xs font-mono">#${o.id}</td><td class="p-4 text-sm font-bold text-indigo-600">${sName}</td><td class="p-4 text-sm">${o.customer_name}</td><td class="p-4 text-sm font-black text-right text-slate-700">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBadge}</td><td class="p-4 text-center">${viewBtn}</td></tr>`; 
-                    }).join(''); 
-                    if(currentAdminLang==='la') setAdminLanguage('la');
-                } else { 
-                    window.currentReportData = []; btnExport.classList.add('hidden'); btnPrint.classList.add('hidden');
-                    list.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400">ไม่มีข้อมูลการขายในเงื่อนไขนี้</td></tr>'; 
-                } 
-                document.getElementById('repTotalPaid').innerText = totalPaid.toLocaleString() + '.-'; document.getElementById('repTotalUnpaid').innerText = totalUnpaid.toLocaleString() + '.-'; 
-            } catch(e) { alert("เกิดข้อผิดพลาดในการสร้างรายงาน: " + e.message); }
+        /* --- INVENTORY (ย่อไว้) --- */
+        async function loadInventory() { const { data } = await _client.from('products').select('*').order('id', { ascending: false }); if (data) { allProducts = data; renderInvCategoryPills(); renderAdminProductList(); } }
+        function renderInvCategoryPills() { const container = document.getElementById('invCategoryPills'); let labelAll = currentAdminLang === 'la' ? 'ທັງໝົດ' : 'ทั้งหมด'; let html = `<button onclick="filterInventory('all')" class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${currentInvCategory === 'all' ? 'bg-slate-800 text-white' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'}">${labelAll}</button>`; globalCategories.forEach(c => { html += `<button onclick="filterInventory('${c.name}')" class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${currentInvCategory === c.name ? 'bg-slate-800 text-white' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'}">${c.name}</button>`; }); container.innerHTML = html; }
+        function filterInventory(catName) { currentInvCategory = catName; renderInvCategoryPills(); renderAdminProductList(); }
+        function renderAdminProductList() { const isManager = currentAdmin.role === 'manager'; const tbody = document.getElementById('adminProductList'); let filtered = allProducts; if(currentInvCategory !== 'all') { filtered = allProducts.filter(p => p.category_name === currentInvCategory); } if(filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-bold">ไม่มีสินค้าในหมวดหมู่นี้</td></tr>`; return; } tbody.innerHTML = filtered.map(p => { let priceStr = `${p.sale_price.toLocaleString()}/${p.unit_name||'ชิ้น'} `; if(p.pack_qty > 0) priceStr += `<br><span class="text-[10px] text-slate-400">${p.pack_price.toLocaleString()}/${p.pack_unit} (x${p.pack_qty})</span>`; if(p.box_qty > 0) priceStr += `<br><span class="text-[10px] text-slate-400">${p.box_price.toLocaleString()}/${p.box_unit} (x${p.box_qty})</span>`; return `<tr onclick="openProductEdit(${p.id})" class="cursor-pointer hover:bg-amber-50 transition-colors"><td class="p-4 text-xs font-mono text-slate-500 pr-2">▶ ${p.product_code || '-'}</td><td class="p-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-full text-[10px] font-bold border border-slate-200">${p.category_name||'ไม่ระบุ'}</span></td><td class="p-4 font-bold text-slate-800">${p.name}</td><td class="p-4 text-center font-black text-indigo-700">${p.master_stock||0}</td><td class="p-4 text-right ${isManager ? 'text-emerald-600 font-bold' : 'text-slate-300'}">${isManager ? (p.cost_price||0).toLocaleString() : '***'}</td><td class="p-4 text-right font-bold text-slate-800 pr-6">${priceStr}</td></tr>`; }).join(''); }
+        function downloadTemplate() { const headers = "product_code,product_name,category_name,cost_price,sale_price,master_stock,unit_name,pack_unit,pack_qty,pack_price,box_unit,box_qty,box_price,min_transfer_box\n"; const sample = "CODE001,กาแฟ Nice Coffee,เครื่องดื่ม,50,120,100,ซอง,แพ็ค,5,550,ลัง,60,6000,1"; const csvContent = "\uFEFF" + headers + sample; const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.setAttribute("download", "asn_template.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+        async function uploadCSV() { const fileInput = document.getElementById('csvFile'); const file = fileInput.files[0]; if (!file) return alert('กรุณาเลือกไฟล์ CSV ก่อนครับ'); const btn = document.getElementById('btnUploadCsv'); btn.innerText = 'Uploading...'; btn.disabled = true; const reader = new FileReader(); reader.onload = async function(e) { const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l !== ''); const productsToAdd = []; for(let i = 1; i < lines.length; i++) { const row = lines[i].split(','); if(row.length >= 6 && row[1] !== '') { productsToAdd.push({ product_code: row[0] || null, name: row[1], category_name: row[2] || null, cost_price: Number(row[3])||0, sale_price: Number(row[4])||0, master_stock: Number(row[5])||0, unit_name: row[6] || 'ชิ้น', pack_unit: row[7] || null, pack_qty: Number(row[8])||0, pack_price: Number(row[9])||0, box_unit: row[10] || null, box_qty: Number(row[11])||0, box_price: Number(row[12])||0, min_transfer_box: Number(row[13])||1 }); } } try { await _client.from('products').insert(productsToAdd); alert(`✅ นำเข้าสินค้าจำนวน ${productsToAdd.length} รายการสำเร็จ!`); fileInput.value = ''; document.getElementById('bulkUploadSection').classList.add('hidden'); loadInventory(); loadAdminDashboard(); } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'อัปโหลดเข้าคลัง'; btn.disabled = false; } }; reader.readAsText(file, 'UTF-8'); }
+        function openProductEdit(id = null) { document.getElementById('epCategory').innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>' + globalCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join(''); if(id) { const p = allProducts.find(x=>x.id===id); document.getElementById('epTitle').innerHTML = '✏️ แก้ไขข้อมูลสินค้า'; document.getElementById('epId').value = p.id; document.getElementById('epCode').value = p.product_code || ''; document.getElementById('epName').value = p.name; document.getElementById('epCategory').value = p.category_name || ''; document.getElementById('epCost').value = p.cost_price||0; document.getElementById('epStock').value = p.master_stock||0; document.getElementById('epUnit').value = p.unit_name || 'ชิ้น'; document.getElementById('epSale').value = p.sale_price || 0; document.getElementById('epPackUnit').value = p.pack_unit || ''; document.getElementById('epPackQty').value = p.pack_qty || ''; document.getElementById('epPackPrice').value = p.pack_price || ''; document.getElementById('epBoxUnit').value = p.box_unit || ''; document.getElementById('epBoxQty').value = p.box_qty || ''; document.getElementById('epBoxPrice').value = p.box_price || ''; document.getElementById('epMinTransferBox').value = p.min_transfer_box || 1; document.getElementById('btnDeleteProduct').classList.remove('hidden'); } else { document.getElementById('epTitle').innerHTML = '➕ เพิ่มสินค้าใหม่'; ['epId','epCode','epName','epCategory','epCost','epPackUnit','epPackQty','epPackPrice','epBoxUnit','epBoxQty','epBoxPrice'].forEach(id => document.getElementById(id).value = ''); document.getElementById('epUnit').value = 'ชิ้น'; document.getElementById('epSale').value = ''; document.getElementById('epStock').value = 0; document.getElementById('epMinTransferBox').value = 1; document.getElementById('btnDeleteProduct').classList.add('hidden'); } document.getElementById('editProductModal').classList.remove('hidden'); }
+        async function saveProductEdit() { const id = document.getElementById('epId').value; const payload = { product_code: document.getElementById('epCode').value.trim() || null, name: document.getElementById('epName').value.trim(), category_name: document.getElementById('epCategory').value || null, cost_price: Number(document.getElementById('epCost').value)||0, master_stock: Number(document.getElementById('epStock').value)||0, unit_name: document.getElementById('epUnit').value.trim() || 'ชิ้น', sale_price: Number(document.getElementById('epSale').value)||0, pack_unit: document.getElementById('epPackUnit').value.trim() || null, pack_qty: Number(document.getElementById('epPackQty').value)||0, pack_price: Number(document.getElementById('epPackPrice').value)||0, box_unit: document.getElementById('epBoxUnit').value.trim() || null, box_qty: Number(document.getElementById('epBoxQty').value)||0, box_price: Number(document.getElementById('epBoxPrice').value)||0, min_transfer_box: Number(document.getElementById('epMinTransferBox').value)||1 }; if(!payload.name || !payload.sale_price) return alert('กรุณากรอกชื่อและราคาขายหน่วยย่อยระดับ 1 ให้ครบถ้วน'); try { if(id) await _client.from('products').update(payload).eq('id', id); else await _client.from('products').insert([payload]); closeModal('editProductModal'); loadInventory(); } catch(e) { alert(e.message); } }
+        async function deleteProduct() { const id = document.getElementById('epId').value; if(!id) return; if(confirm('🚨 คำเตือน: ต้องการลบสินค้านี้ใช่หรือไม่?\nการลบสินค้าจะทำให้ประวัติการขายที่เกี่ยวข้องกับสินค้านี้ไม่สมบูรณ์!')) { try { await _client.from('products').delete().eq('id', id); closeModal('editProductModal'); loadInventory(); } catch(e) { alert('ไม่สามารถลบได้: ' + e.message); } } }
+        
+        // พิมพ์เอกสาร A4 คลังสินค้า
+        async function printInventorySheet() { 
+            if (allProducts.length === 0) return alert('ไม่มีสินค้าในคลัง'); 
+            const dateStr = new Date().toLocaleString('th-TH'); 
+            
+            let rowsHtml = '';
+            allProducts.forEach((p, index) => {
+                rowsHtml += `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td>${p.product_code || '-'}</td>
+                        <td class="font-bold">${p.name}</td>
+                        <td>${p.category_name || '-'}</td>
+                        <td class="text-center font-bold" style="color:#0f172a;">${p.master_stock} ${p.unit_name || ''}</td>
+                        <td></td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="header-title">ใบเช็คสต๊อกคลังหลัก (Inventory Sheet)</div>
+                <div class="header-subtitle">วันที่พิมพ์: ${dateStr} | พิมพ์โดย: ${currentAdmin.name}</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;" class="text-center">ลำดับ</th>
+                            <th style="width: 15%;">รหัสสินค้า</th>
+                            <th style="width: 35%;">ชื่อสินค้า</th>
+                            <th style="width: 15%;">หมวดหมู่</th>
+                            <th style="width: 15%;" class="text-center">ระบบ (System)</th>
+                            <th style="width: 15%;" class="text-center">นับจริง (Actual)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+                
+                <div class="footer-signatures">
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>( .................................................... )</p>
+                        <p>ผู้พิมพ์เอกสาร</p>
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>( .................................................... )</p>
+                        <p>ผู้ตรวจนับสต๊อก</p>
+                    </div>
+                </div>
+            `; 
+            printDocument(html, 'ใบเช็คสต๊อกคลังหลัก'); 
         }
 
+        // พิมพ์รายงานใบนำส่งเงิน A4
         function printAdminRemittance() {
             if (!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลสำหรับพิมพ์');
-            const startDate = document.getElementById('repStartDate').value; const endDate = document.getElementById('repEndDate').value; const selSalesman = document.getElementById('repSalesman'); const salesmanName = selSalesman.value ? selSalesman.options[selSalesman.selectedIndex].text : 'รวมพนักงานทั้งหมด';
-            let dateLabel = '-'; if (startDate && endDate) dateLabel = `${startDate} ถึง ${endDate}`; else if (startDate) dateLabel = `ตั้งแต่ ${startDate}`; else if (endDate) dateLabel = `ถึง ${endDate}`; else dateLabel = 'ทั้งหมด';
+            
+            const startDate = document.getElementById('repStartDate').value;
+            const endDate = document.getElementById('repEndDate').value;
+            const selSalesman = document.getElementById('repSalesman');
+            const salesmanName = selSalesman.value ? selSalesman.options[selSalesman.selectedIndex].text : 'รวมพนักงานทั้งหมด';
+
+            let dateLabel = '-';
+            if (startDate && endDate) dateLabel = `${startDate} ถึง ${endDate}`;
+            else if (startDate) dateLabel = `ตั้งแต่ ${startDate}`;
+            else if (endDate) dateLabel = `ถึง ${endDate}`;
+            else dateLabel = 'ทั้งหมด';
+
             let totalAmount = 0;
-            const itemsHtml = window.currentReportData.map(o => {
-                const sName = (allUsers.find(u => u.id == o.salesman_id) || {}).name || '-';
-                const d = new Date(o.created_at); const dateStr = d.toLocaleDateString('th-TH'); const timeStr = d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+            let rowsHtml = '';
+
+            window.currentReportData.forEach((o, index) => {
+                const salesman = allUsers.find(u => u.id == o.salesman_id);
+                const sName = salesman ? salesman.name : 'สำนักงานขาย';
+                const d = new Date(o.created_at);
+                const dateStr = d.toLocaleDateString('th-TH');
+                const timeStr = d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
                 totalAmount += Number(o.total_amount || 0);
-                return `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #d1d5db; padding-bottom:4px; margin-bottom:4px; font-size:10px;">
-                    <div style="width:30%; text-align:left;"><div>${dateStr}</div><div style="color:#6b7280; font-size:8px;">${timeStr} | #${o.id}</div></div>
-                    <div style="width:45%; text-align:left; padding:0 4px;"><div style="font-weight:bold;">${o.customer_name}</div><div style="color:#6b7280; font-size:8px;">เซล: ${sName}</div></div>
-                    <div style="width:25%; text-align:right; font-weight:900;">${(o.total_amount||0).toLocaleString()}</div>
-                </div>`;
-            }).join('');
+
+                rowsHtml += `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td class="text-center">${dateStr} ${timeStr}</td>
+                        <td class="text-center">#${o.id}</td>
+                        <td class="font-bold">${o.customer_name}</td>
+                        <td>${sName}</td>
+                        <td class="text-center">${o.payment_status}</td>
+                        <td class="text-right font-bold">${(o.total_amount||0).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
             const html = `
-            <div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;">
-                <h2 style="font-weight:900; font-size:16px; margin:0;">ใบส่งเงิน / รายงานการขาย</h2>
-                <p style="font-size:10px; margin-top:4px; color:#374151;">วันที่: <span>${dateLabel}</span></p>
-                <p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงานขาย: <span>${salesmanName}</span></p>
-            </div>
-            <div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;">
-                <span style="width:30%;">วัน/เวลา</span><span style="width:45%;">ลูกค้า/ร้านค้า</span><span style="width:25%; text-align:right;">ยอดเงิน</span>
-            </div>
-            <div style="margin-bottom:16px;">${itemsHtml}</div>
-            <div style="border-top:1px solid #4b5563; padding-top:12px; padding-bottom:8px; display:flex; justify-content:space-between; font-weight:900; font-size:14px;">
-                <span>รวมส่งเงิน:</span><span>${totalAmount.toLocaleString()}.-</span>
-            </div>
-            <div style="border-top:1px dashed #4b5563; margin-top:16px; padding-top:16px; text-align:center; font-size:10px; display:flex; justify-content:space-between;">
-                <div style="width:48%;"><p>................................</p><p style="margin-top:4px;">ผู้ส่งเงิน (เซลส์)</p></div>
-                <div style="width:48%;"><p>................................</p><p style="margin-top:4px;">ผู้รับเงิน (บัญชี)</p></div>
-            </div>`;
-            printDocument(html);
+                <div class="header-title">ใบรายงานการขาย / นำส่งเงิน (Sales Report)</div>
+                <div class="header-subtitle">วันที่ยอดขาย: ${dateLabel} | พนักงานขาย: ${salesmanName}</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;" class="text-center">ลำดับ</th>
+                            <th style="width: 15%;" class="text-center">วัน-เวลา</th>
+                            <th style="width: 10%;" class="text-center">เลขที่บิล</th>
+                            <th style="width: 25%;">ลูกค้า / ร้านค้า</th>
+                            <th style="width: 15%;">พนักงานขาย</th>
+                            <th style="width: 10%;" class="text-center">สถานะ</th>
+                            <th style="width: 15%;" class="text-right">ยอดเงิน (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="text-right font-bold" style="font-size: 16px;">รวมยอดส่งเงินทั้งหมด:</td>
+                            <td class="text-right font-bold" style="font-size: 16px; color: #0f172a;">${totalAmount.toLocaleString()}.-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                
+                <div class="footer-signatures">
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>( .................................................... )</p>
+                        <p>ผู้ส่งเงิน</p>
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>( .................................................... )</p>
+                        <p>ผู้รับเงิน / บัญชี</p>
+                    </div>
+                </div>
+            `;
+            printDocument(html, 'รายงานการขาย');
         }
 
-        function exportReportCSV() { if(window.currentReportData.length === 0) return alert('ไม่มีข้อมูลสำหรับดาวน์โหลด'); let csv = '\uFEFFวันที่,เวลา,เลขที่บิล,พนักงานขาย,ลูกค้า,ยอดเงิน,สถานะ\n'; window.currentReportData.forEach(o => { const salesman = allUsers.find(u => u.id == o.salesman_id); const sName = salesman ? salesman.name : 'ไม่ระบุ'; const d = new Date(o.created_at); const dateStr = d.toLocaleDateString('th-TH'); const timeStr = d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}); csv += `${dateStr},${timeStr},#${o.id},${sName},${o.customer_name},${o.total_amount},${o.payment_status}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.setAttribute("download", `รายงานการขาย_${new Date().toLocaleDateString('th-TH').replace(/\//g, '-')}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
+        /* --- TRANSFER (ย่อ) --- */
+        async function loadTransferLogs() { const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }).limit(200); if(data) { allTransferData = data; const pending = data.filter(x => x.status === 'ส่งใบเบิกสินค้า'); const groupedPending = {}; pending.forEach(x => { const ref = x.transfer_ref || `NO-REF-${x.id}`; if(!groupedPending[ref]) { groupedPending[ref] = { ref: ref, salesman_name: x.salesman_name, date: x.transfer_date, items: [] }; } groupedPending[ref].items.push(x); }); const pendingArr = Object.values(groupedPending); document.getElementById('pendingRequestsBody').innerHTML = pendingArr.length > 0 ? pendingArr.map(g => `<tr><td class="p-3"><div class="flex justify-between items-baseline mb-2"><b class="text-amber-700 text-sm">👤 ${g.salesman_name}</b><span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-mono">บิล: ${g.ref}</span></div><div class="bg-slate-50 p-2 rounded border border-slate-100 space-y-1">${g.items.map(i => `<div class="flex justify-between text-xs"><span class="text-slate-600">- ${i.product_name}</span><b class="text-blue-600">x${i.quantity} <span class="font-normal text-slate-400">(= ${i.base_qty||i.quantity} ชิ้นย่อย)</span></b></div>`).join('')}</div></td><td class="p-3 text-center align-top pt-5 space-y-2 w-[90px]"><button onclick="approveGroup('${g.ref}', this)" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all">อนุมัติ</button><button onclick="rejectGroup('${g.ref}', this)" class="block w-full bg-red-100 text-red-600 hover:bg-red-200 text-[10px] px-2 py-1.5 rounded-lg font-bold transition-all">ปฏิเสธ</button></td></tr>`).join('') : `<tr><td colspan="2" class="p-6 text-center text-slate-400">✅ ไม่มีคำขอเบิกสินค้าค้างอยู่</td></tr>`; document.getElementById('transferLogBody').innerHTML = data.map(l => { let badge = ''; if(l.status === 'ส่งใบเบิกสินค้า') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-[10px]">รออนุมัติ</span>'; else if(l.status === 'อนุมัติแล้ว') badge = '<span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-[10px]">รอเซลกดรับ</span>'; else if(l.status === 'เซลรับสินค้าแล้ว' || l.status === 'รับโอนแล้ว') badge = '<span class="text-green-600 bg-green-50 px-2 py-1 rounded text-[10px]">เซลรับสินค้าแล้ว</span>'; else badge = `<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-[10px]">${l.status}</span>`; return `<tr><td class="p-3 text-xs text-slate-500">${new Date(l.transfer_date).toLocaleDateString('th-TH')} ${new Date(l.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}<br><span class="text-[9px] font-mono text-slate-400">${l.transfer_ref || '-'}</span></td><td class="p-3"><b class="text-slate-700">${l.salesman_name}</b><br><span class="text-xs text-slate-500">${l.product_name} <b class="text-blue-500">(x${l.quantity})</b></span></td><td class="p-3 text-center">${badge}</td></tr>`; }).join(''); } }
+        async function approveGroup(ref, btnElement) { if(!confirm(`ยืนยัน "อนุมัติ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?\n(ระบบจะตัดสต๊อกคลังหลักทันที)`)) return; const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า'); if (allProducts.length === 0) await loadInventory(); for (let item of items) { const prod = allProducts.find(p => p.id === item.product_id); const baseToDeduct = item.base_qty || item.quantity; if (!prod || prod.master_stock < baseToDeduct) return alert(`❌ อนุมัติไม่ได้!\nสินค้า "${item.product_name}" ในคลังหลักมีไม่พอตัด (ต้องการ ${baseToDeduct} ชิ้นย่อย)`); } if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังประมวลผล...'; btnElement.className = 'block w-full bg-slate-400 text-white font-bold px-2 py-2 rounded-lg text-[10px] shadow-sm cursor-not-allowed'; } try { for (let item of items) { const prod = allProducts.find(p => p.id === item.product_id); const baseToDeduct = item.base_qty || item.quantity; await _client.from('products').update({ master_stock: prod.master_stock - baseToDeduct }).eq('id', item.product_id); await _client.from('stock_transfers').update({ status: 'อนุมัติแล้ว', admin_name: currentAdmin.name }).eq('id', item.id); } alert('✅ อนุมัติใบเบิกสำเร็จ!'); loadInventory(); loadTransferLogs(); } catch(e) { } }
+        async function rejectGroup(ref, btnElement) { if(!confirm(`ต้องการ "ปฏิเสธ" ใบเบิกหมายเลข: ${ref} ใช่หรือไม่?`)) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังประมวลผล...'; btnElement.className = 'block w-full bg-slate-200 text-slate-500 px-2 py-1.5 rounded-lg text-[10px] font-bold cursor-not-allowed'; } const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า'); for (let item of items) { await _client.from('stock_transfers').update({ status: 'ปฏิเสธ (แอดมินยกเลิก)', admin_name: currentAdmin.name }).eq('id', item.id); } loadTransferLogs(); }
+        async function downloadTransferCSV() { const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }); if (!data || data.length === 0) return alert('ไม่มีประวัติการทำรายการในระบบครับ'); let csv = '\uFEFF' + "วันที่,เวลา,ชื่อเซลส์,สินค้า,จำนวนตามหน่วย,จำนวนชิ้นย่อย,ผู้ทำรายการ,สถานะ\n"; data.forEach(l => { const d = new Date(l.transfer_date); csv += `${d.toLocaleDateString('th-TH')},${d.toLocaleTimeString('th-TH')},${l.salesman_name},${l.product_name},${l.quantity},${l.base_qty||l.quantity},${l.admin_name||'-'},${l.status}\n`; }); const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); const safeDate = new Date().toLocaleDateString('th-TH').replace(/\//g, '-'); link.download = `ประวัติโอนสต๊อก_${safeDate}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); }
 
-        /* --- CUSTOMERS (ย่อไว้) --- */
-        async function loadAdminCustomers() { try { const { data, error } = await _client.from('customers').select('*').order('name'); if(error) throw error; if (data) { allCustomers = data; if(allUsers.length === 0) { const { data: users } = await _client.from('salesmen').select('*'); if(users) allUsers = users; } renderAdminCustomers(data); } } catch(e) { alert('โหลดข้อมูลลูกค้าผิดพลาด: ' + e.message); } }
-        function renderAdminCustomers(data) { document.getElementById('customerTableBody').innerHTML = data.map(c => { const salesman = allUsers.find(u => u.id == c.salesman_id); const sName = salesman ? salesman.name : '-'; return `<tr class="hover:bg-slate-50"><td class="p-4"><p class="font-bold text-slate-800">${c.customer_code ? `[${c.customer_code}] ` : ''}${c.name}</p></td><td class="p-4 font-mono text-slate-600">${c.phone || '-'}</td><td class="p-4 text-xs text-slate-500">${c.address || '-'}</td><td class="p-4 text-center text-xs text-indigo-600">${sName}</td><td class="p-4 text-center"><button onclick="openCustomerEdit(${c.id})" class="text-blue-600 font-bold text-xs bg-blue-50 px-3 py-1 rounded">แก้ไข</button></td></tr>`; }).join(''); }
-        function searchAdminCustomer() { const query = document.getElementById('searchCusInput').value.toLowerCase(); const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query)) || (c.customer_code && c.customer_code.toLowerCase().includes(query))); renderAdminCustomers(filtered); }
-        function openCustomerEdit(id = null) { if(id) { const c = allCustomers.find(x => x.id === id); document.getElementById('ecTitle').innerHTML = '✏️ แก้ไขข้อมูลลูกค้า'; document.getElementById('ecId').value = c.id; document.getElementById('ecCode').value = c.customer_code || ''; document.getElementById('ecName').value = c.name; document.getElementById('ecPhone').value = c.phone || ''; document.getElementById('ecAddress').value = c.address || ''; } else { document.getElementById('ecTitle').innerHTML = '➕ เพิ่มลูกค้าใหม่'; document.getElementById('ecId').value = ''; document.getElementById('ecCode').value = ''; document.getElementById('ecName').value = ''; document.getElementById('ecPhone').value = ''; document.getElementById('ecAddress').value = ''; } document.getElementById('editCustomerModal').classList.remove('hidden'); }
-        async function saveCustomerEdit() { const id = document.getElementById('ecId').value; const payload = { customer_code: document.getElementById('ecCode').value.trim() || null, name: document.getElementById('ecName').value.trim(), phone: document.getElementById('ecPhone').value.trim(), address: document.getElementById('ecAddress').value.trim() }; if(!payload.name) return alert('กรุณาระบุชื่อลูกค้า'); try { let res; if(id) res = await _client.from('customers').update(payload).eq('id', id); else res = await _client.from('customers').insert([payload]); if(res && res.error) throw res.error; closeModal('editCustomerModal'); loadAdminCustomers(); } catch(e) { alert('บันทึกลูกค้าล้มเหลว: ' + e.message); } }
-        function downloadCustomerTemplate() { const headers = "customer_code,customer_name,phone,address\n"; const sample = "CUS001,ร้านใจดีการค้า,0812345678,123 หมู่ 1 ต.บางสวรรค์ อ.เมือง จ.ขอนแก่น"; const csvContent = "\uFEFF" + headers + sample; const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.setAttribute("download", "customer_template.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); }
-        async function uploadCustomerCSV() { const fileInput = document.getElementById('csvCustomerFile'); const file = fileInput.files[0]; if (!file) return alert('กรุณาเลือกไฟล์ CSV ก่อนครับ'); const btn = document.getElementById('btnUploadCustomerCsv'); btn.innerText = 'Uploading...'; btn.disabled = true; const reader = new FileReader(); reader.onload = async function(e) { const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l !== ''); const customersToAdd = []; for(let i = 1; i < lines.length; i++) { const row = lines[i].split(','); if(row.length >= 2 && row[1] !== '') { customersToAdd.push({ customer_code: row[0] || null, name: row[1], phone: row[2] || null, address: row[3] || null }); } } try { const { error } = await _client.from('customers').insert(customersToAdd); if(error) throw error; alert(`✅ นำเข้าลูกค้าจำนวน ${customersToAdd.length} รายการสำเร็จ!`); fileInput.value = ''; loadAdminCustomers(); } catch (err) { alert('นำเข้า CSV ผิดพลาด: ' + err.message); } finally { btn.innerText = 'อัปโหลดรายชื่อลูกค้า'; btn.disabled = false; } }; reader.readAsText(file, 'UTF-8'); }
-
-        /* --- PROMOTIONS (ย่อไว้) --- */
-        let promoTiers = []; async function loadPromotions() { try { const { data, error } = await _client.from('promotions').select('*').order('created_at', { ascending: false }); if (error) throw error; if (data) { allPromotions = data; if (allProducts.length === 0) await loadInventory(); document.getElementById('adminPromoList').innerHTML = data.map(promo => { const skusCount = (promo.skus || []).length; const tiersCount = (promo.tiers || []).length; const statusBadge = promo.is_active ? '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold">ใช้งาน</span>' : '<span class="bg-slate-200 text-slate-500 px-2 py-1 rounded text-[10px] font-bold">ปิด</span>'; return `<tr class="hover:bg-slate-50"><td class="p-4"><p class="font-bold text-slate-800">${promo.name}</p><span class="text-[10px] text-slate-400 border px-1 rounded">${promo.type === 'discount' ? 'ลดราคาตามขั้น' : 'แถมของตามขั้น'}</span></td><td class="p-4 text-center font-bold text-indigo-600">${tiersCount} ขั้น</td><td class="p-4 text-center text-xs text-slate-500">${skusCount} รายการ</td><td class="p-4 text-center">${statusBadge}</td><td class="p-4 text-center"><button onclick="openPromoEdit(${promo.id})" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded">แก้ไข</button><button onclick="deletePromo(${promo.id})" class="ml-2 text-xs font-bold text-red-500">ลบ</button></td></tr>`; }).join(''); } } catch(e) { alert('โหลดข้อมูลโปรโมชั่นผิดพลาด: ' + e.message); } }
-        function togglePromoType() { const type = document.getElementById('epromoType').value; if (type === 'freebie') document.getElementById('promoTypeFreebie').classList.remove('hidden'); else document.getElementById('promoTypeFreebie').classList.add('hidden'); renderPromoTiers(); }
-        async function openPromoEdit(id = null) { if (allProducts.length === 0) await loadInventory(); const chkHtml = allProducts.map(p => `<div class="flex items-center gap-2"><input type="checkbox" id="psku_${p.id}" value="${p.id}" class="promo-sku-chk w-4 h-4 text-indigo-600"><label for="psku_${p.id}" class="text-[10px] text-slate-700 truncate cursor-pointer">${p.product_code?`[${p.product_code}] `:''}${p.name}</label></div>`).join(''); document.getElementById('promoSkusContainer').innerHTML = chkHtml; document.getElementById('epromoFreeProduct').innerHTML = '<option value="">-- เลือกของแถม --</option>' + allProducts.map(p => `<option value="${p.id}">${p.product_code?`[${p.product_code}] `:''}${p.name}</option>`).join(''); if (id) { const p = allPromotions.find(x=>x.id===id); document.getElementById('epromoTitle').innerHTML = '✏️ แก้ไขโปรโมชั่น'; document.getElementById('epromoId').value = p.id; document.getElementById('epromoName').value = p.name; document.getElementById('epromoType').value = p.type; document.getElementById('epromoIsActive').checked = p.is_active; if (p.type === 'freebie') { document.getElementById('epromoFreeProduct').value = p.free_product_id || ''; document.getElementById('epromoFreeUnit').value = p.free_unit || ''; } (p.skus || []).forEach(skuId => { const chk = document.getElementById(`psku_${skuId}`); if(chk) chk.checked = true; }); promoTiers = p.tiers || []; } else { document.getElementById('epromoTitle').innerHTML = '➕ สร้างโปรโมชั่นใหม่ (Multi-Tiers)'; document.getElementById('epromoId').value = ''; document.getElementById('epromoName').value = ''; document.getElementById('epromoType').value = 'discount'; document.getElementById('epromoIsActive').checked = true; document.getElementById('epromoFreeProduct').value = ''; document.getElementById('epromoFreeUnit').value = ''; document.querySelectorAll('.promo-sku-chk').forEach(c => c.checked = false); promoTiers = []; } togglePromoType(); renderPromoTiers(); document.getElementById('editPromoModal').classList.remove('hidden'); }
-        function addPromoTier() { if (promoTiers.length >= 7) return alert('สามารถสร้างขั้นบันไดได้สูงสุด 7 ขั้นเท่านั้นครับ'); promoTiers.push({ min: 1, max: 9999, buy_unit: 'ลัง', reward: 0 }); renderPromoTiers(); }
-        function removePromoTier(index) { promoTiers.splice(index, 1); renderPromoTiers(); }
-        function updateTierVal(index, field, val) { promoTiers[index][field] = val; }
-        function renderPromoTiers() { const container = document.getElementById('promoTiersContainer'); const type = document.getElementById('epromoType').value; const rewardLabel = type === 'discount' ? 'ให้ราคาโปร(Z)' : 'จำนวนที่แถม(Y)'; if(promoTiers.length === 0) { container.innerHTML = '<p class="text-[10px] text-slate-400 text-center py-4 border border-dashed rounded">ยังไม่มีการกำหนดขั้นบันได</p>'; return; } container.innerHTML = promoTiers.map((t, i) => `<div class="flex items-center gap-1 bg-slate-50 border border-slate-200 p-2 rounded-lg mb-2"><span class="text-[10px] font-bold text-indigo-700 w-12 shrink-0">ขั้นที่ ${i+1}</span><input type="number" value="${t.min}" onchange="updateTierVal(${i}, 'min', this.value)" class="w-14 p-1 text-[10px] border rounded text-center" placeholder="ขั้นต่ำ(X)"><span class="text-[10px] text-slate-400">-</span><input type="number" value="${t.max}" onchange="updateTierVal(${i}, 'max', this.value)" class="w-14 p-1 text-[10px] border rounded text-center" placeholder="สูงสุด(Y)"><select onchange="updateTierVal(${i}, 'buy_unit', this.value)" class="w-16 p-1 text-[10px] border rounded"><option value="ชิ้น" ${t.buy_unit==='ชิ้น'?'selected':''}>ชิ้น</option><option value="แพ็ค" ${t.buy_unit==='แพ็ค'?'selected':''}>แพ็ค</option><option value="ลัง" ${t.buy_unit==='ลัง'?'selected':''}>ลัง</option></select><span class="text-[10px] mx-1 text-slate-400">👉 ${rewardLabel}</span><input type="number" value="${t.reward}" onchange="updateTierVal(${i}, 'reward', this.value)" class="w-20 p-1 text-[10px] border rounded font-bold text-blue-600"><button onclick="removePromoTier(${i})" class="text-red-500 font-bold px-2 ml-auto shrink-0">X</button></div>`).join(''); }
-        async function savePromoEdit() { const id = document.getElementById('epromoId').value; const type = document.getElementById('epromoType').value; const name = document.getElementById('epromoName').value.trim(); const selectedSkus = Array.from(document.querySelectorAll('.promo-sku-chk:checked')).map(cb => parseInt(cb.value)); if (!name) return alert('กรุณาระบุชื่อโปรโมชั่น'); if (selectedSkus.length === 0) return alert('กรุณาเลือกสินค้าร่วมรายการอย่างน้อย 1 รายการ'); if (selectedSkus.length > 50) return alert('เลือกสินค้าร่วมรายการได้สูงสุด 50 รายการเท่านั้น'); if (promoTiers.length === 0) return alert('กรุณาเพิ่มขั้นบันไดโปรโมชั่นอย่างน้อย 1 ขั้น'); const payload = { name: name, type: type, skus: selectedSkus, is_active: document.getElementById('epromoIsActive').checked, tiers: promoTiers.map(t => ({ min: Number(t.min)||1, max: Number(t.max)||9999, buy_unit: t.buy_unit, reward: Number(t.reward)||0 })) }; if (type === 'freebie') { payload.free_product_id = parseInt(document.getElementById('epromoFreeProduct').value) || null; payload.free_unit = document.getElementById('epromoFreeUnit').value.trim(); if (!payload.free_product_id || !payload.free_unit) return alert('กรุณาระบุสินค้าของแถมและหน่วยให้ครบถ้วน'); } else { payload.free_product_id = null; payload.free_unit = null; } try { let res; if (id) res = await _client.from('promotions').update(payload).eq('id', id); else res = await _client.from('promotions').insert([payload]); if (res && res.error) throw res.error; closeModal('editPromoModal'); alert('✅ บันทึกโปรโมชั่นสำเร็จ!'); await loadPromotions(); } catch(e) { console.error(e); alert('เกิดข้อผิดพลาดจากฐานข้อมูล โปรดตรวจสอบโครงสร้างตาราง: ' + e.message); } }
-        async function deletePromo(id) { if (!confirm('ต้องการลบโปรโมชั่นนี้ใช่หรือไม่?')) return; await _client.from('promotions').delete().eq('id', id); loadPromotions(); }
+        /* --- REPORTS --- */
+        async function initReports() { try { const { data: sales } = await _client.from('salesmen').select('id, name'); if(sales) { document.getElementById('repSalesman').innerHTML = '<option value="">-- รวมพนักงานทั้งหมด --</option>' + sales.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); } if(allUsers.length === 0 && sales) allUsers = sales; } catch(e) { console.error(e); } }
+        async function generateReport() { const startDate = document.getElementById('repStartDate').value; const endDate = document.getElementById('repEndDate').value; const salesmanId = document.getElementById('repSalesman').value; let query = _client.from('orders').select('*'); if(startDate) query = query.gte('created_at', startDate + 'T00:00:00.000Z'); if(endDate) query = query.lte('created_at', endDate + 'T23:59:59.999Z'); if(salesmanId) query = query.eq('salesman_id', salesmanId); try { const { data: oData, error } = await query.order('created_at', { ascending: false }); if(error) throw error; let totalPaid = 0; let totalUnpaid = 0; const list = document.getElementById('reportDetailList'); const btnExport = document.getElementById('btnExportReport'); const btnPrint = document.getElementById('btnPrintAdminRemit'); if(oData && oData.length > 0) { window.currentReportData = oData; btnExport.classList.remove('hidden'); btnPrint.classList.remove('hidden'); list.innerHTML = oData.map(o => { const isPaid = o.payment_status === 'จ่ายแล้ว'; if (isPaid) totalPaid += Number(o.total_amount || 0); else totalUnpaid += Number(o.total_amount || 0); const salesman = allUsers.find(u => u.id == o.salesman_id); const sName = salesman ? salesman.name : 'สำนักงานขาย'; const statusBadge = isPaid ? '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ จ่ายแล้ว</span>' : '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">❌ ค้างชำระ</span>'; const d = new Date(o.created_at); const dateStr = d.toLocaleDateString('th-TH') + ' ' + d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}); const viewBtn = `<button onclick="viewOrderDetails(${o.id})" class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:bg-indigo-100" data-i18n="btn_view_bill">🔍 ดูรายละเอียด</button>`; return `<tr class="hover:bg-slate-50"><td class="p-4 text-xs">${dateStr}</td><td class="p-4 text-xs font-mono">#${o.id}</td><td class="p-4 text-sm font-bold text-indigo-600">${sName}</td><td class="p-4 text-sm">${o.customer_name}</td><td class="p-4 text-sm font-black text-right text-slate-700">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBadge}</td><td class="p-4 text-center">${viewBtn}</td></tr>`; }).join(''); if(currentAdminLang==='la') setAdminLanguage('la'); } else { window.currentReportData = []; btnExport.classList.add('hidden'); btnPrint.classList.add('hidden'); list.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-400">ไม่มีข้อมูลการขายในเงื่อนไขนี้</td></tr>'; } document.getElementById('repTotalPaid').innerText = totalPaid.toLocaleString() + '.-'; document.getElementById('repTotalUnpaid').innerText = totalUnpaid.toLocaleString() + '.-'; } catch(e) { alert("เกิดข้อผิดพลาดในการสร้างรายงาน: " + e.message); } }
 
         /* --- SETTINGS & USERS (ย่อไว้) --- */
         async function loadSettingsPage() { try { loadUsers(); await loadSetupData(); document.getElementById('categoryList').innerHTML = globalCategories.length > 0 ? globalCategories.map(c => `<li class="p-3 flex justify-between"><span>${c.name}</span><button onclick="deleteCategory(${c.id})" class="text-red-500 text-xs hover:underline">ลบ</button></li>`).join('') : '<li class="p-3 text-slate-400 text-center">ไม่มีข้อมูล</li>'; document.getElementById('unitList').innerHTML = globalUnits.length > 0 ? globalUnits.map(u => `<li class="p-3 flex justify-between"><span>${u.name}</span><button onclick="deleteUnit(${u.id})" class="text-red-500 text-xs hover:underline">ลบ</button></li>`).join('') : '<li class="p-3 text-slate-400 text-center">ไม่มีข้อมูล</li>'; } catch(e) { console.error(e); } }

@@ -14,129 +14,151 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 pb-10">
 
-    <div id="app-container" class="max-w-md mx-auto bg-white min-h-screen shadow-xl border-x border-slate-200">
+    <div class="fixed top-4 right-4 z-[100] flex gap-2">
+        <button onclick="setLanguage('th')" id="btnLangTH" class="bg-slate-800 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent transition-all">🇹🇭 TH</button>
+        <button onclick="setLanguage('la')" id="btnLangLA" class="bg-slate-800 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent transition-all">🇱🇦 LA</button>
+    </div>
+
+    <div id="app-container" class="max-w-md mx-auto bg-white min-h-screen shadow-xl border-x border-slate-200 relative">
         
         <div id="login-view" class="p-8 flex flex-col items-center justify-center min-h-[80vh]">
             <div class="bg-slate-900 text-white p-6 rounded-[2rem] w-full text-center shadow-2xl">
                 <h1 class="text-3xl font-black tracking-tighter mb-2">ASN SALES</h1>
                 <input type="password" id="pinInput" placeholder="● ● ● ●" maxlength="6" class="w-full p-4 text-center text-3xl tracking-[1em] rounded-xl bg-slate-800 border-2 border-slate-700 text-white outline-none focus:border-blue-500 mb-4 transition-all">
-                <button onclick="login()" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 font-black py-4 rounded-xl text-lg">เข้าสู่ระบบ</button>
+                <button onclick="login()" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 font-black py-4 rounded-xl text-lg" data-i18n="login_btn">เข้าสู่ระบบ</button>
             </div>
         </div>
 
         <div id="main-view" class="hidden">
             <div class="bg-slate-900 p-4 text-white flex justify-between items-center sticky top-0 z-50 shadow-md">
                 <div class="text-[10px] leading-tight min-w-[50px] mr-2">
-                    <span class="text-slate-400">พนักงาน: </span><br>
+                    <span class="text-slate-400" data-i18n="emp">พนักงาน: </span><br>
                     <span id="salesmanNameDisplay" class="font-bold text-amber-400 text-[10px] truncate block w-[50px]">---</span>
                 </div>
                 <div class="flex gap-1 overflow-x-auto no-scrollbar">
-                    <button onclick="switchTab('pos')" id="btnTabPos" class="px-2 py-1.5 bg-blue-600 font-bold rounded-lg text-[11px] text-white whitespace-nowrap">ขาย</button>
-                    <button onclick="switchTab('stock')" id="btnTabStock" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap">สต๊อก</button>
-                    <button onclick="switchTab('transfer')" id="btnTabTransfer" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap">เบิกของ</button>
-                    <button onclick="switchTab('customers')" id="btnTabCustomers" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap">ลูกค้า</button>
-                    <button onclick="switchTab('dash')" id="btnTabDash" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap">รายงาน</button>
+                    <button onclick="switchTab('pos')" id="btnTabPos" class="px-2 py-1.5 bg-blue-600 font-bold rounded-lg text-[11px] text-white whitespace-nowrap" data-i18n="nav_pos">ขาย</button>
+                    <button onclick="switchTab('stock')" id="btnTabStock" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_stock">สต๊อก</button>
+                    <button onclick="switchTab('transfer')" id="btnTabTransfer" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_transfer">เบิกของ</button>
+                    <button onclick="switchTab('customers')" id="btnTabCustomers" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_cus">ลูกค้า</button>
+                    <button onclick="switchTab('dash')" id="btnTabDash" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_rep">รายงาน</button>
                 </div>
             </div>
 
             <div id="pos-view" class="p-4 space-y-5 bg-slate-50 min-h-screen">
                 <div class="relative">
-                    <label class="block text-[10px] font-bold text-slate-500 mb-1 ml-1">ลูกค้ารับสินค้า</label>
-                    <input type="text" id="customerName" placeholder="ระบุชื่อ / รหัสลูกค้า / เบอร์โทร..." autocomplete="off" onkeyup="searchCustomer()" onfocus="searchCustomer()" class="w-full p-4 bg-white border border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1 ml-1" data-i18n="cus_receive">ลูกค้ารับสินค้า</label>
+                    <input type="text" id="customerName" data-i18n="cus_search_ph" placeholder="ระบุชื่อ / รหัสลูกค้า / เบอร์โทร..." autocomplete="off" onkeyup="searchCustomer()" onfocus="searchCustomer()" class="w-full p-4 bg-white border border-slate-200 focus:border-blue-500 rounded-2xl outline-none text-lg font-bold shadow-sm">
                     <div id="customerSuggestions" class="absolute z-50 w-full bg-white border border-slate-200 shadow-xl rounded-xl mt-1 max-h-[200px] overflow-auto hidden"></div>
                 </div>
                 
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                    <h3 class="font-black text-slate-800 text-lg">🛍️ เลือกสินค้าลงบิล</h3>
+                    <h3 class="font-black text-slate-800 text-lg" data-i18n="select_prod">🛍️ เลือกสินค้าลงบิล</h3>
                     
                     <div id="posPromoBanner" class="hidden bg-gradient-to-r from-amber-100 to-orange-50 border border-amber-200 rounded-xl p-3 shadow-sm mb-2">
-                        <p class="text-xs font-black text-amber-800 flex items-center gap-1"><span>🎁</span> โปรโมชั่นที่กำลังทำงาน</p>
+                        <p class="text-xs font-black text-amber-800 flex items-center gap-1"><span>🎁</span> <span data-i18n="promo">โปรโมชั่นที่กำลังทำงาน</span></p>
                         <ul id="posPromoList" class="text-[10px] text-amber-700 mt-1 pl-4 list-disc space-y-1"></ul>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 mb-1">ค้นหา / เลือกรายการ</label>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="search_prod">ค้นหา / เลือกรายการ</label>
                         <select id="posProduct" onchange="updatePosUnitOptions()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select>
                     </div>
                     <div class="grid grid-cols-5 gap-2 items-end">
                         <div class="col-span-3">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกหน่วยนับ</label>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="select_unit">เลือกหน่วยนับ</label>
                             <select id="posUnit" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm text-blue-700"></select>
                         </div>
                         <div class="col-span-2">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="qty">จำนวน</label>
                             <div class="flex gap-1">
-                                <input type="number" id="posQty" min="1" placeholder="ตัวเลข" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">
-                                <button onclick="addPosCart()" class="bg-blue-600 text-white font-bold px-3 rounded-xl text-xs h-[46px] active:scale-95 transition-transform shadow-md">เพิ่ม</button>
+                                <input type="number" id="posQty" min="1" placeholder="..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center">
+                                <button onclick="addPosCart()" class="bg-blue-600 text-white font-bold px-3 rounded-xl text-xs h-[46px] active:scale-95 transition-transform shadow-md" data-i18n="add_btn">เพิ่ม</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl mt-2">
-                    <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2"><h3 class="font-black text-amber-400">🛒 ตะกร้าสินค้า</h3></div>
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                        <h3 class="font-black text-amber-400" data-i18n="cart">🛒 ตะกร้าสินค้า</h3>
+                        <button onclick="clearCart()" class="text-[10px] bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all flex items-center gap-1" data-i18n="clear_cart">
+                            <span>🗑️</span> ล้างตะกร้า
+                        </button>
+                    </div>
                     <div id="cartItems" class="space-y-3 text-sm text-slate-300 mb-6 min-h-[60px]"></div>
-                    <div class="flex justify-between items-center border-t border-slate-700 pt-5"><span class="text-slate-400 font-bold text-xs uppercase">ยอดรวมสุทธิ</span><span id="totalAmount" class="text-3xl font-black text-white">0.-</span></div>
+                    <div class="flex justify-between items-center border-t border-slate-700 pt-5">
+                        <span class="text-slate-400 font-bold text-xs uppercase" data-i18n="net_total">ยอดรวมสุทธิ</span>
+                        <span id="totalAmount" class="text-3xl font-black text-white">0.-</span>
+                    </div>
                 </div>
 
-                <button onclick="submitOrder()" id="btnSubmit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg text-xl sticky bottom-4 active:scale-95 transition-transform mt-8">บันทึกออเดอร์ & พิมพ์สลิป</button>
+                <button onclick="submitOrder()" id="btnSubmit" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg text-xl sticky bottom-4 active:scale-95 transition-transform mt-8" data-i18n="save_print">บันทึกออเดอร์ & พิมพ์สลิป</button>
             </div>
 
             <div id="stock-view" class="hidden p-4 space-y-6 bg-slate-50 min-h-screen">
-                <div class="flex justify-between items-end border-b-2 border-emerald-100 pb-3"><h2 class="text-2xl font-black text-slate-800">📦 สต๊อกของฉัน</h2><div class="space-x-1 flex"><button onclick="printMyStock()" class="text-[10px] bg-slate-800 text-white px-3 py-2 rounded-lg font-bold shadow-sm">🖨️ พิมพ์เช็ค</button><button onclick="loadProducts()" class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg font-bold">🔄 อัปเดต</button></div></div>
+                <div class="flex justify-between items-end border-b-2 border-emerald-100 pb-3">
+                    <h2 class="text-2xl font-black text-slate-800" data-i18n="my_stock">📦 สต๊อกของฉัน</h2>
+                    <div class="space-x-1 flex">
+                        <button onclick="printMyStock()" class="text-[10px] bg-slate-800 text-white px-3 py-2 rounded-lg font-bold shadow-sm" data-i18n="print_check">🖨️ พิมพ์เช็ค</button>
+                        <button onclick="loadProducts()" class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg font-bold" data-i18n="update_btn">🔄 อัปเดต</button>
+                    </div>
+                </div>
                 <div id="myStockList" class="space-y-3"></div>
             </div>
 
             <div id="transfer-view" class="hidden p-4 space-y-6 bg-slate-50 min-h-screen">
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                    <h3 class="font-black text-slate-800 text-lg">📝 สร้างใบเบิกสินค้า</h3>
-                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกสินค้า</label><select id="reqProduct" onchange="updateReqUnitOptions()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select></div>
+                    <h3 class="font-black text-slate-800 text-lg" data-i18n="create_req">📝 สร้างใบเบิกสินค้า</h3>
+                    <div><label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="sel_prod">เลือกสินค้า</label><select id="reqProduct" onchange="updateReqUnitOptions()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select></div>
                     <div class="grid grid-cols-5 gap-2 items-end border-b border-slate-100 pb-4">
                         <div class="col-span-3">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">เลือกหน่วยนับ</label>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="select_unit">เลือกหน่วยนับ</label>
                             <select id="reqUnit" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm text-indigo-700 disabled:opacity-50"></select>
                             <p id="reqMinMsg" class="text-[10px] text-red-500 mt-1 font-bold hidden"></p>
                         </div>
                         <div class="col-span-2">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1">จำนวน</label>
-                            <div class="flex gap-1"><input type="number" id="reqQty" min="1" placeholder="ตัวเลข" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-3 rounded-xl text-xs h-[42px] active:scale-95 mt-auto">เพิ่ม</button></div>
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1" data-i18n="qty">จำนวน</label>
+                            <div class="flex gap-1"><input type="number" id="reqQty" min="1" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center"><button onclick="addToReqCart()" class="bg-slate-800 text-white font-bold px-3 rounded-xl text-xs h-[42px] active:scale-95 mt-auto" data-i18n="add_btn">เพิ่ม</button></div>
                         </div>
                     </div>
-                    <div><p class="text-xs font-bold text-slate-500 mb-2">📋 รายการที่จะเบิก:</p><div id="reqCartItems" class="space-y-2 min-h-[40px]"></div></div>
-                    <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md hidden">📤 ส่งใบเบิก</button>
+                    <div><p class="text-xs font-bold text-slate-500 mb-2" data-i18n="req_list">📋 รายการที่จะเบิก:</p><div id="reqCartItems" class="space-y-2 min-h-[40px]"></div></div>
+                    <button onclick="submitTransferRequest()" id="btnSubmitReq" class="w-full bg-indigo-600 text-white font-black py-3 rounded-xl shadow-md hidden" data-i18n="send_req">📤 ส่งใบเบิก</button>
                 </div>
                 <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex justify-between items-center"><h3 class="font-black text-slate-800 text-lg">🚚 บิลเบิกของฉัน</h3><button onclick="loadMyTransfers()" class="text-[10px] bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold shadow-sm">🔄 รีเฟรช</button></div>
+                    <div class="flex justify-between items-center"><h3 class="font-black text-slate-800 text-lg" data-i18n="my_req">🚚 บิลเบิกของฉัน</h3><button onclick="loadMyTransfers()" class="text-[10px] bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold shadow-sm" data-i18n="refresh">🔄 รีเฟรช</button></div>
                     <div id="myTransferList" class="space-y-4"></div>
                 </div>
             </div>
 
             <div id="customers-view" class="hidden p-4 space-y-4 bg-slate-50 min-h-screen">
-                <div class="flex justify-between items-end border-b-2 border-indigo-100 pb-3"><h2 class="text-2xl font-black text-slate-800">👥 ลูกค้าของฉัน</h2><button onclick="openCustomerEdit()" class="text-[10px] bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold shadow-sm">➕ เพิ่มลูกค้า</button></div>
-                <input type="text" id="searchSalesCusInput" onkeyup="searchSalesCustomer()" placeholder="ค้นหา รหัส, ชื่อลูกค้า หรือเบอร์โทร..." class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500">
+                <div class="flex justify-between items-end border-b-2 border-indigo-100 pb-3">
+                    <h2 class="text-2xl font-black text-slate-800" data-i18n="my_cus">👥 ลูกค้าของฉัน</h2>
+                    <button onclick="openCustomerEdit()" class="text-[10px] bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold shadow-sm" data-i18n="add_cus">➕ เพิ่มลูกค้า</button>
+                </div>
+                <input type="text" id="searchSalesCusInput" onkeyup="searchSalesCustomer()" data-i18n="cus_search_ph" placeholder="ค้นหา รหัส, ชื่อลูกค้า หรือเบอร์โทร..." class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                 <div id="salesCustomerList" class="space-y-3 mt-4"></div>
             </div>
 
             <div id="dash-view" class="hidden p-4 space-y-4 bg-slate-50 min-h-screen">
-                <h2 class="font-black text-2xl text-slate-800">📊 รายงานยอดขาย</h2>
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3"><div class="flex gap-2"><button onclick="setReportType('day')" id="btnRepDay" class="flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all">รายวัน</button><button onclick="setReportType('month')" id="btnRepMonth" class="flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all">รายเดือน</button><button onclick="setReportType('year')" id="btnRepYear" class="flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all">รายปี</button></div><input type="date" id="dashDate" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm font-bold outline-none text-center"><button onclick="loadDashboard()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-sm">🔍 ค้นหาข้อมูล</button></div>
-                <div class="grid grid-cols-2 gap-3"><div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-2xl text-white shadow-md"><p class="text-blue-200 text-[10px] font-bold">ยอดขายรวม</p><p id="dashTotalSales" class="text-2xl font-black mt-1">0.-</p></div><div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-slate-500 text-[10px] font-bold">จำนวนบิล</p><p id="dashTotalOrders" class="text-2xl font-black text-slate-800 mt-1">0 <span class="text-xs font-normal text-slate-400">บิล</span></p></div></div>
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-sm text-slate-800">📋 รายละเอียดบิล</h3><button onclick="printRemittance()" id="btnPrintRemit" class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold shadow-sm hidden">🖨️ พิมพ์ส่งเงิน</button></div><div class="space-y-2" id="dashBillList"></div></div>
+                <h2 class="font-black text-2xl text-slate-800" data-i18n="sales_rep">📊 รายงานยอดขาย</h2>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3"><div class="flex gap-2"><button onclick="setReportType('day')" id="btnRepDay" class="flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all" data-i18n="daily">รายวัน</button><button onclick="setReportType('month')" id="btnRepMonth" class="flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all" data-i18n="monthly">รายเดือน</button><button onclick="setReportType('year')" id="btnRepYear" class="flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all" data-i18n="yearly">รายปี</button></div><input type="date" id="dashDate" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm font-bold outline-none text-center"><button onclick="loadDashboard()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-sm" data-i18n="search_data">🔍 ค้นหาข้อมูล</button></div>
+                <div class="grid grid-cols-2 gap-3"><div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-2xl text-white shadow-md"><p class="text-blue-200 text-[10px] font-bold" data-i18n="total_sales">ยอดขายรวม</p><p id="dashTotalSales" class="text-2xl font-black mt-1">0.-</p></div><div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-slate-500 text-[10px] font-bold" data-i18n="bill_count">จำนวนบิล</p><p id="dashTotalOrders" class="text-2xl font-black text-slate-800 mt-1">0</p></div></div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-sm text-slate-800" data-i18n="bill_detail">📋 รายละเอียดบิล</h3><button onclick="printRemittance()" id="btnPrintRemit" class="text-[10px] bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold shadow-sm hidden" data-i18n="print_remit">🖨️ พิมพ์ส่งเงิน</button></div><div class="space-y-2" id="dashBillList"></div></div>
             </div>
         </div>
     </div>
 
     <div id="editCustomerModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
-            <h3 class="text-xl font-black mb-4 text-indigo-800" id="ecTitle">➕ เพิ่มลูกค้าใหม่</h3>
+            <h3 class="text-xl font-black mb-4 text-indigo-800" id="ecTitle" data-i18n="add_new_cus">➕ เพิ่มลูกค้าใหม่</h3>
             <input type="hidden" id="ecId">
             <div class="space-y-4">
-                <div><label class="text-xs font-bold text-slate-500 ml-1">รหัสลูกค้า</label><input type="text" id="ecCode" placeholder="เว้นว่างได้" class="w-full p-3 border rounded-xl bg-slate-50 font-mono text-sm"></div>
-                <div><label class="text-xs font-bold text-slate-500 ml-1">ชื่อลูกค้า / ร้านค้า <span class="text-red-500">*</span></label><input type="text" id="ecName" class="w-full p-3 border rounded-xl font-bold bg-slate-50"></div>
-                <div><label class="text-xs font-bold text-slate-500 ml-1">เบอร์โทรศัพท์</label><input type="text" id="ecPhone" class="w-full p-3 border rounded-xl bg-slate-50 font-mono"></div>
-                <div><label class="text-xs font-bold text-slate-500 ml-1">ที่อยู่รายละเอียด</label><textarea id="ecAddress" rows="3" class="w-full p-3 border rounded-xl bg-slate-50 text-sm"></textarea></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="cus_code">รหัสลูกค้า</label><input type="text" id="ecCode" class="w-full p-3 border rounded-xl bg-slate-50 font-mono text-sm"></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="cus_name">ชื่อลูกค้า / ร้านค้า *</label><input type="text" id="ecName" class="w-full p-3 border rounded-xl font-bold bg-slate-50"></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="cus_phone">เบอร์โทรศัพท์</label><input type="text" id="ecPhone" class="w-full p-3 border rounded-xl bg-slate-50 font-mono"></div>
+                <div><label class="text-xs font-bold text-slate-500 ml-1" data-i18n="cus_address">ที่อยู่รายละเอียด</label><textarea id="ecAddress" rows="3" class="w-full p-3 border rounded-xl bg-slate-50 text-sm"></textarea></div>
             </div>
-            <div class="flex gap-2 mt-6"><button onclick="saveCustomerEdit()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl transition-colors">บันทึก</button><button onclick="closeModal('editCustomerModal')" class="w-full bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">ยกเลิก</button></div>
+            <div class="flex gap-2 mt-6"><button onclick="saveCustomerEdit()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl transition-colors" data-i18n="save">บันทึก</button><button onclick="closeModal('editCustomerModal')" class="w-full bg-slate-200 text-slate-700 font-bold py-3 rounded-xl" data-i18n="cancel">ยกเลิก</button></div>
         </div>
     </div>
 
@@ -145,6 +167,107 @@
     <div id="remit-print-view" class="hidden thermal-print-area"></div>
 
     <script>
+        // ======================= i18n (DICTIONARY) =======================
+        const i18n = {
+            th: {
+                login_btn: "เข้าสู่ระบบ", login_err: "❌ รหัส PIN ไม่ถูกต้อง", emp: "พนักงาน:", 
+                nav_pos: "ขาย", nav_stock: "สต๊อก", nav_transfer: "เบิกของ", nav_cus: "ลูกค้า", nav_rep: "รายงาน",
+                cus_receive: "ลูกค้ารับสินค้า", cus_search_ph: "ระบุชื่อ / รหัสลูกค้า / เบอร์โทร...", 
+                select_prod: "🛍️ เลือกสินค้าลงบิล", search_prod: "ค้นหา / เลือกรายการ", select_unit: "เลือกหน่วยนับ", 
+                qty: "จำนวน", add_btn: "เพิ่ม", cart: "🛒 ตะกร้าสินค้า", clear_cart: "<span>🗑️</span> ล้างตะกร้า", 
+                net_total: "ยอดรวมสุทธิ", save_print: "บันทึกออเดอร์ & พิมพ์สลิป", my_stock: "📦 สต๊อกของฉัน", 
+                print_check: "🖨️ พิมพ์เช็ค", update_btn: "🔄 อัปเดต", create_req: "📝 สร้างใบเบิกสินค้า", 
+                sel_prod: "เลือกสินค้า", req_list: "📋 รายการที่จะเบิก:", send_req: "📤 ส่งใบเบิก", 
+                my_req: "🚚 บิลเบิกของฉัน", refresh: "🔄 รีเฟรช", my_cus: "👥 ลูกค้าของฉัน", add_cus: "➕ เพิ่มลูกค้า", 
+                sales_rep: "📊 รายงานยอดขาย", daily: "รายวัน", monthly: "รายเดือน", yearly: "รายปี", 
+                search_data: "🔍 ค้นหาข้อมูล", total_sales: "ยอดขายรวม", bill_count: "จำนวนบิล", 
+                bill_detail: "📋 รายละเอียดบิล", print_remit: "🖨️ พิมพ์ส่งเงิน", empty_cart: "ยังไม่มีสินค้าในตะกร้า", 
+                empty_stock: "สต๊อกว่างเปล่า", stock_left: "คงเหลือในรถ:", alert_no_cus_prod: "กรุณาระบุชื่อลูกค้าและเลือกสินค้าลงตะกร้า", 
+                alert_stock_not_enough: "⚠️ สต๊อกไม่พอ!", alert_min_req: "ต้องเบิกขั้นต่ำ", free: "ฟรี!", promo: "โปรโมชั่นที่กำลังทำงาน", 
+                promo_badge: "โปรโมชั่น", no_history: "ไม่มีประวัติ", wait_approve: "⏳ รออนุมัติ...", 
+                confirm_receive: "📥 กดยืนยันรับของทั้งบิล", received: "✔️ เซลรับสินค้าแล้ว", no_prod_in_car: "-- ไม่มีสินค้าในท้ายรถ --", 
+                type_name_code: "-- พิมพ์ชื่อ หรือ รหัสสินค้า --", sel_unit: "- เลือกหน่วย -", min_alert: "⚠️ สินค้านี้ต้องเบิกขั้นต่ำ", 
+                confirm_clear: "⚠️ ต้องการล้างรายการสินค้าทั้งหมดในตะกร้าใช่หรือไม่?", del: "ลบ", saving: "กำลังบันทึก...", 
+                alert_err: "เกิดข้อผิดพลาด: ", no_cus: "ยังไม่มีรายชื่อลูกค้า", edit: "แก้ไข", add_new_cus: "➕ เพิ่มลูกค้าใหม่", 
+                edit_cus: "✏️ แก้ไขข้อมูลลูกค้า", cus_code: "รหัสลูกค้า", cus_name: "ชื่อลูกค้า / ร้านค้า *", cus_phone: "เบอร์โทรศัพท์", 
+                cus_address: "ที่อยู่รายละเอียด", cancel: "ยกเลิก", save: "บันทึก", buy: "ซื้อ", min: "ขั้นต่ำ", 
+                special_price: "ได้ราคาพิเศษ", free_item: "ฟรี!",
+                receipt_title: "ใบเสร็จรับเงิน", print_date: "วันที่:", print_cus: "ลูกค้า:", print_emp: "พนักงาน:",
+                print_items: "รายการ", print_total: "รวม", print_thankyou: "THANK YOU!", print_stock_title: "ใบเช็คสต๊อกท้ายรถ",
+                print_sys: "ระบบ", print_actual: "นับจริง", print_sign1: "ผู้ตรวจนับสินค้า", print_sign2: "ผู้จัดการ/แอดมิน",
+                print_remit_title: "ใบส่งเงิน/รายงานขาย", print_period: "ประจำ:", print_bill_no: "รหัสบิล", print_amount: "ยอดเงิน",
+                print_total_remit: "รวมส่งเงิน:", print_sender: "ผู้ส่งเงิน", print_receiver: "ผู้รับเงิน"
+            },
+            la: {
+                login_btn: "ເຂົ້າສູ່ລະບົບ", login_err: "❌ ລະຫັດ PIN ບໍ່ຖືກຕ້ອງ", emp: "ພະນັກງານ:", 
+                nav_pos: "ຂາຍ", nav_stock: "ສະຕັອກ", nav_transfer: "ເບີກເຄື່ອງ", nav_cus: "ລູກຄ້າ", nav_rep: "ລາຍງານ",
+                cus_receive: "ລູກຄ້າຮັບສິນຄ້າ", cus_search_ph: "ລະບຸຊື່ / ລະຫັດລູກຄ້າ / ເບີໂທ...", 
+                select_prod: "🛍️ ເລືອກສິນຄ້າລົງບິນ", search_prod: "ຄົ້ນຫາ / ເລືອກລາຍການ", select_unit: "ເລືອກຫົວໜ່ວຍ", 
+                qty: "ຈຳນວນ", add_btn: "ເພີ່ມ", cart: "🛒 ກະຕ່າສິນຄ້າ", clear_cart: "<span>🗑️</span> ລ້າງກະຕ່າ", 
+                net_total: "ຍອດລວມສຸດທິ", save_print: "ບັນທຶກອໍເດີ & ພິມບິນ", my_stock: "📦 ສະຕັອກຂອງຂ້ອຍ", 
+                print_check: "🖨️ ພິມເຊັກ", update_btn: "🔄 ອັບເດດ", create_req: "📝 ສ້າງໃບເບີກສິນຄ້າ", 
+                sel_prod: "ເລືອກສິນຄ້າ", req_list: "📋 ລາຍການທີ່ຈະເບີກ:", send_req: "📤 ສົ່ງໃບເບີກ", 
+                my_req: "🚚 ບິນເບີກຂອງຂ້ອຍ", refresh: "🔄 ຣີເຟຣຊ", my_cus: "👥 ລູກຄ້າຂອງຂ້ອຍ", add_cus: "➕ ເພີ່ມລູກຄ້າ", 
+                sales_rep: "📊 ລາຍງານຍອດຂາຍ", daily: "ລາຍວັນ", monthly: "ລາຍເດືອນ", yearly: "ລາຍປີ", 
+                search_data: "🔍 ຄົ້ນຫາຂໍ້ມູນ", total_sales: "ຍອດຂາຍລວມ", bill_count: "ຈຳນວນບິນ", 
+                bill_detail: "📋 ລາຍລະອຽດບິນ", print_remit: "🖨️ ພິມສົ່ງເງິນ", empty_cart: "ຍັງບໍ່ມີສິນຄ້າໃນກະຕ່າ", 
+                empty_stock: "ສະຕັອກວ່າງເປົ່າ", stock_left: "ຍັງເຫຼືອໃນລົດ:", alert_no_cus_prod: "ກະລຸນາລະບຸຊື່ລູກຄ້າແລະເລືອກສິນຄ້າລົງກະຕ່າ", 
+                alert_stock_not_enough: "⚠️ ສະຕັອກບໍ່ພໍ!", alert_min_req: "ຕ້ອງເບີກຂັ້ນຕ່ຳ", free: "ຟຣີ!", promo: "ໂປຣໂມຊັ່ນທີ່ກຳລັງເຮັດວຽກ", 
+                promo_badge: "ໂປຣໂມຊັ່ນ", no_history: "ບໍ່ມີປະຫວັດ", wait_approve: "⏳ ລໍຖ້າອະນຸມັດ...", 
+                confirm_receive: "📥 ກົດຢືນຢັນຮັບເຄື່ອງທັງບິນ", received: "✔️ ເຊວຮັບສິນຄ້າແລ້ວ", no_prod_in_car: "-- ບໍ່ມີສິນຄ້າໃນລົດ --", 
+                type_name_code: "-- ພິມຊື່ ຫຼື ລະຫັດສິນຄ້າ --", sel_unit: "- ເລືອກຫົວໜ່ວຍ -", min_alert: "⚠️ ສິນຄ້ານີ້ຕ້ອງເບີກຂັ້ນຕ່ຳ", 
+                confirm_clear: "⚠️ ຕ້ອງການລ້າງລາຍການສິນຄ້າທັງໝົດໃນກະຕ່າແທ້ບໍ່?", del: "ລຶບ", saving: "ກຳລັງບັນທຶກ...", 
+                alert_err: "ເກີດຂໍ້ຜິດພາດ: ", no_cus: "ຍັງບໍ່ມີລາຍຊື່ລູກຄ້າ", edit: "ແກ້ໄຂ", add_new_cus: "➕ ເພີ່ມລູກຄ້າໃໝ່", 
+                edit_cus: "✏️ ແກ້ໄຂຂໍ້ມູນລູກຄ້າ", cus_code: "ລະຫັດລູກຄ້າ", cus_name: "ຊື່ລູກຄ້າ / ຮ້ານຄ້າ *", cus_phone: "ເບີໂທລະສັບ", 
+                cus_address: "ທີ່ຢູ່ລາຍລະອຽດ", cancel: "ຍົກເລີກ", save: "ບັນທຶກ", buy: "ຊື້", min: "ຂັ້ນຕ່ຳ", 
+                special_price: "ໄດ້ລາຄາພິເສດ", free_item: "ຟຣີ!",
+                receipt_title: "ໃບຮັບເງິນ", print_date: "ວັນທີ:", print_cus: "ລູກຄ້າ:", print_emp: "ພະນັກງານ:",
+                print_items: "ລາຍການ", print_total: "ລວມ", print_thankyou: "ຂໍຂອບໃຈ!", print_stock_title: "ໃບເຊັກສະຕັອກທ້າຍລົດ",
+                print_sys: "ລະບົບ", print_actual: "ນັບຈິງ", print_sign1: "ຜູ້ກວດນັບສິນຄ້າ", print_sign2: "ຜູ້ຈັດການ/ແອັດມິນ",
+                print_remit_title: "ໃບສົ່ງເງິນ/ລາຍງານຂາຍ", print_period: "ປະຈຳ:", print_bill_no: "ລະຫັດບິນ", print_amount: "ຍອດເງິນ",
+                print_total_remit: "ລວມສົ່ງເງິນ:", print_sender: "ຜູ້ສົ່ງເງິນ", print_receiver: "ຜູ້ຮັບເງິນ"
+            }
+        };
+
+        let currentLang = localStorage.getItem('asn_lang') || 'th';
+
+        function t(key) { return i18n[currentLang][key] || key; }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('asn_lang', lang);
+            
+            document.getElementById('btnLangTH').classList.toggle('border-amber-400', lang === 'th');
+            document.getElementById('btnLangLA').classList.toggle('border-amber-400', lang === 'la');
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(i18n[currentLang][key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = i18n[currentLang][key];
+                    } else {
+                        el.innerHTML = i18n[currentLang][key];
+                    }
+                }
+            });
+
+            if(!document.getElementById('main-view').classList.contains('hidden')) {
+                renderCart();
+                renderStock();
+                loadPosProductDropdown();
+                updateReqUnitOptions();
+                renderReqCart();
+                renderSalesCustomers(allCustomers);
+                if(allPromotions.length > 0) renderPromoBanner();
+                loadMyTransfers();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setLanguage(currentLang);
+        });
+
+        // ======================= APP LOGIC =======================
         const SB_URL = 'https://zmfynauxfthlvpvqgejk.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnluYXV4ZnRobHZwdnFnZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTk5OTEsImV4cCI6MjA5MDc3NTk5MX0.hB-r5E0fcnKnSWYga5AjQJ2h_J9oD7GuWwsRa58TylU';
         const _client = supabase.createClient(SB_URL, SB_KEY);
@@ -158,7 +281,7 @@
         async function login() {
             const pin = document.getElementById('pinInput').value;
             const { data, error } = await _client.from('salesmen').select('*').eq('pin', pin).single();
-            if (error || !data) return alert('PIN ผิด');
+            if (error || !data) return alert(t('login_err'));
             currentSalesman = data; document.getElementById('login-view').classList.add('hidden'); document.getElementById('main-view').classList.remove('hidden'); document.getElementById('salesmanNameDisplay').innerText = data.name;
             switchTab('pos');
         }
@@ -181,167 +304,69 @@
             if(tab === 'dash') { if(!document.getElementById('dashDate').value) document.getElementById('dashDate').value = new Date().toISOString().split('T')[0]; loadDashboard(); }
         }
 
-        /* --- CRM (ย่อ) --- */
         async function loadCustomers() { const { data } = await _client.from('customers').select('*').order('name'); if (data) { allCustomers = data; renderSalesCustomers(data); } }
-        function renderSalesCustomers(data) { const list = document.getElementById('salesCustomerList'); if(!list) return; if(data.length === 0) return list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ยังไม่มีรายชื่อลูกค้า</p>'; list.innerHTML = data.map(c => `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center"><div><p class="font-bold text-slate-800">${c.customer_code ? `[${c.customer_code}] ` : ''}${c.name}</p><p class="text-xs text-slate-500 mt-1">📞 ${c.phone || '-'}</p></div><button onclick="openCustomerEdit(${c.id})" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">แก้ไข</button></div>`).join(''); }
+        function renderSalesCustomers(data) { const list = document.getElementById('salesCustomerList'); if(!list) return; if(data.length === 0) return list.innerHTML = `<p class="text-center text-sm text-slate-400 py-4">${t('no_cus')}</p>`; list.innerHTML = data.map(c => `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center"><div><p class="font-bold text-slate-800">${c.customer_code ? `[${c.customer_code}] ` : ''}${c.name}</p><p class="text-xs text-slate-500 mt-1">📞 ${c.phone || '-'}</p></div><button onclick="openCustomerEdit(${c.id})" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">${t('edit')}</button></div>`).join(''); }
         function searchSalesCustomer() { const query = document.getElementById('searchSalesCusInput').value.toLowerCase(); const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query)) || (c.customer_code && c.customer_code.toLowerCase().includes(query))); renderSalesCustomers(filtered); }
         function searchCustomer() { const input = document.getElementById('customerName').value.toLowerCase(); const suggestBox = document.getElementById('customerSuggestions'); if (input.length < 1) { suggestBox.classList.add('hidden'); return; } const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input) || (c.customer_code && c.customer_code.toLowerCase().includes(input))); if (filtered.length > 0) { suggestBox.innerHTML = filtered.map(c => `<div onclick="selectCustomer('${c.name}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><p class="font-bold text-sm text-slate-800">${c.customer_code ? `[${c.customer_code}] ` : ''}${c.name}</p></div>`).join(''); suggestBox.classList.remove('hidden'); } else { suggestBox.classList.add('hidden'); } }
         function selectCustomer(name) { document.getElementById('customerName').value = name; document.getElementById('customerSuggestions').classList.add('hidden'); }
         document.addEventListener('click', function(e) { if (e.target.id !== 'customerName') { const sug = document.getElementById('customerSuggestions'); if(sug) sug.classList.add('hidden'); } });
-        function openCustomerEdit(id = null) { if(id) { const c = allCustomers.find(x => x.id === id); document.getElementById('ecTitle').innerHTML = '✏️ แก้ไขข้อมูลลูกค้า'; document.getElementById('ecId').value = c.id; document.getElementById('ecCode').value = c.customer_code || ''; document.getElementById('ecName').value = c.name; document.getElementById('ecPhone').value = c.phone || ''; document.getElementById('ecAddress').value = c.address || ''; } else { document.getElementById('ecTitle').innerHTML = '➕ เพิ่มลูกค้าใหม่'; document.getElementById('ecId').value = ''; document.getElementById('ecCode').value = ''; document.getElementById('ecName').value = ''; document.getElementById('ecPhone').value = ''; document.getElementById('ecAddress').value = ''; } document.getElementById('editCustomerModal').classList.remove('hidden'); }
+        function openCustomerEdit(id = null) { if(id) { const c = allCustomers.find(x => x.id === id); document.getElementById('ecTitle').innerHTML = t('edit_cus'); document.getElementById('ecId').value = c.id; document.getElementById('ecCode').value = c.customer_code || ''; document.getElementById('ecName').value = c.name; document.getElementById('ecPhone').value = c.phone || ''; document.getElementById('ecAddress').value = c.address || ''; } else { document.getElementById('ecTitle').innerHTML = t('add_new_cus'); document.getElementById('ecId').value = ''; document.getElementById('ecCode').value = ''; document.getElementById('ecName').value = ''; document.getElementById('ecPhone').value = ''; document.getElementById('ecAddress').value = ''; } document.getElementById('editCustomerModal').classList.remove('hidden'); }
         async function saveCustomerEdit() { const id = document.getElementById('ecId').value; const payload = { customer_code: document.getElementById('ecCode').value.trim() || null, name: document.getElementById('ecName').value.trim(), phone: document.getElementById('ecPhone').value.trim(), address: document.getElementById('ecAddress').value.trim(), salesman_id: currentSalesman.id }; if(!payload.name) return alert('กรุณาระบุชื่อลูกค้า'); try { if(id) await _client.from('customers').update(payload).eq('id', id); else await _client.from('customers').insert([payload]); closeModal('editCustomerModal'); loadCustomers(); } catch(e) { alert(e.message); } }
 
-        /* --- PROMOTIONS --- */
-        async function loadPromotions() {
-            const { data } = await _client.from('promotions').select('*').eq('is_active', true);
-            if(data) { allPromotions = data; renderPromoBanner(); }
-        }
+        async function loadPromotions() { const { data } = await _client.from('promotions').select('*').eq('is_active', true); if(data) { allPromotions = data; renderPromoBanner(); } }
+        function renderPromoBanner() { const banner = document.getElementById('posPromoBanner'); const list = document.getElementById('posPromoList'); if(allPromotions.length === 0) { banner.classList.add('hidden'); return; } banner.classList.remove('hidden'); let bannerHtml = ''; allPromotions.forEach(p => { if(!p.tiers || p.tiers.length === 0) return; let prodNames = []; (p.skus || []).forEach(sku => { const pd = products.find(x => x.id == sku); if(pd) prodNames.push(pd.name); }); if(prodNames.length === 0) return; const minTier = p.tiers.reduce((prev, curr) => (curr.min < prev.min ? curr : prev), p.tiers[0]); let msg = `${t('buy')} <b>${prodNames[0]} ${prodNames.length>1?`(+ ${prodNames.length-1})`:''}</b> `; msg += `${t('min')} ${minTier.min} ${minTier.buy_unit} `; if(p.type === 'discount') msg += `👉 <b>${t('special_price')} ${minTier.reward.toLocaleString()}.-</b>`; else { const freeProd = products.find(prod => prod.id == p.free_product_id); msg += `👉 <b class="text-emerald-600">${t('free_item')} ${freeProd?freeProd.name:'สินค้า'} x${minTier.reward} ${p.free_unit||''}</b>`; } bannerHtml += `<li>${msg}</li>`; }); list.innerHTML = bannerHtml; }
 
-        function renderPromoBanner() {
-            const banner = document.getElementById('posPromoBanner');
-            const list = document.getElementById('posPromoList');
-            if(allPromotions.length === 0) { banner.classList.add('hidden'); return; }
-            
-            banner.classList.remove('hidden');
-            let bannerHtml = '';
-
-            allPromotions.forEach(p => {
-                if(!p.tiers || p.tiers.length === 0) return;
-                let prodNames = [];
-                (p.skus || []).forEach(sku => {
-                    const pd = products.find(x => x.id == sku);
-                    if(pd) prodNames.push(pd.name);
-                });
-                if(prodNames.length === 0) return;
-
-                // โชว์แค่ขั้นต่ำสุดของโปรนั้นเป็นน้ำจิ้มในแบนเนอร์
-                const minTier = p.tiers.reduce((prev, curr) => (curr.min < prev.min ? curr : prev), p.tiers[0]);
-                
-                let msg = `ซื้อ <b>${prodNames[0]} ${prodNames.length>1?`(+อีก ${prodNames.length-1} อย่าง)`:''}</b> `;
-                msg += `ขั้นต่ำ ${minTier.min} ${minTier.buy_unit} `;
-                
-                if(p.type === 'discount') msg += `👉 <b>ราคาพิเศษ ${minTier.reward.toLocaleString()}.-</b>`;
-                else {
-                    const freeProd = products.find(prod => prod.id == p.free_product_id);
-                    msg += `👉 <b class="text-emerald-600">ฟรี! ${freeProd?freeProd.name:'สินค้า'} x${minTier.reward} ${p.free_unit||''}</b>`;
-                }
-                bannerHtml += `<li>${msg} <span class="text-slate-400 text-[8px]">(มี ${p.tiers.length} ขั้น)</span></li>`;
-            });
-            list.innerHTML = bannerHtml;
-        }
-
-        /* --- POS & STOCK --- */
-        async function loadProducts() { 
-            try {
-                const { data: prods } = await _client.from('products').select('*'); 
-                const { data: invs } = await _client.from('salesman_inventory').select('product_id, quantity').eq('salesman_id', currentSalesman.id); 
-                if(invs && prods) { products = invs.map(inv => { const p = prods.find(x => x.id === inv.product_id); return p ? { ...p, stock: inv.quantity } : null; }).filter(x => x !== null && x.stock > 0); } else { products = []; } 
-                renderStock(); loadPosProductDropdown();
-                if(allPromotions.length > 0) renderPromoBanner();
-            } catch(e) {}
-        }
-
-        function loadPosProductDropdown() {
-            const sel = document.getElementById('posProduct'); if (!sel) return;
-            if (products.length === 0) { sel.innerHTML = '<option value="">-- ไม่มีสินค้าในท้ายรถ --</option>'; document.getElementById('posUnit').innerHTML = ''; return; }
-            sel.innerHTML = '<option value="">-- พิมพ์ชื่อ หรือ รหัสสินค้า --</option>' + products.map(p => `<option value="${p.id}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name} (มี ${p.stock} ${p.unit_name||'ชิ้น'})</option>`).join('');
-            updatePosUnitOptions();
-        }
-        
-        function updatePosUnitOptions() {
-            const pId = document.getElementById('posProduct').value; const uSel = document.getElementById('posUnit');
-            if(!pId) { uSel.innerHTML = '<option value="">- เลือกหน่วย -</option>'; return; }
-            const p = products.find(x => x.id == pId);
-            let opts = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1" data-price="${p.sale_price}">${p.unit_name||'ชิ้น'} (${p.sale_price}.-)</option>`;
-            if(p.pack_qty > 0) opts += `<option value="pack" data-name="${p.pack_unit}" data-mul="${p.pack_qty}" data-price="${p.pack_price}">${p.pack_unit} (${p.pack_price}.-)</option>`;
-            if(p.box_qty > 0) opts += `<option value="box" data-name="${p.box_unit}" data-mul="${p.box_qty}" data-price="${p.box_price}">${p.box_unit} (${p.box_price}.-)</option>`;
-            uSel.innerHTML = opts;
-        }
-
-        function renderStock() { 
-            const stockList = document.getElementById('myStockList'); if (!stockList) return;
-            if (products.length === 0) return stockList.innerHTML = `<div class="bg-slate-50 text-slate-400 p-4 rounded-xl text-center text-sm font-bold border border-slate-200">สต๊อกว่างเปล่า</div>`;
-            stockList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm"><div class="w-full"><p class="font-bold text-slate-800 text-sm">${p.product_code ? `[${p.product_code}] ` : ''}${p.name}</p><div class="flex justify-between items-end mt-2 border-t border-slate-50 pt-2"><span class="text-slate-500 text-xs">คงเหลือในรถ:</span><span class="text-blue-600 font-black text-xl">${p.stock} <span class="text-sm font-normal text-slate-500">${p.unit_name || 'ชิ้น'}</span></span></div></div></div>`).join(''); 
-        }
+        async function loadProducts() { try { const { data: prods } = await _client.from('products').select('*'); const { data: invs } = await _client.from('salesman_inventory').select('product_id, quantity').eq('salesman_id', currentSalesman.id); if(invs && prods) { products = invs.map(inv => { const p = prods.find(x => x.id === inv.product_id); return p ? { ...p, stock: inv.quantity } : null; }).filter(x => x !== null && x.stock > 0); } else { products = []; } renderStock(); loadPosProductDropdown(); if(allPromotions.length > 0) renderPromoBanner(); } catch(e) {} }
+        function loadPosProductDropdown() { const sel = document.getElementById('posProduct'); if (!sel) return; if (products.length === 0) { sel.innerHTML = `<option value="">${t('no_prod_in_car')}</option>`; document.getElementById('posUnit').innerHTML = ''; return; } sel.innerHTML = `<option value="">${t('type_name_code')}</option>` + products.map(p => `<option value="${p.id}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name} (มี ${p.stock} ${p.unit_name||'ชิ้น'})</option>`).join(''); updatePosUnitOptions(); }
+        function updatePosUnitOptions() { const pId = document.getElementById('posProduct').value; const uSel = document.getElementById('posUnit'); if(!pId) { uSel.innerHTML = `<option value="">${t('sel_unit')}</option>`; return; } const p = products.find(x => x.id == pId); let opts = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1" data-price="${p.sale_price}">${p.unit_name||'ชิ้น'} (${p.sale_price}.-)</option>`; if(p.pack_qty > 0) opts += `<option value="pack" data-name="${p.pack_unit}" data-mul="${p.pack_qty}" data-price="${p.pack_price}">${p.pack_unit} (${p.pack_price}.-)</option>`; if(p.box_qty > 0) opts += `<option value="box" data-name="${p.box_unit}" data-mul="${p.box_qty}" data-price="${p.box_price}">${p.box_unit} (${p.box_price}.-)</option>`; uSel.innerHTML = opts; }
+        function renderStock() { const stockList = document.getElementById('myStockList'); if (!stockList) return; if (products.length === 0) return stockList.innerHTML = `<div class="bg-slate-50 text-slate-400 p-4 rounded-xl text-center text-sm font-bold border border-slate-200">${t('empty_stock')}</div>`; stockList.innerHTML = products.map(p => `<div class="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-2xl shadow-sm"><div class="w-full"><p class="font-bold text-slate-800 text-sm">${p.product_code ? `[${p.product_code}] ` : ''}${p.name}</p><div class="flex justify-between items-end mt-2 border-t border-slate-50 pt-2"><span class="text-slate-500 text-xs">${t('stock_left')}</span><span class="text-blue-600 font-black text-xl">${p.stock} <span class="text-sm font-normal text-slate-500">${p.unit_name || 'ชิ้น'}</span></span></div></div></div>`).join(''); }
 
         function addPosCart() {
             const sel = document.getElementById('posProduct'); const pId = parseInt(sel.value);
             const uSel = document.getElementById('posUnit'); const qty = parseInt(document.getElementById('posQty').value);
-            if (!pId || !qty || qty <= 0) return alert('⚠️ กรุณาเลือกสินค้าและระบุจำนวนที่ถูกต้อง');
+            if (!pId || !qty || qty <= 0) return;
             
-            const p = products.find(x => x.id === pId); if (!p) return alert('ไม่พบสินค้า');
+            const p = products.find(x => x.id === pId); if (!p) return;
             const unitName = uSel.options[uSel.selectedIndex].getAttribute('data-name');
             const unitMul = parseInt(uSel.options[uSel.selectedIndex].getAttribute('data-mul'));
             const originalPrice = parseFloat(uSel.options[uSel.selectedIndex].getAttribute('data-price'));
 
-            // === ระบบคำนวณโปรโมชั่นอัจฉริยะแบบขั้นบันได (Advanced Tiers) ===
-            let finalPrice = originalPrice;
-            let promoApplied = false;
-            let freebiesToAdd = [];
-
-            // หาว่าสินค้านี้อยู่ในโปรไหนบ้างไหม?
+            let finalPrice = originalPrice; let promoApplied = false; let freebiesToAdd = [];
             const applicablePromos = allPromotions.filter(promo => (promo.skus || []).includes(pId));
             
             applicablePromos.forEach(promo => {
-                // หาขั้นบันไดที่เหมาะสมที่สุด (ซื้อถึง min และไม่เกิน max และตรงหน่วย)
                 let matchedTier = null;
-                (promo.tiers || []).forEach(tier => {
-                    if(unitName === tier.buy_unit && qty >= tier.min && qty <= tier.max) {
-                        matchedTier = tier;
-                    }
-                });
-
+                (promo.tiers || []).forEach(tier => { if(unitName === tier.buy_unit && qty >= tier.min && qty <= tier.max) matchedTier = tier; });
                 if (matchedTier) {
-                    if (promo.type === 'discount') {
-                        finalPrice = matchedTier.reward; // เปลี่ยนเป็นราคาพิเศษตามขั้น
-                        promoApplied = true;
-                    } else if (promo.type === 'freebie') {
-                        // คำนวณของแถมแบบทวีคูณ (ซื้อ 10 แถม 1, ซื้อ 20 แถม 2)
+                    if (promo.type === 'discount') { finalPrice = matchedTier.reward; promoApplied = true; } 
+                    else if (promo.type === 'freebie') {
                         const multiplier = Math.floor(qty / matchedTier.min);
                         const totalFreeQty = matchedTier.reward * multiplier;
-                        
                         const freeProd = products.find(fp => fp.id == promo.free_product_id);
                         if (freeProd) {
                             let freeUnitMul = 1;
                             if(promo.free_unit === freeProd.pack_unit) freeUnitMul = freeProd.pack_qty;
                             if(promo.free_unit === freeProd.box_unit) freeUnitMul = freeProd.box_qty;
-
-                            freebiesToAdd.push({
-                                ...freeProd, 
-                                qty: totalFreeQty, 
-                                unit_name_sell: promo.free_unit, 
-                                unitMul: freeUnitMul, 
-                                sell_price: 0, 
-                                isFreebie: true
-                            });
+                            freebiesToAdd.push({ ...freeProd, qty: totalFreeQty, unit_name_sell: promo.free_unit, unitMul: freeUnitMul, sell_price: 0, isFreebie: true });
                         }
                     }
                 }
             });
 
-            // เช็คสต๊อกของหลัก
             const totalBaseQtyNeeded = qty * unitMul;
             let currentCartBaseQty = cart.filter(c => c.id === pId).reduce((s, c) => s + (c.qty * c.unitMul), 0);
-            
-            if (currentCartBaseQty + totalBaseQtyNeeded > p.stock) return alert(`⚠️ สต๊อกไม่พอ!\nสินค้า "${p.name}" คุณมีในรถรวม ${p.stock} ${p.unit_name||'ชิ้น'}`);
+            if (currentCartBaseQty + totalBaseQtyNeeded > p.stock) return alert(`${t('alert_stock_not_enough')}\n${p.name}`);
 
-            // เช็คสต๊อกของแถม
             let canAddFreebies = true;
             freebiesToAdd.forEach(fb => {
                 const fbTotalBaseNeed = fb.qty * fb.unitMul;
                 const fbCurrentCartBaseQty = cart.filter(c => c.id === fb.id).reduce((s, c) => s + (c.qty * c.unitMul), 0);
                 let totalStockNeed = fbCurrentCartBaseQty + fbTotalBaseNeed;
                 if(pId === fb.id) totalStockNeed += totalBaseQtyNeeded;
-
-                if(totalStockNeed > fb.stock) {
-                    alert(`⚠️ ไม่สามารถแถมสินค้า "${fb.name}" ได้ เนื่องจากสต๊อกในรถของคุณมีไม่พอแจกของแถมครับ`);
-                    canAddFreebies = false;
-                }
+                if(totalStockNeed > fb.stock) { alert(`${t('alert_stock_not_enough')} (Freebie)`); canAddFreebies = false; }
             });
+            if(!canAddFreebies) return; 
 
-            if(!canAddFreebies) return; // ยกเลิกถ้ารถเซลส์ของไม่พอแถม
-
-            // ยัดลงตะกร้า!
             cart.push({ ...p, qty: qty, unit_name_sell: unitName, unitMul: unitMul, sell_price: finalPrice, hasPromo: promoApplied });
             freebiesToAdd.forEach(fb => cart.push(fb));
 
@@ -349,62 +374,73 @@
         }
 
         function removeCart(index) { cart.splice(index, 1); renderCart(); }
+        function clearCart() { if (cart.length === 0) return; if (confirm(t('confirm_clear'))) { cart = []; renderCart(); } }
 
         function renderCart() { 
-            const list = document.getElementById('cartItems'); if(cart.length === 0) { list.innerHTML = '<p class="text-center italic opacity-40 text-xs mt-2">ยังไม่มีสินค้าในตะกร้า</p>'; document.getElementById('totalAmount').innerText = '0.-'; return; } 
+            const list = document.getElementById('cartItems'); 
+            if(cart.length === 0) { list.innerHTML = `<p class="text-center italic opacity-40 text-xs mt-2">${t('empty_cart')}</p>`; document.getElementById('totalAmount').innerText = '0.-'; return; } 
             list.innerHTML = cart.map((c, index) => {
-                const isFree = c.isFreebie ? '<span class="bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[8px] ml-2 font-bold uppercase animate-pulse">ฟรี!</span>' : '';
-                const promoBadge = c.hasPromo ? '<span class="bg-amber-100 text-amber-700 px-1 rounded text-[8px] font-bold border border-amber-200">โปรโมชั่น</span>' : '';
-                return `<div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-2 last:border-0"><span class="w-3/4 pr-2"><span class="font-bold text-white text-xs">${c.name} ${isFree}</span><br><span class="text-amber-400 font-bold">x${c.qty} <span class="text-[10px] font-normal text-slate-400">${c.unit_name_sell}</span></span> ${promoBadge}</span><div class="flex items-center space-x-3"><span class="font-black text-white text-lg">${(c.sell_price*c.qty).toLocaleString()}.-</span><button onclick="removeCart(${index})" class="text-red-400 hover:text-red-300 text-xs font-bold border border-slate-600 px-2 py-1 rounded">ลบ</button></div></div>`;
+                const isFree = c.isFreebie ? `<span class="bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[8px] ml-2 font-bold uppercase animate-pulse">${t('free')}</span>` : '';
+                const promoBadge = c.hasPromo ? `<span class="bg-amber-100 text-amber-700 px-1 rounded text-[8px] font-bold border border-amber-200">${t('promo_badge')}</span>` : '';
+                return `
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-3 last:border-0">
+                    <span class="w-3/4 pr-2">
+                        <span class="font-bold text-white text-xs">${c.name} ${isFree}</span><br>
+                        <span class="text-amber-400 font-bold">x${c.qty} <span class="text-[10px] font-normal text-slate-400">${c.unit_name_sell}</span></span> ${promoBadge}
+                    </span>
+                    <div class="flex flex-col items-end space-y-1">
+                        <span class="font-black text-white text-lg">${(c.sell_price*c.qty).toLocaleString()}.-</span>
+                        <button onclick="removeCart(${index})" class="bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-md shadow-sm transition-all flex items-center gap-1">
+                            <span>🗑️</span> ${t('del')}
+                        </button>
+                    </div>
+                </div>`;
             }).join(''); 
             document.getElementById('totalAmount').innerText = cart.reduce((s, c) => s + (c.sell_price*c.qty), 0).toLocaleString() + '.-'; 
         }
 
         async function submitOrder() { 
             const name = document.getElementById('customerName').value.trim(); 
-            if(!name || cart.length === 0) return alert('กรุณาระบุชื่อลูกค้าและเลือกสินค้าลงตะกร้า'); 
+            if(!name || cart.length === 0) return alert(t('alert_no_cus_prod')); 
             const total = cart.reduce((s, c) => s + (c.sell_price*c.qty), 0); 
-            const btn = document.getElementById('btnSubmit'); btn.innerText = 'กำลังบันทึก...'; btn.disabled = true;
+            const btn = document.getElementById('btnSubmit'); btn.innerText = t('saving'); btn.disabled = true;
             try {
                 const existingCus = allCustomers.find(c => c.name === name);
                 if (!existingCus) { await _client.from('customers').insert([{ name: name, salesman_id: currentSalesman.id }]); }
-
                 const { data: orderData } = await _client.from('orders').insert([{ customer_name: name, total_amount: total, salesman_id: currentSalesman.id }]).select(); const newOrderId = orderData[0].id; 
-                
                 const itemsToInsert = cart.map(c => {
                     let finalName = `${c.name} (${c.unit_name_sell})`;
-                    if(c.isFreebie) finalName = `[ของแถม] ` + finalName;
-                    else if(c.hasPromo) finalName = `[โปรโมชั่น] ` + finalName;
+                    if(c.isFreebie) finalName = `[${t('free')}] ` + finalName;
+                    else if(c.hasPromo) finalName = `[${t('promo_badge')}] ` + finalName;
                     return { order_id: newOrderId, product_id: c.id, product_name: finalName, quantity: c.qty, price: c.sell_price, base_qty: c.qty * c.unitMul };
                 }); 
                 await _client.from('order_items').insert(itemsToInsert); 
-                
                 for(let c of cart) {
                     const { data: inv } = await _client.from('salesman_inventory').select('quantity').eq('salesman_id', currentSalesman.id).eq('product_id', c.id).single();
                     await _client.from('salesman_inventory').update({ quantity: inv.quantity - (c.qty * c.unitMul) }).eq('salesman_id', currentSalesman.id).eq('product_id', c.id);
                 }
-                
                 printReceipt(name, total, cart); cart = []; document.getElementById('customerName').value = ''; renderCart(); loadProducts(); loadCustomers();
-            } catch (err) { alert('เกิดข้อผิดพลาด: ' + err.message); } finally { btn.innerText = 'บันทึกออเดอร์ & พิมพ์สลิป'; btn.disabled = false; }
+            } catch (err) { alert(t('alert_err') + err.message); } finally { btn.innerText = t('save_print'); btn.disabled = false; }
         }
 
-        /* --- TRANSFER (ย่อ) --- */
+        /* --- TRANSFER --- */
         let allMasterProducts = [];
-        async function loadTransferProductDropdown() { const { data } = await _client.from('products').select('*').order('name'); if (data) { allMasterProducts = data; document.getElementById('reqProduct').innerHTML = '<option value="">-- เลือกสินค้า --</option>' + data.map(p => `<option value="${p.id}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name}</option>`).join(''); updateReqUnitOptions(); } }
-        function updateReqUnitOptions() { const pId = document.getElementById('reqProduct').value; const uSel = document.getElementById('reqUnit'); const msg = document.getElementById('reqMinMsg'); if(!pId) { uSel.innerHTML = '<option value="">- เลือกหน่วย -</option>'; uSel.disabled = true; msg.classList.add('hidden'); return; } const p = allMasterProducts.find(x => x.id == pId); const minBox = p.min_transfer_box || 1; if (p.box_qty > 0) { uSel.innerHTML = `<option value="box" data-name="${p.box_unit}" data-mul="${p.box_qty}">${p.box_unit}</option>`; uSel.disabled = false; msg.innerHTML = `*เบิกขั้นต่ำ ${minBox} ${p.box_unit}`; msg.classList.remove('hidden'); } else { uSel.innerHTML = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1">${p.unit_name||'ชิ้น'}</option>`; uSel.disabled = false; msg.innerHTML = `*เบิกขั้นต่ำ ${minBox} ${p.unit_name||'ชิ้น'}`; msg.classList.remove('hidden'); } }
-        function addToReqCart() { const sel = document.getElementById('reqProduct'); const pId = parseInt(sel.value); const uSel = document.getElementById('reqUnit'); const qty = parseInt(document.getElementById('reqQty').value); if (!pId || !qty || qty <= 0) return alert('⚠️ กรุณาเลือกสินค้าและจำนวน'); const p = allMasterProducts.find(x => x.id == pId); const minBox = p.min_transfer_box || 1; const unitName = uSel.options[uSel.selectedIndex].getAttribute('data-name'); const unitMul = parseInt(uSel.options[uSel.selectedIndex].getAttribute('data-mul')); if (qty < minBox) return alert(`⚠️ สินค้านี้ต้องเบิกขั้นต่ำ ${minBox} ${unitName} ขึ้นไปครับ`); reqCart.push({ product_id: pId, product_name: `${p.name} (${unitName})`, quantity: qty, base_qty: qty * unitMul }); document.getElementById('reqQty').value = ''; sel.value = ''; updateReqUnitOptions(); renderReqCart(); }
+        async function loadTransferProductDropdown() { const { data } = await _client.from('products').select('*').order('name'); if (data) { allMasterProducts = data; document.getElementById('reqProduct').innerHTML = `<option value="">-- ${t('sel_prod')} --</option>` + data.map(p => `<option value="${p.id}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name}</option>`).join(''); updateReqUnitOptions(); } }
+        function updateReqUnitOptions() { const pId = document.getElementById('reqProduct').value; const uSel = document.getElementById('reqUnit'); const msg = document.getElementById('reqMinMsg'); if(!pId) { uSel.innerHTML = `<option value="">${t('sel_unit')}</option>`; uSel.disabled = true; msg.classList.add('hidden'); return; } const p = allMasterProducts.find(x => x.id == pId); const minBox = p.min_transfer_box || 1; if (p.box_qty > 0) { uSel.innerHTML = `<option value="box" data-name="${p.box_unit}" data-mul="${p.box_qty}">${p.box_unit}</option>`; uSel.disabled = false; msg.innerHTML = `*${t('alert_min_req')} ${minBox} ${p.box_unit}`; msg.classList.remove('hidden'); } else { uSel.innerHTML = `<option value="base" data-name="${p.unit_name||'ชิ้น'}" data-mul="1">${p.unit_name||'ชิ้น'}</option>`; uSel.disabled = false; msg.innerHTML = `*${t('alert_min_req')} ${minBox} ${p.unit_name||'ชิ้น'}`; msg.classList.remove('hidden'); } }
+        function addToReqCart() { const sel = document.getElementById('reqProduct'); const pId = parseInt(sel.value); const uSel = document.getElementById('reqUnit'); const qty = parseInt(document.getElementById('reqQty').value); if (!pId || !qty || qty <= 0) return; const p = allMasterProducts.find(x => x.id == pId); const minBox = p.min_transfer_box || 1; const unitName = uSel.options[uSel.selectedIndex].getAttribute('data-name'); const unitMul = parseInt(uSel.options[uSel.selectedIndex].getAttribute('data-mul')); if (qty < minBox) return alert(`${t('min_alert')} ${minBox} ${unitName}`); reqCart.push({ product_id: pId, product_name: `${p.name} (${unitName})`, quantity: qty, base_qty: qty * unitMul }); document.getElementById('reqQty').value = ''; sel.value = ''; updateReqUnitOptions(); renderReqCart(); }
         function removeReqCart(index) { reqCart.splice(index, 1); renderReqCart(); }
-        function renderReqCart() { const list = document.getElementById('reqCartItems'); const btnSubmit = document.getElementById('btnSubmitReq'); if (reqCart.length === 0) { list.innerHTML = ''; btnSubmit.classList.add('hidden'); return; } btnSubmit.classList.remove('hidden'); list.innerHTML = reqCart.map((c, i) => `<div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg"><span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity}</span></span><button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold bg-white border px-2 py-1 rounded-md">ลบ</button></div>`).join(''); }
-        async function submitTransferRequest() { if (reqCart.length === 0) return; const btn = document.getElementById('btnSubmitReq'); btn.disabled = true; btn.innerText = 'กำลังส่ง...'; const d = new Date(); const refId = 'REQ' + d.getFullYear().toString().slice(-2) + (d.getMonth()+1).toString().padStart(2,'0') + d.getDate().toString().padStart(2,'0') + '-' + Math.floor(Math.random()*10000).toString().padStart(4,'0'); try { const insertData = reqCart.map(c => ({ salesman_id: currentSalesman.id, salesman_name: currentSalesman.name, product_id: c.product_id, product_name: c.product_name, quantity: c.quantity, base_qty: c.base_qty, status: 'ส่งใบเบิกสินค้า', transfer_ref: refId })); await _client.from('stock_transfers').insert(insertData); alert(`✅ ส่งใบเบิกเลขที่ ${refId} เรียบร้อย!`); reqCart = []; renderReqCart(); loadMyTransfers(); } catch (e) { alert('Error: ' + e.message); } finally { btn.disabled = false; btn.innerText = '📤 ส่งใบเบิก'; } }
-        async function loadMyTransfers() { const list = document.getElementById('myTransferList'); try { const { data } = await _client.from('stock_transfers').select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(50); if (!data || data.length === 0) { list.innerHTML = '<p class="text-center text-sm text-slate-400 py-4">ไม่มีประวัติ</p>'; return; } allMyTransfers = data; const grouped = {}; data.forEach(t => { const ref = t.transfer_ref || `NO-REF-${t.id}`; if(!grouped[ref]) grouped[ref] = { ref: ref, date: t.transfer_date, status: t.status, items: [] }; grouped[ref].items.push(t); }); list.innerHTML = Object.values(grouped).map(g => { let statusBtn = ''; if (g.status === 'ส่งใบเบิกสินค้า') statusBtn = '<span class="text-amber-600 font-bold text-xs">⏳ รออนุมัติ...</span>'; else if (g.status === 'อนุมัติแล้ว') statusBtn = `<button onclick="receiveGroup('${g.ref}', this)" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2">📥 กดยืนยันรับของทั้งบิล</button>`; else if (g.status === 'เซลรับสินค้าแล้ว' || g.status === 'รับโอนแล้ว') statusBtn = '<span class="text-green-600 font-bold text-xs">✔️ เซลรับสินค้าแล้ว</span>'; else statusBtn = `<span class="text-red-500 font-bold text-xs">${g.status}</span>`; return `<div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm"><div class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2"><span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">No: ${g.ref}</span></div><div class="space-y-1 mb-3">${g.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>- ${i.product_name}</span><span class="text-blue-600">x${i.quantity}</span></div>`).join('')}</div><div class="text-right">${statusBtn}</div></div>`; }).join(''); } catch (err) {} }
-        async function receiveGroup(ref, btnElement) { if (!confirm(`ยืนยัน "รับสินค้า" บิลเลขที่ ${ref} ?`)) return; const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'อนุมัติแล้ว'); if(itemsToReceive.length === 0) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังโหลด...'; } try { for(let item of itemsToReceive) { await _client.from('stock_transfers').update({ status: 'เซลรับสินค้าแล้ว' }).eq('id', item.id); const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle(); const baseToAdd = item.base_qty || item.quantity; if (inv) { await _client.from('salesman_inventory').update({ quantity: inv.quantity + baseToAdd }).eq('id', inv.id); } else { await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: baseToAdd }]); } } alert('🎉 รับสินค้าสำเร็จ'); loadMyTransfers(); } catch (e) { alert(e.message); } }
+        function renderReqCart() { const list = document.getElementById('reqCartItems'); const btnSubmit = document.getElementById('btnSubmitReq'); if (reqCart.length === 0) { list.innerHTML = ''; btnSubmit.classList.add('hidden'); return; } btnSubmit.classList.remove('hidden'); list.innerHTML = reqCart.map((c, i) => `<div class="flex justify-between items-center bg-indigo-50 border border-indigo-100 px-3 py-2 rounded-lg"><span class="text-sm font-bold text-slate-800">${c.product_name} <span class="text-blue-600 ml-1">x${c.quantity}</span></span><button onclick="removeReqCart(${i})" class="text-red-500 text-xs font-bold bg-white border px-2 py-1 rounded-md">${t('del')}</button></div>`).join(''); }
+        async function submitTransferRequest() { if (reqCart.length === 0) return; const btn = document.getElementById('btnSubmitReq'); btn.disabled = true; btn.innerText = t('saving'); const d = new Date(); const refId = 'REQ' + d.getFullYear().toString().slice(-2) + (d.getMonth()+1).toString().padStart(2,'0') + d.getDate().toString().padStart(2,'0') + '-' + Math.floor(Math.random()*10000).toString().padStart(4,'0'); try { const insertData = reqCart.map(c => ({ salesman_id: currentSalesman.id, salesman_name: currentSalesman.name, product_id: c.product_id, product_name: c.product_name, quantity: c.quantity, base_qty: c.base_qty, status: 'ส่งใบเบิกสินค้า', transfer_ref: refId })); await _client.from('stock_transfers').insert(insertData); reqCart = []; renderReqCart(); loadMyTransfers(); } catch (e) { alert(e.message); } finally { btn.disabled = false; btn.innerText = t('send_req'); } }
+        async function loadMyTransfers() { const list = document.getElementById('myTransferList'); try { const { data } = await _client.from('stock_transfers').select('*').eq('salesman_id', currentSalesman.id).order('transfer_date', { ascending: false }).limit(50); if (!data || data.length === 0) { list.innerHTML = `<p class="text-center text-sm text-slate-400 py-4">${t('no_history')}</p>`; return; } allMyTransfers = data; const grouped = {}; data.forEach(t => { const ref = t.transfer_ref || `NO-REF-${t.id}`; if(!grouped[ref]) grouped[ref] = { ref: ref, date: t.transfer_date, status: t.status, items: [] }; grouped[ref].items.push(t); }); list.innerHTML = Object.values(grouped).map(g => { let statusBtn = ''; if (g.status === 'ส่งใบเบิกสินค้า') statusBtn = `<span class="text-amber-600 font-bold text-xs">${t('wait_approve')}</span>`; else if (g.status === 'อนุมัติแล้ว') statusBtn = `<button onclick="receiveGroup('${g.ref}', this)" class="bg-green-500 text-white px-4 py-2 rounded-xl text-xs font-black animate-pulse shadow-md w-full mt-2">${t('confirm_receive')}</button>`; else if (g.status === 'เซลรับสินค้าแล้ว' || g.status === 'รับโอนแล้ว') statusBtn = `<span class="text-green-600 font-bold text-xs">${t('received')}</span>`; else statusBtn = `<span class="text-red-500 font-bold text-xs">${g.status}</span>`; return `<div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm"><div class="flex justify-between items-center mb-2 border-b border-slate-100 pb-2"><span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded">No: ${g.ref}</span></div><div class="space-y-1 mb-3">${g.items.map(i => `<div class="flex justify-between text-xs font-bold text-slate-700"><span>- ${i.product_name}</span><span class="text-blue-600">x${i.quantity}</span></div>`).join('')}</div><div class="text-right">${statusBtn}</div></div>`; }).join(''); } catch (err) {} }
+        async function receiveGroup(ref, btnElement) { if (!confirm(`OK?`)) return; const itemsToReceive = allMyTransfers.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'อนุมัติแล้ว'); if(itemsToReceive.length === 0) return; if(btnElement) { btnElement.disabled = true; btnElement.innerText = '...'; } try { for(let item of itemsToReceive) { await _client.from('stock_transfers').update({ status: 'เซลรับสินค้าแล้ว' }).eq('id', item.id); const { data: inv } = await _client.from('salesman_inventory').select('*').eq('salesman_id', currentSalesman.id).eq('product_id', item.product_id).maybeSingle(); const baseToAdd = item.base_qty || item.quantity; if (inv) { await _client.from('salesman_inventory').update({ quantity: inv.quantity + baseToAdd }).eq('id', inv.id); } else { await _client.from('salesman_inventory').insert([{ salesman_id: currentSalesman.id, product_id: item.product_id, quantity: baseToAdd }]); } } loadMyTransfers(); } catch (e) { alert(e.message); } }
 
-        /* --- DASHBOARD, REPORTS & PRINT (เหมือนเดิม ย่อไว้) --- */
-        window.currentReportData = []; window.currentReportTotal = 0; function setReportType(type) { currentReportType = type; ['day', 'month', 'year'].forEach(t => { const btn = document.getElementById('btnRep' + t.charAt(0).toUpperCase() + t.slice(1)); if (t === type) btn.className = 'flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all'; else btn.className = 'flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all'; }); loadDashboard(); } async function loadDashboard() { try { const dateVal = document.getElementById('dashDate').value; if(!dateVal) return; const [yyyy, mm, dd] = dateVal.split('-'); const { data, error } = await _client.from('orders').select('*').eq('salesman_id', currentSalesman.id).order('created_at', { ascending: true }); if (error) throw error; const filteredData = data.filter(o => { const oDate = new Date(o.created_at); if (currentReportType === 'day') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd; else if (currentReportType === 'month') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm; else if (currentReportType === 'year') return oDate.getFullYear() == yyyy; return false; }); const totalRevenue = filteredData.reduce((sum, order) => sum + Number(order.total_amount || 0), 0); document.getElementById('dashTotalSales').innerText = totalRevenue.toLocaleString() + '.-'; document.getElementById('dashTotalOrders').innerHTML = `${filteredData.length} <span class="text-xs font-normal text-slate-400">บิล</span>`; const list = document.getElementById('dashBillList'); if (filteredData.length === 0) { list.innerHTML = '<p class="text-center text-xs text-slate-400 py-3">ไม่มีข้อมูล</p>'; document.getElementById('btnPrintRemit').classList.add('hidden'); } else { document.getElementById('btnPrintRemit').classList.remove('hidden'); list.innerHTML = filteredData.map(o => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100"><div class="w-3/4 pr-2"><p class="text-xs font-bold text-slate-800 truncate">🧑‍💼 ${o.customer_name}</p><p class="text-[10px] text-slate-500 mt-0.5">บิล: #${o.id} • ${new Date(o.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</p></div><span class="text-sm font-black text-blue-600">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); } window.currentReportData = filteredData; window.currentReportTotal = totalRevenue; } catch (err) {} }
+        /* --- DASHBOARD --- */
+        window.currentReportData = []; window.currentReportTotal = 0; function setReportType(type) { currentReportType = type; ['day', 'month', 'year'].forEach(t => { const btn = document.getElementById('btnRep' + t.charAt(0).toUpperCase() + t.slice(1)); if (t === type) btn.className = 'flex-1 bg-amber-100 text-amber-700 font-bold py-2 rounded-lg text-xs transition-all'; else btn.className = 'flex-1 bg-slate-100 text-slate-500 font-bold py-2 rounded-lg text-xs transition-all'; }); loadDashboard(); } async function loadDashboard() { try { const dateVal = document.getElementById('dashDate').value; if(!dateVal) return; const [yyyy, mm, dd] = dateVal.split('-'); const { data, error } = await _client.from('orders').select('*').eq('salesman_id', currentSalesman.id).order('created_at', { ascending: true }); if (error) throw error; const filteredData = data.filter(o => { const oDate = new Date(o.created_at); if (currentReportType === 'day') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm && oDate.getDate() == dd; else if (currentReportType === 'month') return oDate.getFullYear() == yyyy && (oDate.getMonth()+1) == mm; else if (currentReportType === 'year') return oDate.getFullYear() == yyyy; return false; }); const totalRevenue = filteredData.reduce((sum, order) => sum + Number(order.total_amount || 0), 0); document.getElementById('dashTotalSales').innerText = totalRevenue.toLocaleString() + '.-'; document.getElementById('dashTotalOrders').innerHTML = `${filteredData.length}`; const list = document.getElementById('dashBillList'); if (filteredData.length === 0) { list.innerHTML = `<p class="text-center text-xs text-slate-400 py-3">${t('no_history')}</p>`; document.getElementById('btnPrintRemit').classList.add('hidden'); } else { document.getElementById('btnPrintRemit').classList.remove('hidden'); list.innerHTML = filteredData.map(o => `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100"><div class="w-3/4 pr-2"><p class="text-xs font-bold text-slate-800 truncate">🧑‍💼 ${o.customer_name}</p><p class="text-[10px] text-slate-500 mt-0.5">บิล: #${o.id} • ${new Date(o.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</p></div><span class="text-sm font-black text-blue-600">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); } window.currentReportData = filteredData; window.currentReportTotal = totalRevenue; } catch (err) {} }
         
-        function printReceipt(customerName, total, cartData) { const date = new Date(); const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH'); const itemsHtml = cartData.map(c => { const freeBadge = c.isFreebie ? '[ฟรี] ' : ''; const pBadge = c.hasPromo ? '[โปร] ' : ''; return `<div style="display:flex; justify-content:space-between; align-items:start;"><span style="width:75%;">${freeBadge}${pBadge}${c.name} <span style="color:gray; margin-left:4px;">x${c.qty} ${c.unit_name_sell||''}</span></span><span style="width:25%; text-align:right;">${(c.sell_price*c.qty).toLocaleString()}</span></div>` }).join(''); const html = `<div style="text-align:center; margin-bottom:16px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><h2 style="font-weight:900; font-size:20px; margin:0;">NICE COFFEE</h2><p style="font-size:10px; margin-top:4px; color:#374151;">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p><p style="font-size:12px; font-weight:bold; margin-top:8px;">ใบเสร็จรับเงิน</p></div><div style="font-size:10px; margin-bottom:8px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>วันที่:</span> <span>${dateStr}</span></div><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>ลูกค้า:</span> <span style="font-weight:bold;">${customerName}</span></div><div style="display:flex; justify-content:space-between;"><span>พนักงาน:</span> <span>${currentSalesman.name}</span></div></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:4px;"><span>รายการ</span><span>รวม</span></div><div style="font-size:10px; margin-bottom:8px;">${itemsHtml}</div><div style="border-top:1px dashed #4b5563; padding-top:8px; display:flex; justify-content:space-between; font-weight:900; font-size:18px;"><span>TOTAL</span><span>${total.toLocaleString()}.-</span></div><div style="text-align:center; margin-top:24px; font-size:10px; font-weight:bold;">THANK YOU!</div>`; printDocument(html); }
-        async function printMyStock() { if (products.length === 0) return alert('คุณยังไม่มีสินค้าในท้ายรถครับ'); await loadProducts(); const date = new Date(); const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH'); const itemsHtml = products.map((p, index) => `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #d1d5db; padding-bottom:4px; margin-bottom:4px;"><span style="width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:4px;">${index + 1}. ${p.product_code?`[${p.product_code}] `:''}${p.name}</span><span style="width:20%; text-align:center; font-weight:bold;">${p.stock} <span style="font-size:8px; font-weight:normal;">${p.unit_name||''}</span></span><span style="width:20%; text-align:right;">___</span></div>`).join(''); const html = `<div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;"><h2 style="font-weight:900; font-size:18px; margin:0;">ใบเช็คสต๊อกท้ายรถ</h2><p style="font-size:10px; margin-top:4px; color:#374151;">วันที่: <span>${dateStr}</span></p><p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงาน: <span>${currentSalesman.name}</span></p></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;"><span style="width:60%;">สินค้า</span><span style="width:20%; text-align:center;">ระบบ</span><span style="width:20%; text-align:right;">นับจริง</span></div><div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div><div style="border-top:1px dashed #4b5563; margin-top:24px; padding-top:16px; text-align:center; font-size:10px;"><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p><p style="margin-top:4px; margin-bottom:24px;">ผู้ตรวจนับสินค้า</p><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( ................................ )</p><p style="margin-top:4px;">ผู้จัดการ/แอดมิน</p></div>`; printDocument(html); }
-        function printRemittance() { if (!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลบิลสำหรับพิมพ์'); const dateVal = document.getElementById('dashDate').value; const [yyyy, mm, dd] = dateVal.split('-'); let dateLabel = `${dd}/${mm}/${yyyy}`; if(currentReportType === 'month') dateLabel = `เดือน ${mm}/${yyyy}`; if(currentReportType === 'year') dateLabel = `ปี ${yyyy}`; const itemsHtml = window.currentReportData.map(o => `<div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #d1d5db; padding-bottom:4px; margin-bottom:4px;"><span style="width:20%; color:#6b7280;">#${o.id}</span><span style="width:40%; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-weight:bold;">${o.customer_name}</span><span style="width:40%; text-align:right; font-weight:900;">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); const html = `<div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;"><h2 style="font-weight:900; font-size:18px; margin:0;">ใบส่งเงิน/รายงานขาย</h2><p style="font-size:10px; margin-top:4px; color:#374151;">ประจำ: <span>${dateLabel}</span></p><p style="font-size:10px; font-weight:bold; margin-top:4px;">พนักงานขาย: <span>${currentSalesman.name}</span></p></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;"><span style="width:20%;">รหัสบิล</span><span style="width:40%; text-align:center;">ลูกค้า/ร้านค้า</span><span style="width:40%; text-align:right;">ยอดเงิน</span></div><div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div><div style="border-top:1px solid #4b5563; padding-top:12px; padding-bottom:8px; display:flex; justify-content:space-between; font-weight:900; font-size:14px;"><span>รวมส่งเงิน:</span><span>${window.currentReportTotal.toLocaleString()}.-</span></div><div style="border-top:1px dashed #4b5563; margin-top:16px; padding-top:16px; text-align:center; font-size:10px;"><p>ผู้ส่งเงิน ................................</p><p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p><p style="margin-top:4px; margin-bottom:24px;">เซลส์ / พนักงานขาย</p><p>ผู้รับเงิน ................................</p><p style="margin-top:4px;">( ................................ )</p><p style="margin-top:4px;">แคชเชียร์ / บัญชี</p></div>`; printDocument(html); }
+        /* --- PRINT --- */
+        function printReceipt(customerName, total, cartData) { const date = new Date(); const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH'); const itemsHtml = cartData.map(c => { const freeBadge = c.isFreebie ? `[${t('free')}] ` : ''; const pBadge = c.hasPromo ? `[${t('promo_badge')}] ` : ''; return `<div style="display:flex; justify-content:space-between; align-items:start;"><span style="width:75%;">${freeBadge}${pBadge}${c.name} <span style="color:gray; margin-left:4px;">x${c.qty} ${c.unit_name_sell||''}</span></span><span style="width:25%; text-align:right;">${(c.sell_price*c.qty).toLocaleString()}</span></div>` }).join(''); const html = `<div style="text-align:center; margin-bottom:16px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><h2 style="font-weight:900; font-size:20px; margin:0;">NICE COFFEE</h2><p style="font-size:10px; margin-top:4px; color:#374151;">บริษัท ไนซ์ คอฟฟี่ จำกัด<br>โทร: 020-XXXX-XXXX</p><p style="font-size:12px; font-weight:bold; margin-top:8px;">${t('receipt_title')}</p></div><div style="font-size:10px; margin-bottom:8px; border-bottom:1px dashed #4b5563; padding-bottom:8px;"><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${t('print_date')}</span> <span>${dateStr}</span></div><div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${t('print_cus')}</span> <span style="font-weight:bold;">${customerName}</span></div><div style="display:flex; justify-content:space-between;"><span>${t('print_emp')}</span> <span>${currentSalesman.name}</span></div></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; margin-bottom:4px;"><span>${t('print_items')}</span><span>${t('print_total')}</span></div><div style="font-size:10px; margin-bottom:8px;">${itemsHtml}</div><div style="border-top:1px dashed #4b5563; padding-top:8px; display:flex; justify-content:space-between; font-weight:900; font-size:18px;"><span>TOTAL</span><span>${total.toLocaleString()}.-</span></div><div style="text-align:center; margin-top:24px; font-size:10px; font-weight:bold;">${t('print_thankyou')}</div>`; printDocument(html); }
+        async function printMyStock() { if (products.length === 0) return; await loadProducts(); const date = new Date(); const dateStr = date.toLocaleDateString('th-TH') + ' ' + date.toLocaleTimeString('th-TH'); const itemsHtml = products.map((p, index) => `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #d1d5db; padding-bottom:4px; margin-bottom:4px;"><span style="width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:4px;">${index + 1}. ${p.product_code?`[${p.product_code}] `:''}${p.name}</span><span style="width:20%; text-align:center; font-weight:bold;">${p.stock} <span style="font-size:8px; font-weight:normal;">${p.unit_name||''}</span></span><span style="width:20%; text-align:right;">___</span></div>`).join(''); const html = `<div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;"><h2 style="font-weight:900; font-size:18px; margin:0;">${t('print_stock_title')}</h2><p style="font-size:10px; margin-top:4px; color:#374151;">${t('print_date')} <span>${dateStr}</span></p><p style="font-size:10px; font-weight:bold; margin-top:4px;">${t('print_emp')} <span>${currentSalesman.name}</span></p></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;"><span style="width:60%;">สินค้า</span><span style="width:20%; text-align:center;">${t('print_sys')}</span><span style="width:20%; text-align:right;">${t('print_actual')}</span></div><div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div><div style="border-top:1px dashed #4b5563; margin-top:24px; padding-top:16px; text-align:center; font-size:10px;"><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p><p style="margin-top:4px; margin-bottom:24px;">${t('print_sign1')}</p><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( ................................ )</p><p style="margin-top:4px;">${t('print_sign2')}</p></div>`; printDocument(html); }
+        function printRemittance() { if (!window.currentReportData || window.currentReportData.length === 0) return; const dateVal = document.getElementById('dashDate').value; const [yyyy, mm, dd] = dateVal.split('-'); let dateLabel = `${dd}/${mm}/${yyyy}`; if(currentReportType === 'month') dateLabel = `เดือน ${mm}/${yyyy}`; if(currentReportType === 'year') dateLabel = `ปี ${yyyy}`; const itemsHtml = window.currentReportData.map(o => `<div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px dashed #d1d5db; padding-bottom:4px; margin-bottom:4px;"><span style="width:20%; color:#6b7280;">#${o.id}</span><span style="width:40%; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 4px; font-weight:bold;">${o.customer_name}</span><span style="width:40%; text-align:right; font-weight:900;">${(o.total_amount||0).toLocaleString()}</span></div>`).join(''); const html = `<div style="text-align:center; border-bottom:1px dashed #4b5563; padding-bottom:8px; margin-bottom:8px;"><h2 style="font-weight:900; font-size:18px; margin:0;">${t('print_remit_title')}</h2><p style="font-size:10px; margin-top:4px; color:#374151;">${t('print_period')} <span>${dateLabel}</span></p><p style="font-size:10px; font-weight:bold; margin-top:4px;">${t('print_emp')} <span>${currentSalesman.name}</span></p></div><div style="font-size:10px; font-weight:bold; display:flex; justify-content:space-between; border-bottom:1px solid #4b5563; padding-bottom:4px; margin-bottom:8px;"><span style="width:20%;">${t('print_bill_no')}</span><span style="width:40%; text-align:center;">${t('print_cus')}</span><span style="width:40%; text-align:right;">${t('print_amount')}</span></div><div style="font-size:10px; margin-bottom:16px;">${itemsHtml}</div><div style="border-top:1px solid #4b5563; padding-top:12px; padding-bottom:8px; display:flex; justify-content:space-between; font-weight:900; font-size:14px;"><span>${t('print_total_remit')}</span><span>${window.currentReportTotal.toLocaleString()}.-</span></div><div style="border-top:1px dashed #4b5563; margin-top:16px; padding-top:16px; text-align:center; font-size:10px;"><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( <span>${currentSalesman.name}</span> )</p><p style="margin-top:4px; margin-bottom:24px;">${t('print_sender')}</p><p>ลงชื่อ ................................</p><p style="margin-top:4px;">( ................................ )</p><p style="margin-top:4px;">${t('print_receiver')}</p></div>`; printDocument(html); }
     </script>
 </body>
 </html>

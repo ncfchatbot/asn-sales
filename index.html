@@ -14,14 +14,14 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 pb-10">
 
-    <div class="fixed top-4 right-4 z-[100] flex gap-2">
-        <button onclick="setLanguage('th')" id="btnLangTH" class="bg-slate-800 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent transition-all">🇹🇭 TH</button>
-        <button onclick="setLanguage('la')" id="btnLangLA" class="bg-slate-800 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent transition-all">🇱🇦 LA</button>
-    </div>
-
     <div id="app-container" class="max-w-md mx-auto bg-white min-h-screen shadow-xl border-x border-slate-200 relative">
         
-        <div id="login-view" class="p-8 flex flex-col items-center justify-center min-h-[80vh]">
+        <div id="login-view" class="p-8 flex flex-col items-center justify-center min-h-[80vh] relative">
+            <div class="absolute top-4 right-4 flex gap-2">
+                <button onclick="setLanguage('th')" class="lang-btn-th bg-white text-slate-800 shadow px-3 py-1 rounded-full text-[10px] font-bold border-2 border-transparent transition-all">🇹🇭 TH</button>
+                <button onclick="setLanguage('la')" class="lang-btn-la bg-white text-slate-800 shadow px-3 py-1 rounded-full text-[10px] font-bold border-2 border-transparent transition-all">🇱🇦 LA</button>
+            </div>
+
             <div class="bg-slate-900 text-white p-6 rounded-[2rem] w-full text-center shadow-2xl">
                 <h1 class="text-3xl font-black tracking-tighter mb-2">ASN SALES</h1>
                 <input type="password" id="pinInput" placeholder="● ● ● ●" maxlength="6" class="w-full p-4 text-center text-3xl tracking-[1em] rounded-xl bg-slate-800 border-2 border-slate-700 text-white outline-none focus:border-blue-500 mb-4 transition-all">
@@ -30,17 +30,24 @@
         </div>
 
         <div id="main-view" class="hidden">
-            <div class="bg-slate-900 p-4 text-white flex justify-between items-center sticky top-0 z-50 shadow-md">
-                <div class="text-[10px] leading-tight min-w-[50px] mr-2">
-                    <span class="text-slate-400" data-i18n="emp">พนักงาน: </span><br>
-                    <span id="salesmanNameDisplay" class="font-bold text-amber-400 text-[10px] truncate block w-[50px]">---</span>
+            <div class="bg-slate-900 p-3 text-white flex flex-col gap-3 sticky top-0 z-50 shadow-md">
+                <div class="flex justify-between items-center">
+                    <div class="text-[11px] leading-tight">
+                        <span class="text-slate-400" data-i18n="emp">พนักงาน: </span>
+                        <span id="salesmanNameDisplay" class="font-bold text-amber-400 text-[12px] ml-1">---</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="setLanguage('th')" class="lang-btn-th bg-slate-800 text-white px-3 py-1.5 rounded-full text-[10px] font-bold border-2 border-transparent transition-all">🇹🇭 TH</button>
+                        <button onclick="setLanguage('la')" class="lang-btn-la bg-slate-800 text-white px-3 py-1.5 rounded-full text-[10px] font-bold border-2 border-transparent transition-all">🇱🇦 LA</button>
+                    </div>
                 </div>
-                <div class="flex gap-1 overflow-x-auto no-scrollbar">
-                    <button onclick="switchTab('pos')" id="btnTabPos" class="px-2 py-1.5 bg-blue-600 font-bold rounded-lg text-[11px] text-white whitespace-nowrap" data-i18n="nav_pos">ขาย</button>
-                    <button onclick="switchTab('stock')" id="btnTabStock" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_stock">สต๊อก</button>
-                    <button onclick="switchTab('transfer')" id="btnTabTransfer" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_transfer">เบิกของ</button>
-                    <button onclick="switchTab('customers')" id="btnTabCustomers" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_cus">ลูกค้า</button>
-                    <button onclick="switchTab('dash')" id="btnTabDash" class="px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_rep">รายงาน</button>
+                
+                <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                    <button onclick="switchTab('pos')" id="btnTabPos" class="px-3 py-2 bg-blue-600 font-bold rounded-lg text-[11px] text-white whitespace-nowrap" data-i18n="nav_pos">ขาย</button>
+                    <button onclick="switchTab('stock')" id="btnTabStock" class="px-3 py-2 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_stock">สต๊อก</button>
+                    <button onclick="switchTab('transfer')" id="btnTabTransfer" class="px-3 py-2 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_transfer">เบิกของ</button>
+                    <button onclick="switchTab('customers')" id="btnTabCustomers" class="px-3 py-2 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_cus">ลูกค้า</button>
+                    <button onclick="switchTab('dash')" id="btnTabDash" class="px-3 py-2 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_rep">รายงาน</button>
                 </div>
             </div>
 
@@ -82,7 +89,7 @@
                     <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
                         <h3 class="font-black text-amber-400" data-i18n="cart">🛒 ตะกร้าสินค้า</h3>
                         <button onclick="clearCart()" class="text-[10px] bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all flex items-center gap-1" data-i18n="clear_cart">
-                            <span>🗑️</span> ล้างตะกร้า
+                            <span>🗑️</span> ລ້າງກະຕ່າ/ล้างตะกร้า
                         </button>
                     </div>
                     <div id="cartItems" class="space-y-3 text-sm text-slate-300 mb-6 min-h-[60px]"></div>
@@ -237,8 +244,8 @@
             currentLang = lang;
             localStorage.setItem('asn_lang', lang);
             
-            document.getElementById('btnLangTH').classList.toggle('border-amber-400', lang === 'th');
-            document.getElementById('btnLangLA').classList.toggle('border-amber-400', lang === 'la');
+            document.querySelectorAll('.lang-btn-th').forEach(el => el.classList.toggle('border-amber-400', lang === 'th'));
+            document.querySelectorAll('.lang-btn-la').forEach(el => el.classList.toggle('border-amber-400', lang === 'la'));
             
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -287,15 +294,15 @@
         }
 
         function switchTab(tab) {
-            ['pos', 'stock', 'transfer', 'customers', 'dash'].forEach(t => { document.getElementById(`${t}-view`).classList.add('hidden'); let btn = document.getElementById(`btnTab${t.charAt(0).toUpperCase() + t.slice(1)}`); if(btn) btn.className = 'px-2 py-1.5 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap'; });
+            ['pos', 'stock', 'transfer', 'customers', 'dash'].forEach(t => { document.getElementById(`${t}-view`).classList.add('hidden'); let btn = document.getElementById(`btnTab${t.charAt(0).toUpperCase() + t.slice(1)}`); if(btn) btn.className = 'px-3 py-2 bg-slate-800 text-slate-300 font-bold rounded-lg text-[11px] whitespace-nowrap'; });
             document.getElementById(`${tab}-view`).classList.remove('hidden');
             let activeBtn = document.getElementById(`btnTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
             if(activeBtn) {
-                if(tab === 'pos') activeBtn.className = 'px-2 py-1.5 bg-blue-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
-                else if(tab === 'stock') activeBtn.className = 'px-2 py-1.5 bg-emerald-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
-                else if(tab === 'transfer') activeBtn.className = 'px-2 py-1.5 bg-indigo-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
-                else if(tab === 'customers') activeBtn.className = 'px-2 py-1.5 bg-indigo-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
-                else if(tab === 'dash') activeBtn.className = 'px-2 py-1.5 bg-amber-500 text-slate-900 font-bold rounded-lg text-[11px] whitespace-nowrap';
+                if(tab === 'pos') activeBtn.className = 'px-3 py-2 bg-blue-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
+                else if(tab === 'stock') activeBtn.className = 'px-3 py-2 bg-emerald-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
+                else if(tab === 'transfer') activeBtn.className = 'px-3 py-2 bg-indigo-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
+                else if(tab === 'customers') activeBtn.className = 'px-3 py-2 bg-indigo-600 text-white font-bold rounded-lg text-[11px] whitespace-nowrap';
+                else if(tab === 'dash') activeBtn.className = 'px-3 py-2 bg-amber-500 text-slate-900 font-bold rounded-lg text-[11px] whitespace-nowrap';
             }
             if(tab === 'pos') { loadProducts(); loadCustomers(); loadPromotions(); } 
             if(tab === 'stock') loadProducts();

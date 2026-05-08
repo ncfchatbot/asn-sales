@@ -1,9 +1,394 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASN Master System - หลังบ้าน</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        @media print { 
+            @page { size: A4 portrait; margin: 1cm; } 
+            body { background-color: white !important; color: black !important; } 
+            nav, .no-print, #admin-login-view, button, .modal { display: none !important; } 
+            .print-only { display: block !important; } 
+            .max-w-7xl { max-w: 100% !important; margin: 0 !important; padding: 0 !important; } 
+            table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; } 
+            th, td { border: 1px solid #000 !important; padding: 6px !important; } 
+            .bg-slate-50 { background-color: transparent !important; } 
+            .shadow-sm { box-shadow: none !important; border: none !important; } 
+            .overflow-x-auto { overflow: visible !important; } 
+        }
+        .print-only { display: none; } 
+        .no-scrollbar::-webkit-scrollbar { display: none; } 
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-10">
+
+    <div id="admin-login-view" class="min-h-screen flex items-center justify-center bg-indigo-950 p-4 relative">
+        <div class="absolute top-4 right-4 flex gap-2">
+            <button onclick="setAdminLanguage('th')" class="lang-btn-th bg-white text-slate-800 px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent shadow">🇹🇭 TH</button>
+            <button onclick="setAdminLanguage('la')" class="lang-btn-la bg-white text-slate-800 px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent shadow">🇱🇦 LA</button>
+        </div>
+        <div class="bg-white p-8 rounded-[2rem] w-full max-w-sm text-center shadow-2xl">
+            <div class="text-5xl mb-4">⚙️</div>
+            <h1 class="text-2xl font-black tracking-wider text-indigo-900 mb-2">ASN MASTER</h1>
+            <input type="password" id="adminPinInput" placeholder="● ● ● ●" maxlength="6" class="w-full p-4 text-center text-3xl tracking-[1em] rounded-xl bg-slate-100 border-2 border-slate-200 outline-none focus:border-indigo-500 mb-4 transition-all">
+            <button onclick="adminLogin()" id="btnAdminLogin" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl text-lg shadow-lg transition-all" data-i18n="login_btn">เข้าสู่ระบบ</button>
+            <p id="adminLoginErr" class="text-red-500 font-bold mt-4 text-sm hidden" data-i18n="login_err">❌ รหัส PIN ไม่ถูกต้อง</p>
+        </div>
+    </div>
+
+    <div id="admin-main-view" class="hidden">
+        
+        <nav class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50 no-print">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+                <div class="flex items-center justify-between w-full md:w-auto">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">⚙️</span>
+                        <h1 class="text-xl font-black">ASN MASTER <span id="navRoleBadge" class="text-xs bg-amber-500 text-slate-900 px-2 py-0.5 rounded ml-2"></span></h1>
+                    </div>
+                    <div class="flex gap-1 md:hidden">
+                        <button onclick="setAdminLanguage('th')" class="lang-btn-th bg-indigo-800 text-white px-2 py-1 rounded text-[10px] font-bold border border-transparent">TH</button>
+                        <button onclick="setAdminLanguage('la')" class="lang-btn-la bg-indigo-800 text-white px-2 py-1 rounded text-[10px] font-bold border border-transparent">LA</button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-nowrap gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto pb-1">
+                    <button onclick="switchTab('dashboard')" id="btnTab-dashboard" class="px-3 py-2 bg-indigo-700 text-white font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_dash">ภาพรวม</button>
+                    <button onclick="switchTab('pos')" id="btnTab-pos" class="px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_pos">เปิดบิล</button>
+                    <button onclick="switchTab('inventory')" id="btnTab-inventory" class="px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_inv">คลังหลัก</button>
+                    <button onclick="switchTab('transfer')" id="btnTab-transfer" class="px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_trans">เบิก/โอน</button>
+                    <button onclick="switchTab('orders')" id="btnTab-orders" class="px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_ord">ประวัติบิล</button>
+                    <button onclick="switchTab('customers')" id="btnTab-customers" class="px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_cus">ลูกค้า</button>
+                    <button onclick="switchTab('promotions')" id="btnTab-promotions" class="px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_pro">โปรโมชั่น</button>
+                    <button onclick="switchTab('reports')" id="btnTab-reports" class="px-3 py-2 bg-amber-500 text-slate-900 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_rep">รายงาน</button>
+                    <button onclick="switchTab('settings')" id="btnTab-settings" class="px-3 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold rounded-lg text-[11px] whitespace-nowrap" data-i18n="nav_set">ตั้งค่าระบบ</button>
+                </div>
+
+                <div class="hidden md:flex gap-2">
+                    <button onclick="setAdminLanguage('th')" class="lang-btn-th bg-indigo-800 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent transition-all">🇹🇭 TH</button>
+                    <button onclick="setAdminLanguage('la')" class="lang-btn-la bg-indigo-800 text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-transparent transition-all">🇱🇦 LA</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto p-4 sm:p-6 mt-2">
+            
+            <div id="dashboard-view" class="space-y-6">
+                <h2 class="text-2xl font-black text-slate-800 border-b-2 border-indigo-100 pb-2" data-i18n="title_dash">ภาพรวมยอดขายบริษัท</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl text-white shadow-md">
+                        <p class="font-bold mb-2">ยอดขายรวมทั้งหมด</p>
+                        <p id="totalRevenue" class="text-4xl font-black">0.-</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                        <p class="font-bold text-slate-500 mb-2">จำนวนบิลทั้งหมด</p>
+                        <p id="totalOrdersCount" class="text-4xl font-black">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                        <p class="font-bold text-slate-500 mb-2">รายการสินค้าในระบบ</p>
+                        <p id="totalProductsCount" class="text-4xl font-black">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="pos-view" class="hidden space-y-6">
+                <div class="flex justify-between items-center border-b-2 border-indigo-100 pb-2 gap-2">
+                    <h2 class="text-2xl font-black text-slate-800" data-i18n="title_pos">🛒 เปิดบิล / สร้างออเดอร์</h2>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1" data-i18n="pos_select_sales">เครดิตยอดขายให้ (พนักงาน/สำนักงาน)</label>
+                                <select id="adminPosSalesman" class="w-full p-3 bg-indigo-50 border border-indigo-200 rounded-xl outline-none font-bold text-sm text-indigo-800"></select>
+                            </div>
+                            <div class="relative">
+                                <label class="block text-xs font-bold text-slate-500 mb-1" data-i18n="pos_cus">ลูกค้ารับสินค้า</label>
+                                <input type="text" id="adminPosCustomerName" placeholder="ระบุ รหัสลูกค้า, ชื่อร้าน หรือเบอร์โทร..." autocomplete="off" onkeyup="searchAdminPosCustomer()" onfocus="searchAdminPosCustomer()" class="w-full p-3 bg-slate-50 border border-slate-200 focus:border-indigo-500 rounded-xl outline-none font-bold text-sm transition-all">
+                                <div id="adminPosCustomerSuggestions" class="absolute z-50 w-full bg-white border border-slate-200 shadow-xl rounded-xl mt-1 max-h-[250px] overflow-auto hidden divide-y divide-slate-100"></div>
+                            </div>
+                            <hr class="border-slate-100 my-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1" data-i18n="pos_prod">ค้นหา / เลือกรายการสินค้า</label>
+                                <select id="adminPosProduct" onchange="updateAdminPosUnitOptions()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm"></select>
+                            </div>
+                            <div class="grid grid-cols-5 gap-2 items-end">
+                                <div class="col-span-3">
+                                    <label class="block text-xs font-bold text-slate-500 mb-1" data-i18n="pos_unit">เลือกหน่วยนับ</label>
+                                    <select id="adminPosUnit" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-sm text-blue-700"></select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-bold text-slate-500 mb-1" data-i18n="pos_qty">จำนวน</label>
+                                    <div class="flex gap-1">
+                                        <input type="number" id="adminPosQty" min="1" placeholder="..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-center text-sm">
+                                        <button onclick="addAdminPosCart()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 rounded-xl text-xs h-[46px] transition-all shadow-md active:scale-95" data-i18n="pos_add">เพิ่ม</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl flex flex-col h-full min-h-[400px]">
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                            <h3 class="font-black text-amber-400" data-i18n="pos_cart">🛒 ตะกร้าสินค้า (ตัดคลังหลัก)</h3>
+                            <button onclick="clearAdminPosCart()" class="text-[10px] bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all flex items-center gap-1"><span>🗑️</span> <span data-i18n="pos_clear">ล้างตะกร้า</span></button>
+                        </div>
+                        <div id="adminPosCartItems" class="space-y-3 text-sm text-slate-300 mb-6 flex-1 overflow-y-auto max-h-[350px] pr-2">
+                            <p class="text-center italic opacity-40 text-xs mt-4">ตะกร้าว่างเปล่า</p>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-slate-700 pt-5 mb-4">
+                            <span class="text-slate-400 font-bold text-xs uppercase" data-i18n="pos_total">ยอดรวมสุทธิ</span>
+                            <span id="adminPosTotalAmount" class="text-3xl font-black text-white">0.-</span>
+                        </div>
+                        <button onclick="submitAdminPosOrder()" id="btnAdminPosSubmit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl shadow-lg text-lg transition-all active:scale-95" data-i18n="pos_save">บันทึกออเดอร์</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inventory-view" class="hidden space-y-4">
+                <div class="flex flex-wrap justify-between items-center border-b-2 border-indigo-100 pb-3 gap-2">
+                    <h2 class="text-2xl font-black" data-i18n="title_inv">📦 จัดการคลังสินค้าหลัก</h2>
+                    <div class="flex gap-2">
+                        <button onclick="openProductEdit()" class="bg-indigo-600 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-sm hover:bg-indigo-700 transition" data-i18n="btn_add_prod">➕ เพิ่มสินค้าใหม่</button>
+                        <button onclick="document.getElementById('bulkUploadSection').classList.toggle('hidden')" class="bg-white border border-slate-300 text-slate-700 text-sm font-bold py-2 px-4 rounded-xl shadow-sm hover:bg-slate-50 transition">🚀 Bulk Import (CSV)</button>
+                        <button onclick="printInventorySheet()" class="bg-slate-800 text-white text-sm font-bold py-2 px-4 rounded-xl shadow-sm hover:bg-slate-900 transition" data-i18n="btn_print_stock">🖨️ พิมพ์ใบเช็คสต๊อก</button>
+                    </div>
+                </div>
+                
+                <div id="bulkUploadSection" class="hidden bg-slate-100 p-5 rounded-2xl border border-slate-300 shadow-inner mb-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-slate-700 text-sm" data-i18n="import_csv">📥 นำเข้าสินค้าพร้อมกันหลายรายการ (CSV)</h3>
+                        <button onclick="downloadTemplate()" class="text-xs text-indigo-600 font-bold underline hover:text-indigo-800" data-i18n="dl_template">ดาวน์โหลดฟอร์มต้นแบบ</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <input type="file" id="csvFile" accept=".csv" class="block w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-2 bg-white outline-none cursor-pointer">
+                        <button onclick="uploadCSV()" id="btnUploadCsv" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all whitespace-nowrap" data-i18n="upload_btn">อัปโหลดเข้าคลัง</button>
+                    </div>
+                </div>
+
+                <p class="text-xs text-amber-600 font-bold text-center mt-2 mb-4" data-i18n="tip_edit">💡 Tip: คุณสามารถคลิกที่แถวของสินค้าเพื่อแก้ไขรายละเอียดหรือลบสินค้าได้ทันที</p>
+                <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2" id="invCategoryPills"></div>
+                
+                <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                    <table class="w-full text-left text-sm min-w-[800px]">
+                        <thead class="bg-slate-50 border-b text-slate-500">
+                            <tr>
+                                <th class="p-4 font-bold w-1/6" data-i18n="th_code">รหัส</th>
+                                <th class="p-4 font-bold w-1/6" data-i18n="th_cat">หมวดหมู่</th>
+                                <th class="p-4 font-bold w-2/6" data-i18n="th_name">ชื่อสินค้า</th>
+                                <th class="p-4 font-bold text-center w-1/6" data-i18n="th_stock">คงเหลือ</th>
+                                <th class="p-4 font-bold text-right" data-i18n="th_cost">ทุน (฿)</th>
+                                <th class="p-4 font-bold text-right pr-6" data-i18n="th_price">ราคาขาย (฿)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductList" class="divide-y divide-slate-100">
+                            <tr><td colspan="6" class="p-8 text-center text-slate-400 font-bold">⏳ กำลังโหลดข้อมูล...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="transfer-view" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-slate-800 border-b-2 border-indigo-100 pb-2" data-i18n="title_trans">จัดการการเบิก-โอนสต๊อก</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm flex flex-col">
+                        <h3 class="font-black text-lg mb-4 text-amber-600 flex items-center gap-2"><span>🔔</span> ใบคำขอเบิก (รออนุมัติ)</h3>
+                        <div class="overflow-x-auto border rounded-lg max-h-[400px]">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-amber-50 sticky top-0"><tr><th class="p-3 border-b">รายละเอียดใบเบิก</th><th class="p-3 border-b text-center">จัดการ</th></tr></thead>
+                                <tbody id="pendingRequestsBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm flex flex-col">
+                        <div class="flex justify-between items-center mb-4"><h3 class="font-black text-lg">📁 ประวัติการโอน</h3><button onclick="downloadTransferCSV()" class="text-xs bg-slate-800 text-white px-3 py-2 rounded-lg font-bold">📥 CSV</button></div>
+                        <div class="overflow-x-auto max-h-[400px] border rounded-lg">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 sticky top-0"><tr><th class="p-3 border-b">วันที่/เลขที่บิล</th><th class="p-3 border-b">พนักงาน/สินค้า</th><th class="p-3 border-b text-center">สถานะ</th></tr></thead>
+                                <tbody id="transferLogBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="orders-view" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-slate-800 border-b-2 border-indigo-100 pb-2" data-i18n="title_ord">ประวัติการขายทั้งหมด</h2>
+                <div class="bg-white rounded-2xl border shadow-sm overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[900px]">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="p-4">รหัส/วันที่</th>
+                                <th class="p-4">พนักงาน</th>
+                                <th class="p-4 w-1/3">ลูกค้า & สินค้า</th>
+                                <th class="p-4 text-right">ยอดเงิน</th>
+                                <th class="p-4 text-center">สถานะ</th>
+                                <th class="p-4 text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminOrdersList" class="divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="customers-view" class="hidden space-y-6">
+                <div class="flex flex-wrap justify-between items-center border-b-2 border-indigo-100 pb-2 gap-2">
+                    <h2 class="text-2xl font-black text-slate-800" data-i18n="title_cus">👥 จัดการข้อมูลลูกค้า</h2>
+                    <div class="flex gap-2">
+                        <button onclick="openCustomerEdit()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm" data-i18n="btn_add_cus">➕ เพิ่มลูกค้าใหม่</button>
+                        <button onclick="downloadCustomerTemplate()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm">📥 โหลดฟอร์ม CSV</button>
+                    </div>
+                </div>
+                <div class="no-print bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-4">
+                    <h3 class="font-bold text-slate-700 text-sm mb-3">📥 นำเข้าลูกค้าด้วยไฟล์ CSV</h3>
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <input type="file" id="csvCustomerFile" accept=".csv" class="block w-full text-sm text-slate-500 border border-slate-200 rounded-lg p-2 bg-slate-50">
+                        <button onclick="uploadCustomerCSV()" id="btnUploadCustomerCsv" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-all whitespace-nowrap">อัปโหลดรายชื่อลูกค้า</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
+                        <input type="text" id="searchCusInput" onkeyup="searchAdminCustomer()" placeholder="ค้นหา รหัส, ชื่อ หรือเบอร์โทร..." class="w-full max-w-xs p-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-500">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm min-w-[700px]">
+                            <thead class="bg-slate-100 text-slate-500 border-b">
+                                <tr>
+                                    <th class="p-4 font-bold">รหัส/ชื่อลูกค้า</th>
+                                    <th class="p-4 font-bold">เบอร์โทรติดต่อ</th>
+                                    <th class="p-4 font-bold">ที่อยู่</th>
+                                    <th class="p-4 text-center font-bold">เซลส์ที่ดูแล</th>
+                                    <th class="p-4 text-center font-bold">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerTableBody" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="promotions-view" class="hidden space-y-6">
+                <div class="flex justify-between items-center border-b-2 border-indigo-100 pb-2 gap-2">
+                    <h2 class="text-2xl font-black" data-i18n="title_pro">🎁 จัดการระบบโปรโมชั่น (Advanced)</h2>
+                    <button onclick="openPromoEdit()" class="bg-indigo-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow-sm" data-i18n="btn_add_pro">➕ สร้างโปรโมชั่นใหม่</button>
+                </div>
+                <div class="bg-white rounded-2xl border shadow-sm overflow-x-auto">
+                    <table class="w-full text-left text-sm min-w-[800px]">
+                        <thead class="bg-slate-50 border-b">
+                            <tr>
+                                <th class="p-4 font-bold">ชื่อโปรโมชั่น</th>
+                                <th class="p-4 font-bold text-center">จำนวนขั้นบันได</th>
+                                <th class="p-4 font-bold text-center">สินค้าร่วมรายการ</th>
+                                <th class="p-4 text-center font-bold">สถานะ</th>
+                                <th class="p-4 text-center font-bold">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminPromoList" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="reports-view" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-slate-800 border-b-2 border-amber-200 pb-2" data-i18n="title_rep">📊 รายงานยอดขายแบบละเอียด</h2>
+                <div class="bg-white p-5 rounded-2xl border shadow-sm flex flex-col md:flex-row gap-4 items-end">
+                    <div class="w-full">
+                        <label class="block text-xs font-bold mb-1 text-slate-500">เริ่มวันที่</label>
+                        <input type="date" id="repStartDate" class="w-full p-3 border rounded-xl outline-none bg-slate-50 focus:bg-white focus:border-amber-500">
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-xs font-bold mb-1 text-slate-500">ถึงวันที่</label>
+                        <input type="date" id="repEndDate" class="w-full p-3 border rounded-xl outline-none bg-slate-50 focus:bg-white focus:border-amber-500">
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-xs font-bold mb-1 text-slate-500">แยกตามพนักงานขาย</label>
+                        <select id="repSalesman" class="w-full p-3 border rounded-xl outline-none font-bold text-slate-700 bg-slate-50 focus:bg-white focus:border-amber-500"></select>
+                    </div>
+                    
+                    <button onclick="generateReport()" class="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-slate-900 font-black py-3 px-8 rounded-xl shadow-md transition-all whitespace-nowrap">🔍 ค้นหาข้อมูล</button>
+                    <button onclick="printAdminRemittance()" id="btnPrintAdminRemit" class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-6 rounded-xl shadow-md transition-all whitespace-nowrap" data-i18n="print_remit">🖨️ พิมพ์ใบส่งเงิน</button>
+                    <button onclick="exportReportCSV()" id="btnExportReport" class="hidden w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white font-black py-3 px-6 rounded-xl shadow-md transition-all whitespace-nowrap">📥 โหลด Raw Data</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-emerald-700 font-bold mb-1">🟢 ยอดขาย (จ่ายแล้ว)</p><p id="repTotalPaid" class="text-4xl font-black text-emerald-600">0.-</p></div></div>
+                    <div class="bg-red-50 border border-red-100 p-6 rounded-2xl shadow-sm flex justify-between items-center"><div><p class="text-red-700 font-bold mb-1">🔴 ยอดขาย (ค้างชำระ)</p><p id="repTotalUnpaid" class="text-4xl font-black text-red-600">0.-</p></div></div>
+                </div>
+                <div class="bg-white rounded-2xl border shadow-sm overflow-x-auto mt-4">
+                    <table class="w-full text-left text-sm min-w-[900px]">
+                        <thead class="bg-slate-50 border-b">
+                            <tr><th class="p-4 font-bold text-slate-500">วันที่-เวลา</th><th class="p-4 font-bold text-slate-500">เลขที่บิล</th><th class="p-4 font-bold text-slate-500">พนักงานขาย</th><th class="p-4 font-bold text-slate-500">ลูกค้า</th><th class="p-4 font-bold text-slate-500 text-right">ยอดเงิน (บาท)</th><th class="p-4 font-bold text-slate-500 text-center">สถานะ</th><th class="p-4 font-bold text-slate-500 text-center">จัดการ</th></tr>
+                        </thead>
+                        <tbody id="reportDetailList">
+                            <tr><td colspan="7" class="p-6 text-center text-slate-400">ระบุเงื่อนไขและกด "ค้นหาข้อมูล" เพื่อดูรายงานยอดขาย</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="settings-view" class="hidden space-y-6">
+                <h2 class="text-2xl font-black text-slate-800 border-b-2 border-slate-200 pb-2" data-i18n="title_set">⚙️ ตั้งค่าระบบส่วนกลาง</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-2xl border shadow-sm"><h3 class="font-black text-lg text-indigo-700 mb-4">🏷️ จัดการหมวดหมู่สินค้า</h3><div class="flex gap-2 mb-4"><input type="text" id="inpCatName" placeholder="เพิ่มหมวดหมู่ใหม่..." class="w-full p-2 border rounded-lg text-sm outline-none focus:border-indigo-500 bg-slate-50"><button onclick="saveCategory()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm shrink-0">เพิ่ม</button></div><div class="border rounded-lg max-h-[200px] overflow-y-auto"><ul id="categoryList" class="divide-y text-sm"></ul></div></div>
+                        <div class="bg-white p-6 rounded-2xl border shadow-sm"><h3 class="font-black text-lg text-indigo-700 mb-4">📦 จัดการหน่วยนับมาตรฐาน</h3><div class="flex gap-2 mb-4"><input type="text" id="inpUnitName" placeholder="เช่น ลัง, แพ็ค, โหล..." class="w-full p-2 border rounded-lg text-sm outline-none focus:border-indigo-500 bg-slate-50"><button onclick="saveUnit()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-sm shrink-0">เพิ่ม</button></div><div class="border rounded-lg max-h-[200px] overflow-y-auto"><ul id="unitList" class="divide-y text-sm"></ul></div></div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-2xl border shadow-sm"><h3 class="font-black text-lg text-indigo-700 mb-4">👥 จัดการพนักงาน</h3><button onclick="openUserEdit()" class="mb-4 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg border border-slate-300 transition-all text-sm">➕ เพิ่มพนักงานใหม่</button><div class="border rounded-lg max-h-[400px] overflow-y-auto"><table class="w-full text-left text-xs"><thead class="bg-slate-50 sticky top-0"><tr><th class="p-3 border-b">ชื่อ/ตำแหน่ง</th><th class="p-3 border-b text-center">PIN</th><th class="p-3 border-b text-center">จัดการ</th></tr></thead><tbody id="userTableBody" class="divide-y"></tbody></table></div></div>
+                        <div id="dangerZone" class="bg-red-50 border-2 border-red-200 p-6 rounded-2xl shadow-sm hidden"><h3 class="font-black text-red-700 mb-2 flex items-center gap-2">🚨 Danger Zone (ผู้จัดการ)</h3><div class="grid grid-cols-2 gap-2 mt-4"><button onclick="clearSystemData('orders')" class="w-full bg-white text-red-600 border border-red-300 font-bold py-2 rounded-lg text-xs shadow-sm">🗑️ ล้างบิลทั้งหมด</button><button onclick="clearSystemData('inventory')" class="w-full bg-white text-red-600 border border-red-300 font-bold py-2 rounded-lg text-xs shadow-sm">🗑️ ล้างสต๊อก/สินค้า</button></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="orderDetailModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-[100] hidden flex items-center justify-center p-4 modal overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-auto">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="text-xl font-black text-indigo-800"><span data-i18n="modal_bill_title">🧾 รายละเอียดบิล</span> #<span id="odBillNo"></span></h3>
+                <button onclick="closeModal('orderDetailModal')" class="text-slate-400 hover:text-red-500 font-bold text-xl">&times;</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 text-sm bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div><span class="text-slate-500">ลูกค้า:</span> <strong id="odCusName" class="text-slate-800 text-base"></strong></div>
+                <div><span class="text-slate-500">พนักงานขาย:</span> <strong id="odSalesman" class="text-slate-800"></strong></div>
+                <div><span class="text-slate-500">วันที่:</span> <strong id="odDate" class="text-slate-800"></strong></div>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-500">สถานะ:</span> 
+                    <button id="odStatusBtn" onclick="togglePaymentFromModal()" class="px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95"></button>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden max-h-[300px] overflow-y-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-indigo-50 text-indigo-800 sticky top-0">
+                        <tr><th class="p-3">สินค้าที่ซื้อ</th><th class="p-3 text-center">จำนวน</th><th class="p-3 text-right">ราคา/หน่วย</th><th class="p-3 text-right">รวม</th></tr>
+                    </thead>
+                    <tbody id="odItemsList" class="divide-y divide-slate-100">
+                        <tr><td colspan="4" class="p-4 text-center">⏳ กำลังโหลดข้อมูลสินค้า...</td></tr>
+                    </tbody>
+                    <tfoot class="bg-slate-100 font-bold border-t-2 border-slate-200">
+                        <tr><td colspan="3" class="p-3 text-right text-slate-700">ยอดรวมสุทธิ:</td><td class="p-3 text-right text-indigo-700 text-lg" id="odTotalAmount">0.-</td></tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal('orderDetailModal')" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-6 rounded-xl transition-colors">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editProductModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-[100] hidden flex items-center justify-center p-4 modal overflow-y-auto"><div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 my-auto"><h3 class="text-xl font-black mb-4 text-indigo-800" id="epTitle">➕ เพิ่มสินค้าใหม่</h3><input type="hidden" id="epId"><div class="space-y-4"><div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-bold text-slate-500 ml-1">รหัส SKU</label><input type="text" id="epCode" class="w-full p-2.5 border rounded-lg bg-slate-50 text-sm focus:border-indigo-500 outline-none"></div><div><label class="text-xs font-bold text-slate-500 ml-1">ชื่อสินค้า <span class="text-red-500">*</span></label><input type="text" id="epName" class="w-full p-2.5 border rounded-lg font-bold text-sm focus:border-indigo-500 outline-none"></div></div><div class="grid grid-cols-2 gap-3 border-b pb-4"><div><label class="text-xs font-bold text-slate-500 ml-1">หมวดหมู่</label><select id="epCategory" class="w-full p-2.5 border rounded-lg text-sm bg-slate-50 focus:border-indigo-500 outline-none"></select></div><div><label class="text-xs font-bold text-slate-500 ml-1">ต้นทุน (แอดมิน)</label><input type="number" id="epCost" class="w-full p-2.5 border rounded-lg text-red-600 font-bold bg-slate-50 text-sm focus:border-indigo-500 outline-none"></div></div><div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200"><p class="text-xs font-black text-slate-700">📦 การตั้งค่าหน่วยนับและราคาขาย</p><div class="grid grid-cols-3 gap-2 items-center"><div class="col-span-1 text-[10px] font-bold text-slate-500 text-right pr-2">ระดับ 1<br>(หน่วยย่อยสุด) *</div><input type="text" id="epUnit" placeholder="เช่น ชิ้น" class="w-full p-2 border rounded border-blue-300 text-xs font-bold focus:border-indigo-500 outline-none"><input type="number" id="epSale" placeholder="ราคาขาย" class="w-full p-2 border rounded border-blue-300 text-xs font-bold text-blue-600 focus:border-indigo-500 outline-none"></div><div class="grid grid-cols-4 gap-2 items-center"><div class="col-span-1 text-[10px] font-bold text-slate-500 text-right pr-2">ระดับ 2<br>(แพ็ค, มัด)</div><input type="text" id="epPackUnit" placeholder="เช่น แพ็ค" class="w-full p-2 border rounded text-xs focus:border-indigo-500 outline-none"><input type="number" id="epPackQty" placeholder="กี่ชิ้น?" class="w-full p-2 border rounded text-xs focus:border-indigo-500 outline-none"><input type="number" id="epPackPrice" placeholder="ราคาขาย" class="w-full p-2 border rounded text-xs text-blue-600 focus:border-indigo-500 outline-none"></div><div class="grid grid-cols-4 gap-2 items-center"><div class="col-span-1 text-[10px] font-bold text-slate-500 text-right pr-2">ระดับ 3<br>(ลัง, กล่อง)</div><input type="text" id="epBoxUnit" placeholder="เช่น ลัง" class="w-full p-2 border rounded text-xs focus:border-indigo-500 outline-none"><input type="number" id="epBoxQty" placeholder="กี่ชิ้น?" class="w-full p-2 border rounded text-xs focus:border-indigo-500 outline-none"><input type="number" id="epBoxPrice" placeholder="ราคาขาย" class="w-full p-2 border rounded text-xs text-blue-600 focus:border-indigo-500 outline-none"></div><div class="grid grid-cols-4 gap-2 items-center mt-2 border-t pt-2"><div class="col-span-1 text-[10px] font-bold text-slate-500 text-right pr-2">เบิกขั้นต่ำ</div><div class="col-span-3 flex gap-2 items-center"><input type="number" id="epMinTransferBox" placeholder="ระบุจำนวน" value="1" class="w-full p-2 border rounded text-xs focus:border-indigo-500 outline-none"><span class="text-xs font-bold text-slate-500">หน่วยใหญ่สุด</span></div></div></div><div><label class="text-xs font-bold text-slate-500 ml-1">จำนวนสต๊อกคลังหลัก (นับเป็นหน่วยย่อยสุดเสมอ)</label><input type="number" id="epStock" class="w-full p-3 border border-indigo-200 rounded-xl bg-indigo-50 font-black text-indigo-800 text-center focus:border-indigo-500 outline-none"></div></div><div class="flex gap-2 mt-6"><button onclick="saveProductEdit()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors">บันทึก</button><button type="button" id="btnDeleteProduct" onclick="deleteProduct()" class="hidden w-1/3 bg-red-100 hover:bg-red-200 text-red-600 font-bold py-3 rounded-xl transition-colors">ลบ</button><button onclick="closeModal('editProductModal')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-xl transition-colors">ยกเลิก</button></div></div></div>
+    <div id="editCustomerModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-[100] hidden flex items-center justify-center p-4 modal"><div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"><h3 class="text-xl font-black mb-4 text-indigo-800" id="ecTitle">➕ เพิ่มลูกค้าใหม่</h3><input type="hidden" id="ecId"><div class="space-y-4"><div><label class="text-xs font-bold text-slate-500 ml-1">รหัสลูกค้า</label><input type="text" id="ecCode" placeholder="เว้นว่างได้" class="w-full p-3 border rounded-xl bg-slate-50 font-mono text-sm"></div><div><label class="text-xs font-bold text-slate-500 ml-1">ชื่อลูกค้า / ร้านค้า <span class="text-red-500">*</span></label><input type="text" id="ecName" class="w-full p-3 border rounded-xl font-bold bg-slate-50"></div><div><label class="text-xs font-bold text-slate-500 ml-1">เบอร์โทรศัพท์</label><input type="text" id="ecPhone" class="w-full p-3 border rounded-xl bg-slate-50 font-mono"></div><div><label class="text-xs font-bold text-slate-500 ml-1">ที่อยู่รายละเอียด</label><textarea id="ecAddress" rows="3" class="w-full p-3 border rounded-xl bg-slate-50 text-sm"></textarea></div></div><div class="flex gap-2 mt-6"><button onclick="saveCustomerEdit()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-colors">บันทึก</button><button onclick="closeModal('editCustomerModal')" class="w-full bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">ยกเลิก</button></div></div></div>
+    <div id="editUserModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-[100] hidden flex items-center justify-center p-4 modal"><div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"><h3 class="text-xl font-black mb-4 text-indigo-800" id="euTitle">➕ เพิ่มพนักงานใหม่</h3><input type="hidden" id="euId"><div class="space-y-4"><div><label class="text-xs font-bold text-slate-500 ml-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label><input type="text" id="euName" class="w-full p-3 border rounded-xl bg-slate-50 font-bold"></div><div><label class="text-xs font-bold text-slate-500 ml-1">รหัส PIN (ตัวเลข) <span class="text-red-500">*</span></label><input type="number" id="euPin" class="w-full p-3 border rounded-xl text-center font-mono tracking-widest text-lg bg-slate-50"></div><div><label class="text-xs font-bold text-slate-500 ml-1">ตำแหน่ง</label><select id="euRole" class="w-full p-3 border rounded-xl font-bold bg-slate-50 text-slate-700"><option value="sales">👤 พนักงานขาย</option><option value="admin">🛠️ แอดมินคลัง</option><option value="manager">👑 ผู้จัดการ</option></select></div></div><div class="flex gap-2 mt-6"><button onclick="saveUserEdit()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl">บันทึก</button><button onclick="closeModal('editUserModal')" class="w-full bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">ยกเลิก</button></div></div></div>
+    <div id="editPromoModal" class="fixed inset-0 bg-slate-900 bg-opacity-60 z-[100] hidden flex items-center justify-center p-4 modal overflow-y-auto"><div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 my-auto"><h3 class="text-xl font-black mb-4 text-indigo-800" id="epromoTitle">➕ สร้างโปรโมชั่นใหม่ (Multi-Tiers)</h3><input type="hidden" id="epromoId"><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="space-y-4 border-r pr-4"><div><label class="text-xs font-bold text-slate-500 ml-1">ชื่อโปรโมชั่น <span class="text-red-500">*</span></label><input type="text" id="epromoName" placeholder="เช่น ซื้อกาแฟ 10 ลัง ได้ราคา X" class="w-full p-3 border rounded-xl font-bold bg-slate-50 text-sm"></div><div class="flex justify-between items-center bg-emerald-50 p-2 rounded-lg border border-emerald-100"><label class="text-xs font-bold text-emerald-800 ml-1">รูปแบบโปรโมชั่น</label><select id="epromoType" onchange="togglePromoType()" class="p-1 border rounded bg-white text-xs font-bold text-emerald-700"><option value="discount">ลดราคา / ให้ราคาพิเศษ</option><option value="freebie">แถมสินค้า</option></select></div><div id="promoTypeFreebie" class="bg-blue-50 p-3 rounded-lg border border-blue-100 hidden"><label class="text-[10px] font-bold text-slate-500 block mb-1">เลือกสินค้าที่จะแถม (Freebie)</label><select id="epromoFreeProduct" class="w-full p-2 border rounded text-xs bg-white"></select><input type="text" id="epromoFreeUnit" placeholder="หน่วยของแถม (เช่น ชิ้น)" class="w-full p-2 border rounded text-xs mt-2 bg-white"></div><div><label class="text-xs font-bold text-slate-500 ml-1 block mb-2">☑️ สินค้าที่ร่วมรายการ (เลือกได้สูงสุด 50 ตัว)</label><div class="h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50 space-y-1" id="promoSkusContainer"></div></div><div class="flex items-center gap-2 mt-4 bg-slate-100 p-2 rounded-lg"><input type="checkbox" id="epromoIsActive" class="w-4 h-4 text-indigo-600 rounded"><label for="epromoIsActive" class="text-sm font-bold text-slate-700">เปิดใช้งานโปรโมชั่นนี้ทันที</label></div></div><div class="space-y-4"><div class="flex justify-between items-center"><h4 class="font-black text-slate-800 text-sm">📈 กำหนดขั้นบันได (สูงสุด 7 ขั้น)</h4><button onclick="addPromoTier()" class="text-[10px] bg-indigo-600 text-white px-2 py-1 rounded shadow-sm">+ เพิ่มขั้น</button></div><div id="promoTiersContainer" class="space-y-2 max-h-[400px] overflow-y-auto p-1"></div></div></div><div class="flex gap-2 mt-6 border-t pt-4"><button onclick="savePromoEdit()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl transition-colors">บันทึกโปรโมชั่น</button><button onclick="closeModal('editPromoModal')" class="w-full bg-slate-200 text-slate-700 font-bold py-3 rounded-xl">ยกเลิก</button></div></div></div>
 <script>
         const i18nAdmin = {
             th: {
                 login_btn: "เข้าสู่ระบบ", login_err: "❌ รหัส PIN ไม่ถูกต้อง", nav_dash: "ภาพรวม", nav_pos: "เปิดบิล", nav_inv: "คลังหลัก", nav_trans: "เบิก/โอน", nav_ord: "ประวัติบิล", nav_cus: "ลูกค้า", nav_pro: "โปรโมชั่น", nav_rep: "รายงาน", nav_set: "ตั้งค่าระบบ",
                 title_dash: "ภาพรวมยอดขายบริษัท", title_inv: "📦 จัดการคลังสินค้าหลัก", title_trans: "จัดการการเบิก-โอนสต๊อก", title_ord: "ประวัติการขายทั้งหมด", title_cus: "👥 จัดการข้อมูลลูกค้า", title_pro: "🎁 จัดการระบบโปรโมชั่น (Advanced)", title_rep: "📊 รายงานยอดขายแบบละเอียด", title_set: "⚙️ ตั้งค่าระบบส่วนกลาง",
-                btn_add_prod: "➕ เพิ่มสินค้าใหม่", btn_print_stock: "🖨️ เช็คสต๊อก", import_csv: "📥 นำเข้าสินค้าพร้อมกันหลายรายการ (CSV)", dl_template: "ดาวน์โหลดฟอร์มต้นแบบ", upload_btn: "อัปโหลดเข้าคลัง", tip_edit: "💡 Tip: คุณสามารถคลิกที่แถวของสินค้าเพื่อแก้ไขรายละเอียดหรือลบสินค้าได้ทันที", th_code: "รหัส", th_cat: "หมวดหมู่", th_name: "ชื่อสินค้า", th_stock: "คงเหลือ", th_cost: "ทุน (฿)", th_price: "ราคาขาย (฿)",
+                btn_add_prod: "➕ เพิ่มสินค้าใหม่", btn_print_stock: "🖨️ พิมพ์ใบเช็คสต๊อก", import_csv: "📥 นำเข้าสินค้าพร้อมกันหลายรายการ (CSV)", dl_template: "ดาวน์โหลดฟอร์มต้นแบบ", upload_btn: "อัปโหลดเข้าคลัง", tip_edit: "💡 Tip: คุณสามารถคลิกที่แถวของสินค้าเพื่อแก้ไขรายละเอียดหรือลบสินค้าได้ทันที", th_code: "รหัส", th_cat: "หมวดหมู่", th_name: "ชื่อสินค้า", th_stock: "คงเหลือ", th_cost: "ทุน (฿)", th_price: "ราคาขาย (฿)",
                 btn_add_cus: "➕ เพิ่มลูกค้าใหม่", btn_add_pro: "➕ สร้างโปรโมชั่นใหม่",
                 title_pos: "🛒 เปิดบิล / สร้างออเดอร์", pos_select_sales: "เครดิตยอดขายให้ (พนักงาน/สำนักงาน)", pos_cus: "ลูกค้ารับสินค้า", pos_prod: "ค้นหา / เลือกรายการสินค้า", pos_unit: "เลือกหน่วยนับ", pos_qty: "จำนวน", pos_add: "เพิ่ม", pos_cart: "🛒 ตะกร้าสินค้า (ตัดคลังหลัก)", pos_clear: "ล้างตะกร้า", pos_total: "ยอดรวมสุทธิ", pos_save: "บันทึกออเดอร์",
                 print_remit: "🖨️ พิมพ์ใบส่งเงิน", btn_view_bill: "🔍 ดูรายละเอียด", modal_bill_title: "🧾 รายละเอียดบิล", status_paid: "✅ จ่ายแล้ว", status_unpaid: "❌ ค้างชำระ", click_to_change: "(คลิกเพื่อเปลี่ยน)"
@@ -11,7 +396,7 @@
             la: {
                 login_btn: "ເຂົ້າສູ່ລະບົບ", login_err: "❌ ລະຫັດ PIN ບໍ່ຖືກຕ້ອງ", nav_dash: "ພາບລວມ", nav_pos: "ເປີດບິນ", nav_inv: "ຄັງຫຼັກ", nav_trans: "ເບີກ/ໂອນ", nav_ord: "ປະຫວັດບິນ", nav_cus: "ລູກຄ້າ", nav_pro: "ໂປຣໂມຊັ່ນ", nav_rep: "ລາຍງານ", nav_set: "ຕັ້ງຄ່າລະບົບ",
                 title_dash: "ພາບລວມຍອດຂາຍບໍລິສັດ", title_inv: "📦 ຈັດການຄັງສິນຄ້າຫຼັກ", title_trans: "ຈັດການການເບີກ-ໂອນສະຕັອກ", title_ord: "ປະຫວັດການຂາຍທັງໝົດ", title_cus: "👥 ຈັດການຂໍ້ມູນລູກຄ້າ", title_pro: "🎁 ຈັດການລະບົບໂປຣໂມຊັ່ນ (Advanced)", title_rep: "📊 ລາຍງານຍອດຂາຍແບບລະອຽດ", title_set: "⚙️ ຕັ້ງຄ່າລະບົບສ່ວນກາງ",
-                btn_add_prod: "➕ ເພີ່ມສິນຄ້າໃໝ່", btn_print_stock: "🖨️ ເຊັກສະຕັອກ", import_csv: "📥 ນຳເຂົ້າສິນຄ້າພ້ອມກັນຫຼາຍລາຍການ (CSV)", dl_template: "ດາວໂຫຼດຟອມຕົ້ນແບບ", upload_btn: "ອັບໂຫຼດເຂົ້າຄັງ", tip_edit: "💡 Tip: ທ່ານສາມາດຄລິກທີ່ແຖວຂອງສິນຄ້າເພື່ອແກ້ໄຂລາຍລະອຽດຫຼືລຶບສິນຄ້າໄດ້ທັນທີ", th_code: "ລະຫັດ", th_cat: "ໝວດໝູ່", th_name: "ຊື່ສິນຄ້າ", th_stock: "ຄົງເຫຼືອ", th_cost: "ທຶນ (₭)", th_price: "ລາຄາຂາຍ (₭)",
+                btn_add_prod: "➕ ເພີ່ມສິນຄ້າໃໝ່", btn_print_stock: "🖨️ ພິມໃບເຊັກສະຕັອກ", import_csv: "📥 ນຳເຂົ້າສິນຄ້າພ້ອມກັນຫຼາຍລາຍການ (CSV)", dl_template: "ດາວໂຫຼດຟອມຕົ້ນແບບ", upload_btn: "ອັບໂຫຼດເຂົ້າຄັງ", tip_edit: "💡 Tip: ທ່ານສາມາດຄລິກທີ່ແຖວຂອງສິນຄ້າເພື່ອແກ້ໄຂລາຍລະອຽດຫຼືລຶບສິນຄ້າໄດ້ທັນທີ", th_code: "ລະຫັດ", th_cat: "ໝວດໝູ່", th_name: "ຊື່ສິນຄ້າ", th_stock: "ຄົງເຫຼືອ", th_cost: "ທຶນ (₭)", th_price: "ລາຄາຂາຍ (₭)",
                 btn_add_cus: "➕ ເພີ່ມລູກຄ້າໃໝ່", btn_add_pro: "➕ ສ້າງໂປຣໂມຊັ່ນໃໝ່",
                 title_pos: "🛒 ເປີດບິນ / ສ້າງອໍເດີ", pos_select_sales: "ເຄຣດິດຍອດຂາຍໃຫ້ (ພະນັກງານ/ສຳນັກງານ)", pos_cus: "ລູກຄ້າຮັບສິນຄ້າ", pos_prod: "ຄົ້ນຫາ / ເລືອກລາຍການສິນຄ້າ", pos_unit: "ເລືອກຫົວໜ່ວຍ", pos_qty: "ຈຳນວນ", pos_add: "ເພີ່ມ", pos_cart: "🛒 ກະຕ່າສິນຄ້າ (ຕັດຄັງຫຼັກ)", pos_clear: "ລ້າງກະຕ່າ", pos_total: "ຍອດລວມສຸດທິ", pos_save: "ບັນທຶກອໍເດີ",
                 print_remit: "🖨️ ພິມໃບສົ່ງເງິນ", btn_view_bill: "🔍 ເບິ່ງລາຍລະອຽດ", modal_bill_title: "🧾 ລາຍລະອຽດບິນ", status_paid: "✅ ຈ່າຍແລ້ວ", status_unpaid: "❌ ຄ້າງຊຳລະ", click_to_change: "(ຄລິກເພື່ອປ່ຽນ)"
@@ -23,23 +408,35 @@
         function setAdminLanguage(lang) {
             currentAdminLang = lang;
             localStorage.setItem('asn_admin_lang', lang);
+            
             document.querySelectorAll('.lang-btn-th').forEach(el => el.classList.toggle('border-amber-400', lang === 'th'));
             document.querySelectorAll('.lang-btn-la').forEach(el => el.classList.toggle('border-amber-400', lang === 'la'));
+            
             document.querySelectorAll('[data-i18n]').forEach(el => { 
                 const key = el.getAttribute('data-i18n'); 
-                if(i18nAdmin[currentAdminLang][key]) el.innerHTML = i18nAdmin[currentAdminLang][key]; 
+                if(i18nAdmin[currentAdminLang][key]) {
+                    el.innerHTML = i18nAdmin[currentAdminLang][key]; 
+                }
             });
-            if(!document.getElementById('inventory-view').classList.contains('hidden')) { renderInvCategoryPills(); renderAdminProductList(); }
+            
+            if(!document.getElementById('inventory-view').classList.contains('hidden')) { 
+                renderInvCategoryPills(); 
+                renderAdminProductList(); 
+            }
             if(!document.getElementById('orders-view').classList.contains('hidden')) loadOrders();
             if(!document.getElementById('reports-view').classList.contains('hidden')) generateReport();
         }
 
-        document.addEventListener('DOMContentLoaded', () => { setAdminLanguage(currentAdminLang); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            setAdminLanguage(currentAdminLang); 
+        });
 
+        // ======================= CONNECTION =======================
         const SB_URL = 'https://zmfynauxfthlvpvqgejk.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnluYXV4ZnRobHZwdnFnZWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTk5OTEsImV4cCI6MjA5MDc3NTk5MX0.hB-r5E0fcnKnSWYga5AjQJ2h_J9oD7GuWwsRa58TylU';
         const _client = supabase.createClient(SB_URL, SB_KEY);
 
+        // ======================= GLOBAL VARIABLES =======================
         let currentAdmin = null; 
         let allProducts = []; 
         let allTransferData = []; 
@@ -54,20 +451,50 @@
         let currentSelectedOrder = null; 
         let promoTiers = [];
 
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        
+        function closeModal(id) { 
+            document.getElementById(id).classList.add('hidden'); 
+        }
+
+        // ======================= PRINT A4 =======================
         function printDocument(contentHtml, title = 'พิมพ์เอกสาร') { 
             const printWindow = window.open('', '_blank'); 
-            printWindow.document.write(`<html><head><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;900&display=swap" rel="stylesheet"><style>body { margin: 0; padding: 0; background: white; font-family: 'Sarabun', sans-serif; color: #1e293b; } @page { size: A4 portrait; margin: 1.5cm; } @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } } .a4-container { width: 100%; max-width: 210mm; margin: 0 auto; font-size: 14px; line-height: 1.5; } table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; } th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; } th { background-color: #f1f5f9; font-weight: bold; color: #0f172a; border-bottom: 2px solid #94a3b8; } .text-center { text-align: center; } .text-right { text-align: right; } .font-bold { font-weight: bold; } .header-title { font-size: 24px; font-weight: 900; margin-bottom: 5px; text-align: center; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; } .header-subtitle { font-size: 14px; color: #475569; margin-bottom: 25px; text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; } .footer-signatures { display: flex; justify-content: space-around; margin-top: 60px; text-align: center; } .signature-box { width: 35%; } .signature-line { border-bottom: 1px dotted #94a3b8; margin-bottom: 8px; padding-top: 40px; }</style></head><body onload="setTimeout(() => { window.print(); window.close(); }, 800);"><div class="a4-container">${contentHtml}</div></body></html>`); 
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700;900&display=swap" rel="stylesheet">
+                    <style>
+                        body { margin: 0; padding: 0; background: white; font-family: 'Sarabun', sans-serif; color: #1e293b; }
+                        @page { size: A4 portrait; margin: 1.5cm; }
+                        @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                        .a4-container { width: 100%; max-width: 210mm; margin: 0 auto; font-size: 14px; line-height: 1.5; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+                        th { background-color: #f1f5f9; font-weight: bold; color: #0f172a; border-bottom: 2px solid #94a3b8; }
+                        .text-center { text-align: center; } .text-right { text-align: right; } .font-bold { font-weight: bold; }
+                        .header-title { font-size: 24px; font-weight: 900; margin-bottom: 5px; text-align: center; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; }
+                        .header-subtitle { font-size: 14px; color: #475569; margin-bottom: 25px; text-align: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 15px; }
+                        .footer-signatures { display: flex; justify-content: space-around; margin-top: 60px; text-align: center; }
+                        .signature-box { width: 35%; }
+                        .signature-line { border-bottom: 1px dotted #94a3b8; margin-bottom: 8px; padding-top: 40px; }
+                    </style>
+                </head>
+                <body onload="setTimeout(() => { window.print(); window.close(); }, 800);">
+                    <div class="a4-container">${contentHtml}</div>
+                </body>
+                </html>
+            `); 
             printWindow.document.close(); 
         }
 
+        // ======================= LOGIN & STARTUP =======================
         async function loadSetupData() { 
             try {
                 const { data: cats } = await _client.from('product_categories').select('*').order('name'); 
                 const { data: units } = await _client.from('product_units').select('*').order('name'); 
-                globalCategories = cats || []; globalUnits = units || []; 
-            } catch(e) { }
+                globalCategories = cats || []; 
+                globalUnits = units || []; 
+            } catch(e) { console.error("Setup Data Error: ", e); }
         }
 
         async function loadUsers() { 
@@ -85,12 +512,12 @@
                         }).join(''); 
                     }
                 } 
-            } catch(e) { } 
+            } catch(e) { console.error("Load Users Error: ", e); } 
         }
 
         async function adminLogin() {
             const btn = document.getElementById('btnAdminLogin');
-            btn.innerText = '⏳ กำลังเชื่อมต่อข้อมูล... (รอสักครู่)';
+            btn.innerText = '⏳ กำลังเชื่อมต่อข้อมูล...';
             btn.disabled = true;
 
             try {
@@ -110,7 +537,8 @@
                 document.getElementById('admin-main-view').classList.remove('hidden');
                 
                 await loadSetupData(); 
-                await loadUsers(); 
+                await loadUsers(); // โหลดรายชื่อเซลส์ทั้งหมดไว้ก่อนเลย
+
                 switchTab('dashboard');
             } catch(e) {
                 alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ: " + e.message);
@@ -126,12 +554,14 @@
                 let btn = document.getElementById(`btnTab-${t}`); 
                 if(btn) btn.className = 'px-3 py-2 bg-transparent hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-[11px] whitespace-nowrap'; 
             });
+            
             let activeClass = 'px-3 py-2 bg-indigo-700 text-white font-bold rounded-lg text-[11px] shadow-inner whitespace-nowrap'; 
             if(tab === 'reports') activeClass = 'px-3 py-2 bg-amber-600 text-white font-bold rounded-lg text-[11px] shadow-inner whitespace-nowrap'; 
             if(tab === 'settings') activeClass = 'px-3 py-2 bg-slate-950 text-white font-bold rounded-lg text-[11px] shadow-inner whitespace-nowrap';
             
             let btnTab = document.getElementById(`btnTab-${tab}`);
             if(btnTab) btnTab.className = activeClass; 
+            
             document.getElementById(`${tab}-view`).classList.remove('hidden');
             
             try {
@@ -142,27 +572,42 @@
                 if(tab === 'orders') { document.getElementById('adminOrdersList').innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadOrders(); }
                 if(tab === 'customers') { document.getElementById('customerTableBody').innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadAdminCustomers(); }
                 if(tab === 'promotions') { document.getElementById('adminPromoList').innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>'; loadPromotions(); }
-                if(tab === 'reports') { initReports().then(() => generateReport()); } 
+                // อัปเดตให้กดแท็บรายงานแล้วโหลดอัตโนมัติ
+                if(tab === 'reports') {
+                    initReports().then(() => generateReport());
+                } 
                 if(tab === 'settings') loadSettingsPage();
-            } catch(e) { console.error("Tab Load Error:", e); }
-        }
-
-        async function loadAdminDashboard() { 
-            try {
-                const { data: orders } = await _client.from('orders').select('total_amount'); 
-                if (orders) { document.getElementById('totalRevenue').innerText = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0).toLocaleString() + '.-'; document.getElementById('totalOrdersCount').innerText = orders.length; } 
-                const { count } = await _client.from('products').select('*', { count: 'exact', head: true }); 
-                document.getElementById('totalProductsCount').innerText = count || 0; 
-            } catch(e) { } 
+            } catch(e) {
+                console.error("Tab Load Error:", e);
+            }
         }
 
         /* =========================================================
-           ระบบดูรายละเอียดบิล (View Details) ที่อัปเกรด
+           DASHBOARD
+        ========================================================= */
+        async function loadAdminDashboard() { 
+            try {
+                const { data: orders } = await _client.from('orders').select('total_amount'); 
+                if (orders) { 
+                    document.getElementById('totalRevenue').innerText = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0).toLocaleString() + '.-'; 
+                    document.getElementById('totalOrdersCount').innerText = orders.length; 
+                } 
+                const { count } = await _client.from('products').select('*', { count: 'exact', head: true }); 
+                document.getElementById('totalProductsCount').innerText = count || 0; 
+            } catch(e) { console.error(e); } 
+        }
+
+        /* =========================================================
+           ระบบดูรายละเอียดบิล (View Details)
         ========================================================= */
         async function viewOrderDetails(orderId) {
             try {
                 document.getElementById('orderDetailModal').classList.remove('hidden');
-                document.getElementById('odBillNo').innerText = orderId;
+                
+                // คืนค่าให้กับ span billNo อย่างปลอดภัย
+                const billNoEl = document.getElementById('odBillNo');
+                if(billNoEl) billNoEl.innerText = orderId;
+                
                 document.getElementById('odItemsList').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">⏳ กำลังโหลดข้อมูลสินค้า...</td></tr>';
                 
                 const { data: orderData, error: orderErr } = await _client.from('orders').select('*').eq('id', orderId).single();
@@ -196,7 +641,10 @@
                 } else {
                     document.getElementById('odItemsList').innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-400">ไม่มีรายการสินค้า</td></tr>';
                 }
-            } catch (err) { alert("เกิดข้อผิดพลาดในการโหลดข้อมูลบิล: " + err.message); closeModal('orderDetailModal'); }
+            } catch (err) {
+                alert("เกิดข้อผิดพลาดในการโหลดข้อมูลบิล: " + err.message);
+                closeModal('orderDetailModal');
+            }
         }
 
         function updateModalStatusBtn(status) {
@@ -222,11 +670,16 @@
             try {
                 const { error } = await _client.from('orders').update({ payment_status: newStatus }).eq('id', currentSelectedOrder.id);
                 if (error) throw error;
+
                 currentSelectedOrder.payment_status = newStatus;
                 updateModalStatusBtn(newStatus);
+                
                 if(!document.getElementById('orders-view').classList.contains('hidden')) loadOrders();
                 if(!document.getElementById('reports-view').classList.contains('hidden')) generateReport();
-            } catch(e) { alert('อัปเดตสถานะไม่สำเร็จ: ' + e.message); }
+                
+            } catch(e) { 
+                alert('อัปเดตสถานะไม่สำเร็จ: ' + e.message); 
+            }
         }
 
         /* =========================================================
@@ -234,17 +687,21 @@
         ========================================================= */
         async function exportReportCSV() {
             if(!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลสำหรับดาวน์โหลด');
+
             const btnExport = document.getElementById('btnExportReport');
             const originalText = btnExport.innerText;
-            btnExport.innerText = '⏳ กำลังดึงข้อมูล Raw Data...';
+            btnExport.innerText = '⏳ กำลังดึงข้อมูล...';
             btnExport.disabled = true;
 
             try {
+                // ดึงสินค้าเพื่อเอา รหัสสินค้า และ ต้นทุน
                 if (allProducts.length === 0) await loadInventory();
+
                 const orderIds = window.currentReportData.map(o => o.id);
                 const { data: allItems, error } = await _client.from('order_items').select('*').in('order_id', orderIds);
                 if(error) throw error;
 
+                // เพิ่มคอลัมน์ รหัสสินค้า และ ต้นทุน/หน่วย
                 let csv = '\uFEFFวันที่,เวลา,เลขที่บิล,พนักงานขาย,ลูกค้า,สถานะบิล,รหัสสินค้า,สินค้าที่ขาย,ต้นทุนต่อหน่วย,ราคาขายต่อหน่วย,จำนวนที่ซื้อ,รวมมูลค่า\n';
 
                 window.currentReportData.forEach(o => {
@@ -261,10 +718,12 @@
                             const prod = allProducts.find(p => p.id == item.product_id) || {};
                             const prodCode = prod.product_code || '-';
                             const prodCost = prod.cost_price || 0;
+
                             const itemName = `"${(item.product_name || '').replace(/"/g, '""')}"`;
                             const price = item.price || 0;
                             const qty = item.quantity || 0;
                             const totalItemPrice = price * qty;
+                            
                             csv += `${dateStr},${timeStr},#${o.id},"${sName}","${o.customer_name}",${o.payment_status},"${prodCode}",${itemName},${prodCost},${price},${qty},${totalItemPrice}\n`;
                         });
                     } else {
@@ -279,7 +738,13 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-            } catch(e) { alert('เกิดข้อผิดพลาดในการโหลด Raw Data: ' + e.message); } finally { btnExport.innerText = originalText; btnExport.disabled = false; }
+
+            } catch(e) {
+                alert('เกิดข้อผิดพลาดในการโหลด Raw Data: ' + e.message);
+            } finally {
+                btnExport.innerText = originalText;
+                btnExport.disabled = false;
+            }
         }
 
         /* =========================================================
@@ -288,24 +753,33 @@
         async function loadOrders() { 
             try {
                 if(allUsers.length === 0) await loadUsers();
+
                 const { data: oData, error } = await _client.from('orders').select('*').order('created_at', { ascending: false }); 
                 if(error) throw error;
+                
                 if (oData) { 
                     document.getElementById('adminOrdersList').innerHTML = oData.map(o => { 
                         const isPaid = o.payment_status === 'จ่ายแล้ว'; 
                         const salesman = allUsers.find(u => u.id == o.salesman_id);
                         const sName = salesman ? salesman.name : 'สำนักงานขาย'; 
                         const statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold ${isPaid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${isPaid ? '✅ จ่ายแล้ว' : '❌ ค้างชำระ'}</span>`; 
+                        
                         const viewBtn = `<button onclick="viewOrderDetails(${o.id})" class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm mb-1 w-full hover:bg-indigo-100" data-i18n="btn_view_bill">🔍 ดูรายละเอียด</button>`;
                         const delBtn = currentAdmin.role === 'manager' ? `<button onclick="deleteOrder(${o.id})" class="text-red-400 text-xs font-bold underline block w-full text-center hover:text-red-600 mt-1">ลบบิล</button>` : ''; 
+                        
                         return `<tr><td class="p-4 text-xs font-mono">#${o.id}<br><span class="text-slate-500">${new Date(o.created_at).toLocaleDateString()}</span></td><td class="p-4 font-bold text-indigo-600">${sName}</td><td class="p-4"><b>${o.customer_name}</b></td><td class="p-4 font-black text-green-600">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBadge}</td><td class="p-4 text-center">${viewBtn}${delBtn}</td></tr>`; 
                     }).join(''); 
                     if(currentAdminLang==='la') setAdminLanguage('la'); 
                 } 
-            } catch(e) {}
+            } catch(e) { console.error("Load Orders Error", e); }
         }
 
-        async function deleteOrder(id) { if(!confirm(`ลบบิลที่ #${id} ใช่หรือไม่?`)) return; await _client.from('orders').delete().eq('id', id); loadOrders(); loadAdminDashboard(); }
+        async function deleteOrder(id) { 
+            if(!confirm(`ลบบิลที่ #${id} ใช่หรือไม่?`)) return; 
+            await _client.from('orders').delete().eq('id', id); 
+            loadOrders(); 
+            loadAdminDashboard(); 
+        }
 
         /* =========================================================
            REPORTS & PRINT REMITTANCE
@@ -314,14 +788,17 @@
             try {
                 if(allUsers.length === 0) await loadUsers();
                 const sales = allUsers.filter(u => u.role === 'sales');
-                if(sales) { document.getElementById('repSalesman').innerHTML = '<option value="">-- รวมพนักงานทั้งหมด --</option>' + sales.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); } 
-            } catch(e) {}
+                if(sales) { 
+                    document.getElementById('repSalesman').innerHTML = '<option value="">-- รวมพนักงานทั้งหมด --</option>' + sales.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); 
+                } 
+            } catch(e) { console.error(e); }
         }
         
         async function generateReport() { 
             const startDate = document.getElementById('repStartDate').value; 
             const endDate = document.getElementById('repEndDate').value; 
             const salesmanId = document.getElementById('repSalesman').value; 
+            
             let query = _client.from('orders').select('*'); 
             if(startDate) query = query.gte('created_at', startDate + 'T00:00:00.000Z'); 
             if(endDate) query = query.lte('created_at', endDate + 'T23:59:59.999Z'); 
@@ -329,6 +806,7 @@
             
             try {
                 if(allUsers.length === 0) await loadUsers();
+
                 const { data: oData, error } = await query.order('created_at', { ascending: false }); 
                 if(error) throw error;
                 
@@ -341,13 +819,20 @@
                     window.currentReportData = oData; 
                     btnExport.classList.remove('hidden'); 
                     btnPrint.classList.remove('hidden');
+                    
                     list.innerHTML = oData.map(o => { 
                         const isPaid = o.payment_status === 'จ่ายแล้ว'; 
                         if (isPaid) totalPaid += Number(o.total_amount || 0); else totalUnpaid += Number(o.total_amount || 0); 
-                        const salesman = allUsers.find(u => u.id == o.salesman_id); const sName = salesman ? salesman.name : 'สำนักงานขาย'; 
+                        
+                        const salesman = allUsers.find(u => u.id == o.salesman_id); 
+                        const sName = salesman ? salesman.name : 'สำนักงานขาย'; 
+                        
                         const statusBadge = isPaid ? '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ จ่ายแล้ว</span>' : '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">❌ ค้างชำระ</span>'; 
-                        const d = new Date(o.created_at); const dateStr = d.toLocaleDateString('th-TH') + ' ' + d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}); 
+                        const d = new Date(o.created_at); 
+                        const dateStr = d.toLocaleDateString('th-TH') + ' ' + d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'}); 
+                        
                         const viewBtn = `<button onclick="viewOrderDetails(${o.id})" class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm hover:bg-indigo-100" data-i18n="btn_view_bill">🔍 ดูรายละเอียด</button>`;
+                        
                         return `<tr class="hover:bg-slate-50"><td class="p-4 text-xs">${dateStr}</td><td class="p-4 text-xs font-mono">#${o.id}</td><td class="p-4 text-sm font-bold text-indigo-600">${sName}</td><td class="p-4 text-sm">${o.customer_name}</td><td class="p-4 text-sm font-black text-right text-slate-700">${(o.total_amount||0).toLocaleString()}.-</td><td class="p-4 text-center">${statusBadge}</td><td class="p-4 text-center">${viewBtn}</td></tr>`; 
                     }).join(''); 
                     if(currentAdminLang==='la') setAdminLanguage('la');
@@ -360,8 +845,10 @@
             } catch(e) { console.error(e); }
         }
 
+        // พิมพ์ใบส่งเงินฝั่งแอดมิน (A4)
         function printAdminRemittance() {
             if (!window.currentReportData || window.currentReportData.length === 0) return alert('ไม่มีข้อมูลสำหรับพิมพ์');
+            
             const startDate = document.getElementById('repStartDate').value;
             const endDate = document.getElementById('repEndDate').value;
             const selSalesman = document.getElementById('repSalesman');
@@ -373,7 +860,9 @@
             else if (endDate) dateLabel = `ถึง ${endDate}`;
             else dateLabel = 'ทั้งหมด';
 
-            let totalAmount = 0; let rowsHtml = '';
+            let totalAmount = 0;
+            let rowsHtml = '';
+
             window.currentReportData.forEach((o, index) => {
                 const salesman = allUsers.find(u => u.id == o.salesman_id);
                 const sName = salesman ? salesman.name : 'สำนักงานขาย';
@@ -381,14 +870,65 @@
                 const dateStr = d.toLocaleDateString('th-TH');
                 const timeStr = d.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
                 totalAmount += Number(o.total_amount || 0);
-                rowsHtml += `<tr><td class="text-center">${index + 1}</td><td class="text-center">${dateStr} ${timeStr}</td><td class="text-center">#${o.id}</td><td class="font-bold">${o.customer_name}</td><td>${sName}</td><td class="text-center">${o.payment_status}</td><td class="text-right font-bold">${(o.total_amount||0).toLocaleString()}</td></tr>`;
+
+                rowsHtml += `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td class="text-center">${dateStr} ${timeStr}</td>
+                        <td class="text-center">#${o.id}</td>
+                        <td class="font-bold">${o.customer_name}</td>
+                        <td>${sName}</td>
+                        <td class="text-center">${o.payment_status}</td>
+                        <td class="text-right font-bold">${(o.total_amount||0).toLocaleString()}</td>
+                    </tr>
+                `;
             });
-            const html = `<div class="header-title">ใบรายงานการขาย / นำส่งเงิน (Sales Report)</div><div class="header-subtitle">วันที่ยอดขาย: ${dateLabel} | พนักงานขาย: ${salesmanName}</div><table><thead><tr><th style="width: 5%;" class="text-center">ลำดับ</th><th style="width: 15%;" class="text-center">วัน-เวลา</th><th style="width: 10%;" class="text-center">เลขที่บิล</th><th style="width: 25%;">ลูกค้า / ร้านค้า</th><th style="width: 15%;">พนักงานขาย</th><th style="width: 10%;" class="text-center">สถานะ</th><th style="width: 15%;" class="text-right">ยอดเงิน (บาท)</th></tr></thead><tbody>${rowsHtml}</tbody><tfoot><tr><td colspan="6" class="text-right font-bold" style="font-size: 16px;">รวมยอดส่งเงินทั้งหมด:</td><td class="text-right font-bold" style="font-size: 16px; color: #0f172a;">${totalAmount.toLocaleString()}.-</td></tr></tfoot></table><div class="footer-signatures"><div class="signature-box"><div class="signature-line"></div><p>( .................................................... )</p><p>ผู้ส่งเงิน</p></div><div class="signature-box"><div class="signature-line"></div><p>( .................................................... )</p><p>ผู้รับเงิน / บัญชี</p></div></div>`;
+
+            const html = `
+                <div class="header-title">ใบรายงานการขาย / นำส่งเงิน (Sales Report)</div>
+                <div class="header-subtitle">วันที่ยอดขาย: ${dateLabel} | พนักงานขาย: ${salesmanName}</div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;" class="text-center">ลำดับ</th>
+                            <th style="width: 15%;" class="text-center">วัน-เวลา</th>
+                            <th style="width: 10%;" class="text-center">เลขที่บิล</th>
+                            <th style="width: 25%;">ลูกค้า / ร้านค้า</th>
+                            <th style="width: 15%;">พนักงานขาย</th>
+                            <th style="width: 10%;" class="text-center">สถานะ</th>
+                            <th style="width: 15%;" class="text-right">ยอดเงิน (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="6" class="text-right font-bold" style="font-size: 16px;">รวมยอดส่งเงินทั้งหมด:</td>
+                            <td class="text-right font-bold" style="font-size: 16px; color: #0f172a;">${totalAmount.toLocaleString()}.-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                
+                <div class="footer-signatures">
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>( .................................................... )</p>
+                        <p>ผู้ส่งเงิน</p>
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <p>( .................................................... )</p>
+                        <p>ผู้รับเงิน / บัญชี</p>
+                    </div>
+                </div>
+            `;
             printDocument(html, 'รายงานการขาย');
         }
 
         /* =========================================================
-           ฟังก์ชันย่อๆ ส่วนที่เหลือ (ไม่จำเป็นต้องเปลี่ยนอะไร)
+           ฟังก์ชันย่อๆ ส่วนที่เหลือ (POS, INVENTORY, TRANSFER, CUSTOMERS, PROMOTIONS)
         ========================================================= */
         async function loadAdminPosData() { try { if (allProducts.length === 0) await loadInventory(); if (allCustomers.length === 0) await loadAdminCustomers(); if (allUsers.length === 0) await loadUsers(); if (allPromotions.length === 0) await loadPromotions(); const salesSelect = document.getElementById('adminPosSalesman'); let opts = `<option value="${currentAdmin.id}">🏢 สำนักงานขายเอง (Office)</option>`; allUsers.forEach(u => { if (u.id !== currentAdmin.id && u.role === 'sales') { opts += `<option value="${u.id}">👤 ${u.name}</option>`; } }); salesSelect.innerHTML = opts; const prodSelect = document.getElementById('adminPosProduct'); let prodOpts = `<option value="">-- พิมพ์ชื่อ หรือ รหัสสินค้า --</option>`; allProducts.forEach(p => { if(p.master_stock > 0) { prodOpts += `<option value="${p.id}">${p.product_code ? `[${p.product_code}] ` : ''}${p.name} (คลังหลัก: ${p.master_stock})</option>`; } }); prodSelect.innerHTML = prodOpts; } catch (e) {} }
         function searchAdminPosCustomer() { const input = document.getElementById('adminPosCustomerName').value.toLowerCase(); const suggestBox = document.getElementById('adminPosCustomerSuggestions'); if (input.length < 1) { suggestBox.classList.add('hidden'); return; } const filtered = allCustomers.filter(c => c.name.toLowerCase().includes(input) || (c.customer_code && c.customer_code.toLowerCase().includes(input)) || (c.phone && c.phone.includes(input))); if (filtered.length > 0) { suggestBox.innerHTML = filtered.map(c => `<div onclick="selectAdminPosCustomer('${c.name.replace(/'/g, "\\'")}')" class="p-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"><p class="font-bold text-sm text-slate-800">${c.customer_code ? `<span class="text-indigo-600">[${c.customer_code}]</span> ` : ''}${c.name}</p><p class="text-[10px] text-slate-500">${c.phone ? '📞 ' + c.phone : ''} ${c.address ? '- ' + c.address : ''}</p></div>`).join(''); suggestBox.classList.remove('hidden'); } else { suggestBox.innerHTML = `<div class="p-3 text-xs text-slate-400 italic">ไม่พบข้อมูล (ระบบจะบันทึกเป็นลูกค้าใหม่)</div>`; suggestBox.classList.remove('hidden'); } }
@@ -410,6 +950,8 @@
         function openProductEdit(id = null) { document.getElementById('epCategory').innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>' + globalCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join(''); if(id) { const p = allProducts.find(x=>x.id===id); document.getElementById('epTitle').innerHTML = '✏️ แก้ไขข้อมูลสินค้า'; document.getElementById('epId').value = p.id; document.getElementById('epCode').value = p.product_code || ''; document.getElementById('epName').value = p.name; document.getElementById('epCategory').value = p.category_name || ''; document.getElementById('epCost').value = p.cost_price||0; document.getElementById('epStock').value = p.master_stock||0; document.getElementById('epUnit').value = p.unit_name || 'ชิ้น'; document.getElementById('epSale').value = p.sale_price || 0; document.getElementById('epPackUnit').value = p.pack_unit || ''; document.getElementById('epPackQty').value = p.pack_qty || ''; document.getElementById('epPackPrice').value = p.pack_price || ''; document.getElementById('epBoxUnit').value = p.box_unit || ''; document.getElementById('epBoxQty').value = p.box_qty || ''; document.getElementById('epBoxPrice').value = p.box_price || ''; document.getElementById('epMinTransferBox').value = p.min_transfer_box || 1; document.getElementById('btnDeleteProduct').classList.remove('hidden'); } else { document.getElementById('epTitle').innerHTML = '➕ เพิ่มสินค้าใหม่'; ['epId','epCode','epName','epCategory','epCost','epPackUnit','epPackQty','epPackPrice','epBoxUnit','epBoxQty','epBoxPrice'].forEach(id => document.getElementById(id).value = ''); document.getElementById('epUnit').value = 'ชิ้น'; document.getElementById('epSale').value = ''; document.getElementById('epStock').value = 0; document.getElementById('epMinTransferBox').value = 1; document.getElementById('btnDeleteProduct').classList.add('hidden'); } document.getElementById('editProductModal').classList.remove('hidden'); }
         async function saveProductEdit() { const id = document.getElementById('epId').value; const payload = { product_code: document.getElementById('epCode').value.trim() || null, name: document.getElementById('epName').value.trim(), category_name: document.getElementById('epCategory').value || null, cost_price: Number(document.getElementById('epCost').value)||0, master_stock: Number(document.getElementById('epStock').value)||0, unit_name: document.getElementById('epUnit').value.trim() || 'ชิ้น', sale_price: Number(document.getElementById('epSale').value)||0, pack_unit: document.getElementById('epPackUnit').value.trim() || null, pack_qty: Number(document.getElementById('epPackQty').value)||0, pack_price: Number(document.getElementById('epPackPrice').value)||0, box_unit: document.getElementById('epBoxUnit').value.trim() || null, box_qty: Number(document.getElementById('epBoxQty').value)||0, box_price: Number(document.getElementById('epBoxPrice').value)||0, min_transfer_box: Number(document.getElementById('epMinTransferBox').value)||1 }; if(!payload.name || !payload.sale_price) return alert('กรุณากรอกชื่อและราคาขายหน่วยย่อยระดับ 1 ให้ครบถ้วน'); try { if(id) await _client.from('products').update(payload).eq('id', id); else await _client.from('products').insert([payload]); closeModal('editProductModal'); loadInventory(); } catch(e) { alert(e.message); } }
         async function deleteProduct() { const id = document.getElementById('epId').value; if(!id) return; if(confirm('🚨 คำเตือน: ต้องการลบสินค้านี้ใช่หรือไม่?\nการลบสินค้าจะทำให้ประวัติการขายที่เกี่ยวข้องกับสินค้านี้ไม่สมบูรณ์!')) { try { await _client.from('products').delete().eq('id', id); closeModal('editProductModal'); loadInventory(); } catch(e) {} } }
+        async function printInventorySheet() { if (allProducts.length === 0) return alert('ไม่มีสินค้าในคลัง'); const dateStr = new Date().toLocaleString('th-TH'); let rowsHtml = ''; allProducts.forEach((p, index) => { rowsHtml += `<tr><td class="text-center">${index + 1}</td><td>${p.product_code || '-'}</td><td class="font-bold">${p.name}</td><td>${p.category_name || '-'}</td><td class="text-center font-bold" style="color:#0f172a;">${p.master_stock} ${p.unit_name || ''}</td><td></td></tr>`; }); const html = `<div class="header-title">ใบเช็คสต๊อกคลังหลัก (Inventory Sheet)</div><div class="header-subtitle">วันที่พิมพ์: ${dateStr} | พิมพ์โดย: ${currentAdmin.name}</div><table><thead><tr><th style="width: 5%;" class="text-center">ลำดับ</th><th style="width: 15%;">รหัสสินค้า</th><th style="width: 35%;">ชื่อสินค้า</th><th style="width: 15%;">หมวดหมู่</th><th style="width: 15%;" class="text-center">ระบบ (System)</th><th style="width: 15%;" class="text-center">นับจริง (Actual)</th></tr></thead><tbody>${rowsHtml}</tbody></table><div class="footer-signatures"><div class="signature-box"><div class="signature-line"></div><p>( .................................................... )</p><p>ผู้พิมพ์เอกสาร</p></div><div class="signature-box"><div class="signature-line"></div><p>( .................................................... )</p><p>ผู้ตรวจนับสต๊อก</p></div></div>`; printDocument(html, 'ใบเช็คสต๊อกคลังหลัก'); }
+
         async function loadTransferLogs() { try { const { data } = await _client.from('stock_transfers').select('*').order('transfer_date', { ascending: false }).limit(200); if(data) { allTransferData = data; const pending = data.filter(x => x.status === 'ส่งใบเบิกสินค้า'); const groupedPending = {}; pending.forEach(x => { const ref = x.transfer_ref || `NO-REF-${x.id}`; if(!groupedPending[ref]) { groupedPending[ref] = { ref: ref, salesman_name: x.salesman_name, date: x.transfer_date, items: [] }; } groupedPending[ref].items.push(x); }); const pendingArr = Object.values(groupedPending); document.getElementById('pendingRequestsBody').innerHTML = pendingArr.length > 0 ? pendingArr.map(g => `<tr><td class="p-3"><div class="flex justify-between items-baseline mb-2"><b class="text-amber-700 text-sm">👤 ${g.salesman_name}</b><span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-mono">บิล: ${g.ref}</span></div><div class="bg-slate-50 p-2 rounded border border-slate-100 space-y-1">${g.items.map(i => `<div class="flex justify-between text-xs"><span class="text-slate-600">- ${i.product_name}</span><b class="text-blue-600">x${i.quantity} <span class="font-normal text-slate-400">(= ${i.base_qty||i.quantity} ชิ้นย่อย)</span></b></div>`).join('')}</div></td><td class="p-3 text-center align-top pt-5 space-y-2 w-[90px]"><button onclick="approveGroup('${g.ref}', this)" class="block w-full bg-green-500 hover:bg-green-600 text-white font-bold px-2 py-2 rounded-lg text-xs shadow-sm transition-all">อนุมัติ</button><button onclick="rejectGroup('${g.ref}', this)" class="block w-full bg-red-100 text-red-600 hover:bg-red-200 text-[10px] px-2 py-1.5 rounded-lg font-bold transition-all">ปฏิเสธ</button></td></tr>`).join('') : `<tr><td colspan="2" class="p-6 text-center text-slate-400">✅ ไม่มีคำขอเบิกสินค้าค้างอยู่</td></tr>`; document.getElementById('transferLogBody').innerHTML = data.map(l => { let badge = ''; if(l.status === 'ส่งใบเบิกสินค้า') badge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-[10px]">รออนุมัติ</span>'; else if(l.status === 'อนุมัติแล้ว') badge = '<span class="text-blue-600 bg-blue-50 px-2 py-1 rounded text-[10px]">รอเซลกดรับ</span>'; else if(l.status === 'เซลรับสินค้าแล้ว' || l.status === 'รับโอนแล้ว') badge = '<span class="text-green-600 bg-green-50 px-2 py-1 rounded text-[10px]">เซลรับสินค้าแล้ว</span>'; else badge = `<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-[10px]">${l.status}</span>`; return `<tr><td class="p-3 text-xs text-slate-500">${new Date(l.transfer_date).toLocaleDateString('th-TH')} ${new Date(l.transfer_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}<br><span class="text-[9px] font-mono text-slate-400">${l.transfer_ref || '-'}</span></td><td class="p-3"><b class="text-slate-700">${l.salesman_name}</b><br><span class="text-xs text-slate-500">${l.product_name} <b class="text-blue-500">(x${l.quantity})</b></span></td><td class="p-3 text-center">${badge}</td></tr>`; }).join(''); } } catch(e) {} }
         async function approveGroup(ref, btnElement) { if(!confirm(`ยืนยัน "อนุมัติ"?`)) return; const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า'); if (allProducts.length === 0) await loadInventory(); for (let item of items) { const prod = allProducts.find(p => p.id === item.product_id); const baseToDeduct = item.base_qty || item.quantity; if (!prod || prod.master_stock < baseToDeduct) return alert(`❌ อนุมัติไม่ได้!\nสินค้า "${item.product_name}" ในคลังหลักมีไม่พอตัด`); } if(btnElement) { btnElement.disabled = true; btnElement.innerText = 'กำลังประมวลผล...'; } try { for (let item of items) { const prod = allProducts.find(p => p.id === item.product_id); const baseToDeduct = item.base_qty || item.quantity; await _client.from('products').update({ master_stock: prod.master_stock - baseToDeduct }).eq('id', item.product_id); await _client.from('stock_transfers').update({ status: 'อนุมัติแล้ว', admin_name: currentAdmin.name }).eq('id', item.id); } loadInventory(); loadTransferLogs(); } catch(e) { } }
         async function rejectGroup(ref, btnElement) { if(!confirm(`ต้องการ "ปฏิเสธ"?`)) return; const items = allTransferData.filter(x => (x.transfer_ref === ref || `NO-REF-${x.id}` === ref) && x.status === 'ส่งใบเบิกสินค้า'); for (let item of items) { await _client.from('stock_transfers').update({ status: 'ปฏิเสธ (แอดมินยกเลิก)', admin_name: currentAdmin.name }).eq('id', item.id); } loadTransferLogs(); }
